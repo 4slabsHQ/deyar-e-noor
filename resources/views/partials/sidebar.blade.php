@@ -61,22 +61,33 @@
                     <li><a href="{{ route('admin.guides.index') }}">Guides</a></li>
                     <li><a href="{{ route('admin.vendors.index') }}">Vendors</a></li>
                     <li><a href="{{ route('admin.taxes.index') }}">Taxes</a></li>
-                    <li><a href="{{ route('admin.companies.index') }}">Company</a></li>
                 </ul>
             </li>
 
-            @can('roles.view')
+            <li>
+                <a href="{{ route('admin.companies.index') }}">
+                    <i class="fas fa-building"></i>
+                    <span class="nav-text">Company</span>
+                </a>
+            </li>
+
+            @canany(['roles.view','users.view'])
             <li>
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-user-shield"></i>
                     <span class="nav-text">Access Control</span>
                 </a>
                 <ul aria-expanded="false">
+                    @can('users.view')
                     <li><a href="{{ route('admin.users.index') }}">Users</a></li>
-                    <li><a href="{{ route('admin.roles.index') }}">Roles & Permissions</a></li>
+                    @endcan
+                    @can('roles.view')
+                    <li><a href="{{ route('admin.roles.index') }}">Roles</a></li>
+                    <li><a href="{{ route('admin.permissions.index') }}">Permissions</a></li>
+                    @endcan
                 </ul>
             </li>
-            @endcan
+            @endcanany
 
         </ul>
 

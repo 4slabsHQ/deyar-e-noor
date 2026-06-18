@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\PermissionController;
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -71,7 +72,28 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     | Access Control
     |--------------------------------------------------------------------------
     */
-    Route::resource('users', UserController::class);
-    Route::resource('roles', RoleController::class);
+    Route::resource('users', UserController::class)
+        ->middleware([
+            'index'  => 'permission:users.view',
+            'edit'   => 'permission:users.update',
+            'update' => 'permission:users.update',
+        ]);
+
+    // Roles
+    Route::resource('roles', RoleController::class)
+        ->middleware([
+            'index'   => 'permission:roles.view',
+            'show'    => 'permission:roles.view',
+            'create'  => 'permission:roles.create',
+            'store'   => 'permission:roles.create',
+            'edit'    => 'permission:roles.update',
+            'update'  => 'permission:roles.update',
+            'destroy' => 'permission:roles.delete',
+        ]);
+
+    // Permissions
+    Route::get('permissions', [PermissionController::class, 'index'])
+        ->name('permissions.index')
+        ->middleware('permission:roles.view');
 
 });
