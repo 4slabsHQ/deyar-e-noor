@@ -21,11 +21,21 @@ class CompanyController extends Controller
 
     public function create()
     {
+        if (Company::exists()) {
+            return redirect()->route('admin.companies.index')
+                ->with('error', 'Only one company is allowed. Edit the existing company instead.');
+        }
+
         return view('admin.companies.create');
     }
 
     public function store(StoreCompanyRequest $request)
     {
+        if (Company::exists()) {
+            return redirect()->route('admin.companies.index')
+                ->with('error', 'Only one company is allowed.');
+        }
+
         $this->service->store($request->validated());
 
         return redirect()->route('admin.companies.index')
