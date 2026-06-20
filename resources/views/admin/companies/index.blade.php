@@ -5,14 +5,16 @@
 @section('page-title', 'Companies')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Companies</h4>
-        @if (!\App\Models\Company::exists())
-            <a href="{{ route('admin.companies.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> New Company
-            </a>
-        @endif
-    </div>
+    @can('companies.create')
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fs-20 font-w700 mb-0">Companies</h4>
+            @if (!\App\Models\Company::exists())
+                <a href="{{ route('admin.companies.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> New Company
+                </a>
+            @endif
+        </div>
+    @endcan
 
     <div class="card">
         <div class="card-header">
@@ -57,10 +59,13 @@
                                 </td>
                                 <td>
                                     <div class="d-flex">
+                                        @can('companies.edit')
                                         <a href="{{ route('admin.companies.edit', $company) }}"
                                            class="btn btn-primary shadow btn-xs sharp me-1">
                                             <i class="fas fa-pencil-alt"></i>
                                         </a>
+                                        @endcan
+                                        @can('companies.destroy')
                                         <form action="{{ route('admin.companies.destroy', $company) }}"
                                               method="POST"
                                               onsubmit="return confirm('Delete {{ $company->name }}?')">
@@ -70,6 +75,7 @@
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

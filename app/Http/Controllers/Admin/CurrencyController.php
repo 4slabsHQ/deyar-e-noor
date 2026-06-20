@@ -3,63 +3,63 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCurrencyRequest;
+use App\Http\Requests\UpdateCurrencyRequest;
+use App\Models\Currency;
 
 class CurrencyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $currencies = Currency::orderBy('name')->paginate(15);
+
+        return view('admin.currencies.index', compact('currencies'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.currencies.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreCurrencyRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        if (!empty($data['is_default'])) {
+            Currency::query()->update(['is_default' => false]);
+        }
+
+        Currency::create($data);
+
+        return redirect()->route('admin.currencies.index')->with('success', 'Currency created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Currency $currency)
     {
-        //
+        return view('admin.currencies.edit', compact('currency'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateCurrencyRequest $request, Currency $currency)
     {
-        //
+        $data = $request->validated();
+
+        if (!empty($data['is_default'])) {
+            Currency::query()->where('id', '!=', $currency->id)->update(['is_default' => false]);
+        }
+
+        $currency->update($data);
+
+        return redirect()->route('admin.currencies.index')->with('success', 'Currency updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Currency $currency)
     {
-        //
-    }
+        if ($currency->is_default) {
+            return back()->with('error', 'Cannot delete the default currency.');
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $currency->delete();
+
+        return redirect()->route('admin.currencies.index')->with('success', 'Currency deleted successfully.');
     }
 }

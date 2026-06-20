@@ -3,63 +3,75 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Requests\UpdateSupplierRequest;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Supplier;
+use App\Models\SupplierCategory;
+use App\Services\SupplierService;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(private SupplierService $supplierService)
+    {
+    }
+
     public function index()
     {
-        //
+        $suppliers = Supplier::with(['category', 'country', 'city'])
+            ->orderBy('name')
+            ->paginate(15);
+
+        return view('admin.suppliers.index', compact('suppliers'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.suppliers.create', $this->formData());
+    }
+
+    public function store(StoreSupplierRequest $request)
+    {
+        $this->supplierService->create($request->validated());
+
+        return redirect()
+            ->route('admin.suppliers.index')
+            ->with('success', 'Supplier created successfully.');
+    }
+
+    public function edit(Supplier $supplier)
+    {
+        return view('admin.suppliers.edit', $this->formData() + compact('supplier'));
+    }
+
+    public function update(UpdateSupplierRequest $request, Supplier $supplier)
+    {
+        $this->supplierService->update($supplier, $request->validated());
+
+        return redirect()
+            ->route('admin.suppliers.index')
+            ->with('success', 'Supplier updated successfully.');
+    }
+
+    public function destroy(Supplier $supplier)
+    {
+        $supplier->delete();
+
+        return redirect()
+            ->route('admin.suppliers.index')
+            ->with('success', 'Supplier deleted successfully.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Shared dropdown data for create & edit forms.
      */
-    public function store(Request $request)
+    private function formData(): array
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return [
+            'categories' => SupplierCategory::orderBy('name')->get(),
+            'countries'  => Country::orderBy('name')->get(),
+            'cities'     => City::orderBy('name')->get(),
+        ];
     }
 }
