@@ -78,6 +78,9 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Settings
             'settings.manage',
+
+            //Company
+            'companies.view','companies.create','companies.edit','companies.destroy',
         ];
 
         foreach ($permissions as $permission) {

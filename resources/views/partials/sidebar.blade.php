@@ -46,30 +46,52 @@
             </li>
             @endcanany
 
+            @canany(['countries.view','cities.view','currencies.view','airlines.view','hotels.view','transporters.view','guides.view','vendors.view','taxes.view'])
             <li>
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-globe"></i>
                     <span class="nav-text">Master Data</span>
                 </a>
                 <ul aria-expanded="false">
+                    @can('countries.view')
                     <li><a href="{{ route('admin.countries.index') }}">Countries</a></li>
+                    @endcan
+                    @can('cities.view')
                     <li><a href="{{ route('admin.cities.index') }}">Cities</a></li>
+                    @endcan
+                    @can('currencies.view')
                     <li><a href="{{ route('admin.currencies.index') }}">Currencies</a></li>
+                    @endcan
+                    @can('airlines.view')
                     <li><a href="{{ route('admin.airlines.index') }}">Airlines</a></li>
+                    @endcan
+                    @can('hotels.view')
                     <li><a href="{{ route('admin.hotels.index') }}">Hotels</a></li>
+                    @endcan
+                    @can('transporters.view')
                     <li><a href="{{ route('admin.transporters.index') }}">Transporters</a></li>
+                    @endcan
+                    @can('guides.view')
                     <li><a href="{{ route('admin.guides.index') }}">Guides</a></li>
+                    @endcan
+                    @can('vendors.view')
                     <li><a href="{{ route('admin.vendors.index') }}">Vendors</a></li>
+                    @endcan
+                    @can('taxes.view')
                     <li><a href="{{ route('admin.taxes.index') }}">Taxes</a></li>
+                    @endcan
                 </ul>
             </li>
+            @endcanany
 
+            @can('companies.view')
             <li>
                 <a href="{{ route('admin.companies.index') }}">
                     <i class="fas fa-building"></i>
                     <span class="nav-text">Company</span>
                 </a>
             </li>
+            @endcan
 
             @canany(['roles.view','users.view'])
             <li>

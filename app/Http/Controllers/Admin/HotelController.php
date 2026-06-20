@@ -3,63 +3,61 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreHotelRequest;
+use App\Http\Requests\UpdateHotelRequest;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Hotel;
 
 class HotelController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $hotels = Hotel::with(['country', 'city'])->orderBy('name')->paginate(15);
+
+        return view('admin.hotels.index', compact('hotels'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $countries = Country::orderBy('name')->get();
+        $cities    = City::orderBy('name')->get();
+
+        return view('admin.hotels.create', compact('countries', 'cities'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreHotelRequest $request)
     {
-        //
+        $data = $request->validated();
+        $data['created_by'] = auth()->id();
+
+        Hotel::create($data);
+
+        return redirect()->route('admin.hotels.index')->with('success', 'Hotel created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Hotel $hotel)
     {
-        //
+        $countries = Country::orderBy('name')->get();
+        $cities    = City::orderBy('name')->get();
+
+        return view('admin.hotels.edit', compact('hotel', 'countries', 'cities'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
-        //
+        $data = $request->validated();
+        $data['updated_by'] = auth()->id();
+
+        $hotel->update($data);
+
+        return redirect()->route('admin.hotels.index')->with('success', 'Hotel updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Hotel $hotel)
     {
-        //
-    }
+        $hotel->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('admin.hotels.index')->with('success', 'Hotel deleted successfully.');
     }
 }

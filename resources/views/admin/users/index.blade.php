@@ -5,8 +5,13 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header">
-        <h4 class="card-title">All Users</h4>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0">All Users</h4>
+        @can('users.create')
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Create User
+            </a>
+        @endcan
     </div>
     <div class="card-body">
         <div class="table-responsive">

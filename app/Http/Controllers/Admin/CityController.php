@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCityRequest;
+use App\Http\Requests\UpdateCityRequest;
+use App\Models\City;
+use App\Models\Country;
 
 class CityController extends Controller
 {
@@ -12,7 +15,9 @@ class CityController extends Controller
      */
     public function index()
     {
-        //
+        $cities = City::orderBy('name')->paginate(15);
+
+        return view('admin.cities.index', compact('cities'));
     }
 
     /**
@@ -20,15 +25,19 @@ class CityController extends Controller
      */
     public function create()
     {
-        //
+         $countries = Country::orderBy('name')->get();
+
+        return view('admin.cities.create', compact('countries'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCityRequest $request)
     {
-        //
+        City::create($request->validated());
+
+        return redirect()->route('admin.cities.index')->with('success', 'City created successfully.');
     }
 
     /**
@@ -50,7 +59,7 @@ class CityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateCityRequest $request, string $id)
     {
         //
     }

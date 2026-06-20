@@ -12,7 +12,7 @@ class UpdateCurrencyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,12 @@ class UpdateCurrencyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name'       => ['required', 'string', 'max:150'],
+            'code'       => ['required', 'string', 'size:3', 'unique:currencies,code,' . $this->currency->id],
+            'symbol'     => ['nullable', 'string', 'max:10'],
+            'exchange_rate' => ['required', 'numeric', 'min:0'],
+            'is_default' => ['boolean'],
+            'is_active'  => ['boolean'],
         ];
     }
 }

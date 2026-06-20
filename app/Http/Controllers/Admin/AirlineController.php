@@ -3,63 +3,72 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreAirlineRequest;
+use App\Http\Requests\UpdateAirlineRequest;
+use App\Models\Airline;
+use App\Models\Country;
+use Illuminate\Support\Facades\Storage;
 
 class AirlineController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $airlines = Airline::with('country')->orderBy('name')->paginate(15);
+
+        return view('admin.airlines.index', compact('airlines'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $countries = Country::orderBy('name')->get();
+
+        return view('admin.airlines.create', compact('countries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreAirlineRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('logo')) {
+            $data['logo'] = $request->file('logo')->store('airlines', 'public');
+        }
+
+        $data['created_by'] = auth()->id();
+
+        Airline::create($data);
+
+        return redirect()->route('admin.airlines.index')->with('success', 'Airline created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Airline $airline)
     {
-        //
+        $countries = Country::orderBy('name')->get();
+
+        return view('admin.airlines.edit', compact('airline', 'countries'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateAirlineRequest $request, Airline $airline)
     {
-        //
+        $data = $request->validated();
+
+        if ($request->hasFile('logo')) {
+            if ($airline->logo) {
+                Storage::disk('public')->delete($airline->logo);
+            }
+            $data['logo'] = $request->file('logo')->store('airlines', 'public');
+        }
+
+        $data['updated_by'] = auth()->id();
+
+        $airline->update($data);
+
+        return redirect()->route('admin.airlines.index')->with('success', 'Airline updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Airline $airline)
     {
-        //
-    }
+        $airline->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('admin.airlines.index')->with('success', 'Airline deleted successfully.');
     }
 }
