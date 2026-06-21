@@ -109,7 +109,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     | Parties
     |--------------------------------------------------------------------------
     */
-    Route::resource('customers', CustomerController::class);
+    Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class)
+        ->except(['show'])
+        ->middleware([
+            'index'   => 'permission:customers.view',
+            'create'  => 'permission:customers.create',
+            'store'   => 'permission:customers.create',
+            'edit'    => 'permission:customers.update',
+            'update'  => 'permission:customers.update',
+            'destroy' => 'permission:customers.delete',
+        ]);
     Route::resource('suppliers', \App\Http\Controllers\Admin\SupplierController::class)
         ->except(['show'])
         ->middleware([
@@ -158,4 +167,5 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'destroy' => 'permission:roles.delete',
         ]);
 
+        require __DIR__ . '/crm.php';
 });

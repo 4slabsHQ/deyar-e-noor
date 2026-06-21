@@ -3,63 +3,74 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Customer;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $customers = Customer::with(['country', 'city'])
+            ->orderBy('name')
+            ->paginate(15);
+
+        return view('admin.customers.index', compact('customers'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.customers.create', $this->formData());
+    }
+
+    public function store(StoreCustomerRequest $request)
+    {
+        $data = $request->validated();
+        $data['created_by'] = auth()->id();
+
+        Customer::create($data);
+
+        return redirect()
+            ->route('admin.customers.index')
+            ->with('success', 'Customer created successfully.');
+    }
+
+    public function edit(Customer $customer)
+    {
+        return view('admin.customers.edit', $this->formData() + compact('customer'));
+    }
+
+    public function update(UpdateCustomerRequest $request, Customer $customer)
+    {
+        $data = $request->validated();
+        $data['updated_by'] = auth()->id();
+
+        $customer->update($data);
+
+        return redirect()
+            ->route('admin.customers.index')
+            ->with('success', 'Customer updated successfully.');
+    }
+
+    public function destroy(Customer $customer)
+    {
+        $customer->delete();
+
+        return redirect()
+            ->route('admin.customers.index')
+            ->with('success', 'Customer deleted successfully.');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Shared dropdown data for create & edit forms.
      */
-    public function store(Request $request)
+    private function formData(): array
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return [
+            'countries' => Country::orderBy('name')->get(),
+            'cities'    => City::orderBy('name')->get(),
+        ];
     }
 }
