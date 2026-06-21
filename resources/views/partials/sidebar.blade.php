@@ -29,6 +29,39 @@
             </li>
             @endcanany
 
+            @canany(['leads.view','channels.view','campaigns.view','lead-statuses.view','qualified-statuses.view','services.view','sub-services.view'])
+            <li>
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="nav-text">CRM</span>
+                </a>
+                <ul aria-expanded="false">
+                    @can('leads.view')
+                    <li><a href="{{ route('admin.leads.dashboard') }}">Lead Dashboard</a></li>
+                    <li><a href="{{ route('admin.leads.index') }}">Leads</a></li>
+                    @endcan
+                    @can('channels.view')
+                    <li><a href="{{ route('admin.channels.index') }}">Channels</a></li>
+                    @endcan
+                    @can('campaigns.view')
+                    <li><a href="{{ route('admin.campaigns.index') }}">Campaigns</a></li>
+                    @endcan
+                    @can('lead-statuses.view')
+                    <li><a href="{{ route('admin.lead-statuses.index') }}">Lead Statuses</a></li>
+                    @endcan
+                    @can('qualified-statuses.view')
+                    <li><a href="{{ route('admin.qualified-statuses.index') }}">Qualified Statuses</a></li>
+                    @endcan
+                    @can('services.view')
+                    <li><a href="{{ route('admin.services.index') }}">Services</a></li>
+                    @endcan
+                    @can('sub-services.view')
+                    <li><a href="{{ route('admin.sub-services.index') }}">Sub Services</a></li>
+                    @endcan
+                </ul>
+            </li>
+            @endcanany
+
             @canany(['customers.view','suppliers.view'])
             <li>
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
