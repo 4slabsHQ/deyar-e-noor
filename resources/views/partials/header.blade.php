@@ -1,9 +1,9 @@
 <div class="nav-header">
     <a href="{{ route('dashboard') }}" class="brand-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo-abbr" style="height:40px;">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="logo-abbr">
         <div class="brand-title">
-            <h2>Travel ERP</h2>
-            <span class="brand-sub-title">Management System</span>
+            <h2>{{ config('branding.title') }}</h2>
+            <span class="brand-sub-title">{{ config('branding.subtitle') }}</span>
         </div>
     </a>
     <div class="nav-control">

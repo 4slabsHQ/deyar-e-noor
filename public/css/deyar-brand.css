@@ -1,0 +1,121 @@
+/**
+ * Deyar-e-Noor brand overrides (gold / charcoal theme)
+ */
+:root {
+    --primary: #B8956A;
+    --primary-light: #D4BC94;
+    --primary-hover: #967848;
+    --primary-dark: #1C1C1C;
+    --rgba-primary-1: rgba(184, 149, 106, 0.1);
+    --rgba-primary-2: rgba(184, 149, 106, 0.2);
+    --rgba-primary-3: rgba(184, 149, 106, 0.3);
+    --rgba-primary-4: rgba(184, 149, 106, 0.4);
+    --rgba-primary-5: rgba(184, 149, 106, 0.5);
+    --rgba-primary-6: rgba(184, 149, 106, 0.6);
+    --rgba-primary-7: rgba(184, 149, 106, 0.7);
+    --rgba-primary-8: rgba(184, 149, 106, 0.8);
+    --rgba-primary-9: rgba(184, 149, 106, 0.9);
+    --bs-primary: #B8956A;
+    --bs-primary-rgb: 184, 149, 106;
+}
+
+.nav-header {
+    background-color: #1C1C1C;
+}
+
+.nav-header .brand-logo .brand-title h2 {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+
+.nav-header .brand-logo .brand-title .brand-sub-title {
+    color: #B8956A;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+}
+
+.nav-header .hamburger .line {
+    background: #B8956A;
+}
+
+.dlabnav {
+    background: #1C1C1C;
+}
+
+.dlabnav .metismenu > li > a {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.dlabnav .metismenu > li:hover > a,
+.dlabnav .metismenu > li.mm-active > a {
+    color: #fff;
+    background: rgba(184, 149, 106, 0.15);
+}
+
+.dlabnav .metismenu ul a:hover,
+.dlabnav .metismenu ul a:focus,
+.dlabnav .metismenu ul a.mm-active {
+    color: #B8956A;
+}
+
+.dlabnav .copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dlabnav .copyright p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+}
+
+.dlabnav .copyright strong {
+    color: #B8956A;
+}
+
+.btn-primary {
+    background-color: #B8956A;
+    border-color: #B8956A;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #967848 !important;
+    border-color: #967848 !important;
+}
+
+.bg-primary {
+    background-color: #B8956A !important;
+}
+
+.text-primary {
+    color: #B8956A !important;
+}
+
+.badge.bg-primary {
+    background-color: #B8956A !important;
+}
+
+.footer .copyright p {
+    color: #666;
+}
+
+.footer .copyright strong {
+    color: #967848;
+}
+
+[data-sidebar-style="full"] .nav-header .brand-logo {
+    padding-left: 1.25rem;
+}
+
+.nav-header .brand-logo .logo-abbr {
+    border-radius: 4px;
+    object-fit: contain;
+    height: 44px !important;
+    width: auto;
+    max-width: 140px;
+    background: #fff;
+    padding: 4px 8px;
+}

@@ -147,7 +147,7 @@
         </ul>
 
         <div class="copyright">
-            <p><strong>Travel ERP</strong> &copy; {{ now()->year }} All Rights Reserved</p>
+            <p><strong>{{ config('app.name') }}</strong> &copy; {{ now()->year }}</p>
         </div>
     </div>
 </div>
