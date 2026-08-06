@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             // Users & Roles
@@ -42,6 +43,12 @@ class RolesAndPermissionsSeeder extends Seeder
             // CRM
             'leads.view', 'leads.create', 'leads.update', 'leads.delete',
             'leads.assign', 'leads.import',
+            'channels.view', 'channels.create', 'channels.update', 'channels.delete',
+            'campaigns.view', 'campaigns.create', 'campaigns.update', 'campaigns.delete',
+            'lead-statuses.view', 'lead-statuses.create', 'lead-statuses.update', 'lead-statuses.delete',
+            'qualified-statuses.view', 'qualified-statuses.create', 'qualified-statuses.update', 'qualified-statuses.delete',
+            'services.view', 'services.create', 'services.update', 'services.delete',
+            'sub-services.view', 'sub-services.create', 'sub-services.update', 'sub-services.delete',
 
             // Invoices
             'invoices.view', 'invoices.create', 'invoices.update', 'invoices.delete',
@@ -79,16 +86,17 @@ class RolesAndPermissionsSeeder extends Seeder
             // Settings
             'settings.manage',
 
-            //Company
-            'companies.view','companies.create','companies.edit','companies.destroy',
+            // Company
+            'companies.view', 'companies.create', 'companies.edit', 'companies.destroy',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Super Admin — gets all permissions via Gate::before
-        Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        // Super Admin — bypasses checks via Gate::before; sync all permissions for middleware/direct checks
+        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $superAdmin->syncPermissions(Permission::all());
 
         // Admin
         $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
