@@ -10,5 +10,3 @@
 
 <script src="{{ asset('js/custom.min.js') }}"></script>
 <script src="{{ asset('js/dlabnav-init.js') }}"></script>
-<script src="{{ asset('js/demo.js') }}"></script>
-<script src="{{ asset('js/styleSwitcher.js') }}"></script>

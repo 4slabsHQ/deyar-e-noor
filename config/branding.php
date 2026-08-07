@@ -16,6 +16,9 @@ return [
         'gold_light' => '#D4BC94',
         'charcoal' => '#1C1C1C',
         'charcoal_soft' => '#2A2A2A',
+        'shell_bg' => '#F9FAFB',
+        'surface' => '#FFFFFF',
+        'border' => '#E5E7EB',
     ],
 
 ];

@@ -22,4 +22,5 @@ test('authenticated dashboard shows deyar-e-noor branding', function () {
     $response->assertOk();
     $response->assertSee('Deyar-e-Noor', false);
     $response->assertSee('deyar-brand.css', false);
+    $response->assertSee('deyar-metric__label', false);
 });

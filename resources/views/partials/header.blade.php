@@ -27,8 +27,8 @@
                         <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
                             <img src="{{ asset('images/user.jpg') }}" width="20" alt=""/>
                             <div class="header-info ms-3">
-                                <span class="fs-18 font-w500 mb-2">{{ auth()->user()->name ?? 'Guest' }}</span>
-                                <small class="fs-12 font-w400">{{ auth()->user()->email ?? '' }}</small>
+                                <span>{{ auth()->user()->name ?? 'Guest' }}</span>
+                                <small>{{ auth()->user()->email ?? '' }}</small>
                             </div>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">

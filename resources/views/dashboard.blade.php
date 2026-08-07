@@ -3,37 +3,36 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<div class="row">
+<div class="row g-3">
     <div class="col-xl-3 col-sm-6">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h4 class="fs-18 font-w600">Total Customers</h4>
-                <h2 class="fs-32 font-w700 mb-0">0</h2>
+                <span class="deyar-metric__label">Customers</span>
+                <span class="deyar-metric__value">0</span>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h4 class="fs-18 font-w600">Total Suppliers</h4>
-                <h2 class="fs-32 font-w700 mb-0">0</h2>
+                <span class="deyar-metric__label">Suppliers</span>
+                <span class="deyar-metric__value">0</span>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h4 class="fs-18 font-w600">Active Branches</h4>
-                <h2 class="fs-32 font-w700 mb-0">0</h2>
+                <span class="deyar-metric__label">Branches</span>
+                <span class="deyar-metric__value">0</span>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-sm-6">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h4 class="fs-18 font-w600">Logged in as</h4>
-                <h4 class="fs-20 font-w700 mb-0">{{ auth()->user()->name }}</h4>
-                <span class="badge bg-primary">{{ auth()->user()->getRoleNames()->first() ?? 'No Role' }}</span>
+                <span class="deyar-metric__label">Signed in as</span>
+                <span class="deyar-metric__value deyar-metric__value--text">{{ auth()->user()->name }}</span>
             </div>
         </div>
     </div>

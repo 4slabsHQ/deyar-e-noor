@@ -21,22 +21,15 @@ class CompanyController extends Controller
 
     public function create()
     {
-        if (Company::exists()) {
-            return redirect()->route('admin.companies.index')
-                ->with('error', 'Only one company is allowed. Edit the existing company instead.');
-        }
-
         return view('admin.companies.create');
     }
 
     public function store(StoreCompanyRequest $request)
     {
-        if (Company::exists()) {
-            return redirect()->route('admin.companies.index')
-                ->with('error', 'Only one company is allowed.');
-        }
+        $data = $request->validated();
+        $data['code'] = strtoupper($data['code']);
 
-        $this->service->store($request->validated());
+        $this->service->store($data);
 
         return redirect()->route('admin.companies.index')
             ->with('success', 'Company created successfully.');
@@ -49,7 +42,10 @@ class CompanyController extends Controller
 
     public function update(UpdateCompanyRequest $request, Company $company)
     {
-        $this->service->update($company, $request->validated());
+        $data = $request->validated();
+        $data['code'] = strtoupper($data['code']);
+
+        $this->service->update($company, $data);
 
         return redirect()->route('admin.companies.index')
             ->with('success', 'Company updated successfully.');

@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             // Users & Roles
@@ -25,6 +26,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'cities.view', 'cities.create', 'cities.update', 'cities.delete',
             'currencies.view', 'currencies.create', 'currencies.update', 'currencies.delete',
             'airlines.view', 'airlines.create', 'airlines.update', 'airlines.delete',
+            'airports.view', 'airports.create', 'airports.update', 'airports.delete',
+            'form-owners.view', 'form-owners.create', 'form-owners.update', 'form-owners.delete',
+            'maktab-categories.view', 'maktab-categories.create', 'maktab-categories.update', 'maktab-categories.delete',
+            'care-offs.view', 'care-offs.create', 'care-offs.update', 'care-offs.delete',
+            'packages.view', 'packages.create', 'packages.update', 'packages.delete',
+            'room-types.view', 'room-types.create', 'room-types.update', 'room-types.delete',
+            'mehram-relations.view', 'mehram-relations.create', 'mehram-relations.update', 'mehram-relations.delete',
+            'waris-relations.view', 'waris-relations.create', 'waris-relations.update', 'waris-relations.delete',
             'hotels.view', 'hotels.create', 'hotels.update', 'hotels.delete',
             'transporters.view', 'transporters.create', 'transporters.update', 'transporters.delete',
             'guides.view', 'guides.create', 'guides.update', 'guides.delete',
@@ -79,16 +88,17 @@ class RolesAndPermissionsSeeder extends Seeder
             // Settings
             'settings.manage',
 
-            //Company
-            'companies.view','companies.create','companies.edit','companies.destroy',
+            // Company
+            'companies.view', 'companies.create', 'companies.edit', 'companies.destroy',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Super Admin — gets all permissions via Gate::before
-        Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        // Super Admin — all permissions (also bypassed via Gate::before)
+        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $superAdmin->syncPermissions(Permission::all());
 
         // Admin
         $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);

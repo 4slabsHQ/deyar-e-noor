@@ -8,11 +8,9 @@
     @can('companies.create')
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fs-20 font-w700 mb-0">Companies</h4>
-            @if (!\App\Models\Company::exists())
-                <a href="{{ route('admin.companies.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> New Company
-                </a>
-            @endif
+            <a href="{{ route('admin.companies.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> New Company
+            </a>
         </div>
     @endcan
 
@@ -26,8 +24,9 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Email</th>
-                            <th>Country</th>
+                            <th>Code</th>
+                            <th>ENR No</th>
+                            <th>Munazzam Code</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -50,8 +49,9 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $company->email ?? '—' }}</td>
-                                <td>{{ $company->country ?? '—' }}</td>
+                                <td>{{ $company->code ?? '—' }}</td>
+                                <td>{{ $company->enr_number ?? '—' }}</td>
+                                <td>{{ $company->munazzam_code ?? '—' }}</td>
                                 <td>
                                     <span class="badge light badge-{{ $company->is_active ? 'success' : 'secondary' }}">
                                         {{ $company->is_active ? 'Active' : 'Inactive' }}
