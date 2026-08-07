@@ -135,6 +135,15 @@
     font-weight: 400 !important;
 }
 
+.deyar-dashboard-action .card-body {
+    min-height: 100%;
+}
+
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+}
+
 .dlabnav .metismenu > li.mm-active > a:after {
     border-top-color: var(--deyar-gold) !important;
     border-left-color: var(--deyar-gold) !important;

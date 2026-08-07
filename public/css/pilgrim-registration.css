@@ -1,0 +1,391 @@
+/* Hajj pilgrim registration document */
+
+.pilgrim-view-page {
+    max-width: 100%;
+}
+
+.pilgrim-doc-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pilgrim-doc-toolbar .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pilgrim-registration-doc {
+    max-width: 960px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    color: #111827;
+}
+
+.pilgrim-doc-header {
+    padding: 1.75rem 2rem 1.25rem;
+    border-bottom: 3px solid #b8956a;
+}
+
+.pilgrim-doc-header-top {
+    display: grid;
+    grid-template-columns: 110px 1fr 110px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pilgrim-doc-logo-wrap {
+    justify-self: start;
+}
+
+.pilgrim-doc-logo {
+    display: block;
+    width: 110px;
+    height: 132px;
+    object-fit: contain;
+    border: none;
+    background: transparent;
+}
+
+.pilgrim-doc-title-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 132px;
+}
+
+.pilgrim-doc-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #1c1c1c;
+    line-height: 1.25;
+}
+
+.pilgrim-doc-key-info {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.pilgrim-doc-key-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.pilgrim-doc-key-item .key-label {
+    display: block;
+    width: 100%;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    margin-bottom: 0.15rem;
+    text-align: left;
+}
+
+.pilgrim-doc-key-item .key-value {
+    display: block;
+    width: 100%;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1c1c1c;
+    text-align: left;
+}
+
+.pilgrim-doc-photo-wrap {
+    flex-shrink: 0;
+    text-align: center;
+    justify-self: end;
+}
+
+.pilgrim-doc-photo-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+}
+
+.pilgrim-doc-photo {
+    display: block;
+    width: 110px;
+    height: 132px;
+    margin: 0 auto;
+    object-fit: cover;
+    border: 1px solid #9ca3af;
+    background: #f9fafb;
+}
+
+.pilgrim-doc-photo.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-align: center;
+    padding: 0.25rem;
+}
+
+.pilgrim-doc-body {
+    padding: 1.25rem 2rem 2rem;
+}
+
+.pilgrim-doc-section {
+    margin-bottom: 1.25rem;
+}
+
+.pilgrim-doc-section:last-child {
+    margin-bottom: 0;
+}
+
+.pilgrim-doc-section-title {
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #967848;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pilgrim-doc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 1.5rem;
+}
+
+.pilgrim-doc-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.pilgrim-doc-field .field-label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-bottom: 0.1rem;
+}
+
+.pilgrim-doc-field .field-value {
+    font-size: 0.92rem;
+    color: #111827;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.pilgrim-doc-footer {
+    padding: 0.85rem 2rem 1.25rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+#pilgrim-print-root {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .pilgrim-doc-header-top {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 1.25rem;
+    }
+
+    .pilgrim-doc-logo-wrap,
+    .pilgrim-doc-photo-wrap {
+        justify-self: center;
+    }
+
+    .pilgrim-doc-title-wrap {
+        min-height: auto;
+    }
+
+    .pilgrim-doc-key-info {
+        grid-template-columns: 1fr;
+    }
+
+    .pilgrim-doc-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pilgrim-doc-body,
+    .pilgrim-doc-header,
+    .pilgrim-doc-footer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    html,
+    body {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body.is-printing-pilgrim > *:not(#pilgrim-print-root) {
+        display: none !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-registration-doc {
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #111827 !important;
+        background: #fff !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-header {
+        padding: 0 0 8px !important;
+        margin-bottom: 8px !important;
+        border-bottom: 2px solid #b8956a !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-header-top {
+        display: grid !important;
+        grid-template-columns: 78px 1fr 78px !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-logo {
+        width: 78px !important;
+        height: 94px !important;
+        object-fit: contain !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-title-wrap {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 94px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-title {
+        font-size: 13pt !important;
+        color: #1c1c1c !important;
+        text-align: center !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo-wrap {
+        justify-self: end !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo,
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo.placeholder {
+        width: 78px !important;
+        height: 94px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-info {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        margin-top: 8px !important;
+        padding-top: 6px !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-item .key-label {
+        font-size: 7pt !important;
+        color: #6b7280 !important;
+        text-align: left !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-item .key-value {
+        font-size: 8.5pt !important;
+        color: #111827 !important;
+        text-align: left !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo-label {
+        font-size: 6.5pt !important;
+        margin-bottom: 2px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-body {
+        padding: 0 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-section {
+        margin-bottom: 8px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-section-title {
+        font-size: 8pt !important;
+        color: #967848 !important;
+        margin-bottom: 4px !important;
+        padding-bottom: 2px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 3px 12px !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field.full-width {
+        grid-column: 1 / -1 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field .field-label {
+        font-size: 6.5pt !important;
+        color: #6b7280 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field .field-value {
+        font-size: 8pt !important;
+        color: #111827 !important;
+        font-weight: 600 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-footer {
+        padding: 6px 0 0 !important;
+        margin-top: 6px !important;
+        font-size: 7pt !important;
+        color: #6b7280 !important;
+        border-top: 1px solid #d1d5db !important;
+    }
+}

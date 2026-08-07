@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\MaktabCategoryController;
 use App\Http\Controllers\Admin\MehramRelationController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PilgrimController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -185,6 +186,30 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'edit' => 'permission:waris-relations.update',
             'update' => 'permission:waris-relations.update',
             'destroy' => 'permission:waris-relations.delete',
+        ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hajj Operations
+    |--------------------------------------------------------------------------
+    */
+    Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
+        ->name('pilgrims.preview-family-code')
+        ->middleware('permission:pilgrims.create|pilgrims.update');
+
+    Route::get('pilgrims/families', [PilgrimController::class, 'families'])
+        ->name('pilgrims.families')
+        ->middleware('permission:pilgrims.create|pilgrims.update');
+
+    Route::resource('pilgrims', PilgrimController::class)
+        ->middleware([
+            'index' => 'permission:pilgrims.view',
+            'show' => 'permission:pilgrims.view',
+            'create' => 'permission:pilgrims.create',
+            'store' => 'permission:pilgrims.create',
+            'edit' => 'permission:pilgrims.update',
+            'update' => 'permission:pilgrims.update',
+            'destroy' => 'permission:pilgrims.delete',
         ]);
 
     /*
