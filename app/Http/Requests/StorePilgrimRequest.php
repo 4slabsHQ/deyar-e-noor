@@ -69,8 +69,9 @@ class StorePilgrimRequest extends FormRequest
 
         $familyCode = (string) $this->input('family_code', '');
         $companyId = (int) $this->input('company_id');
+        $hajjYear = (int) $this->input('hajj_year');
 
-        if ($familyCode === '' || $companyId === 0) {
+        if ($familyCode === '' || $companyId === 0 || $hajjYear === 0) {
             return;
         }
 
@@ -84,6 +85,7 @@ class StorePilgrimRequest extends FormRequest
 
         if (Pilgrim::query()
             ->where('company_id', $companyId)
+            ->where('hajj_year', $hajjYear)
             ->where('family_number', $familyNumber)
             ->where('family_member_suffix', $suffix)
             ->when($pilgrimId, fn ($query) => $query->where('id', '!=', $pilgrimId))
@@ -127,7 +129,9 @@ class StorePilgrimRequest extends FormRequest
                 'required',
                 'string',
                 'regex:/^[A-Z]{2}\d{7}$/',
-                Rule::unique('pilgrims', 'passport_no')->ignore($pilgrimId),
+                Rule::unique('pilgrims', 'passport_no')
+                    ->where(fn ($query) => $query->where('hajj_year', $this->input('hajj_year')))
+                    ->ignore($pilgrimId),
             ],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'birth_place' => ['required', 'string', 'max:150'],
@@ -147,11 +151,14 @@ class StorePilgrimRequest extends FormRequest
                 'integer',
                 'min:1',
                 Rule::exists('pilgrims', 'family_number')
-                    ->where(fn ($query) => $query->where('company_id', $this->input('company_id'))),
+                    ->where(fn ($query) => $query
+                        ->where('company_id', $this->input('company_id'))
+                        ->where('hajj_year', $this->input('hajj_year'))),
             ],
             'family_code' => ['nullable', 'string', 'max:50'],
             'family_member_suffix' => ['nullable', 'string', 'max:2', 'regex:/^[A-Z]$/i'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,jpg', 'max:2048'],
+            'remove_photo' => ['nullable', 'boolean'],
         ];
     }
 }

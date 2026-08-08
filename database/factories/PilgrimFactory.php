@@ -63,7 +63,7 @@ class PilgrimFactory extends Factory
             'waris_cnic' => fake()->numerify('#####-#######-#'),
             'waris_relation_id' => WarisRelation::factory(),
             'waris_mobile' => fake()->numerify('03##-#######'),
-            'family_code' => 'TST-1-S',
+            'family_code' => 'TST-01-S',
             'family_number' => 1,
             'family_member_suffix' => 'S',
             'age' => $service->calculateAge($dob, $hajjYear),

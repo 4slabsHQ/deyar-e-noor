@@ -19,7 +19,6 @@ use App\Services\PilgrimService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -62,6 +61,7 @@ class PilgrimController extends Controller
     {
         $validated = $request->validate([
             'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'hajj_year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'pilgrim_id' => ['nullable', 'integer', Rule::exists('pilgrims', 'id')],
             'family_number' => ['nullable', 'integer', 'min:1'],
         ]);
@@ -82,6 +82,7 @@ class PilgrimController extends Controller
         return response()->json(
             $pilgrimService->previewFamilyCode(
                 $company,
+                (int) $validated['hajj_year'],
                 $pilgrim,
                 isset($validated['family_number']) ? (int) $validated['family_number'] : null,
             )
@@ -92,10 +93,14 @@ class PilgrimController extends Controller
     {
         $validated = $request->validate([
             'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'hajj_year' => ['required', 'integer', 'min:2000', 'max:2100'],
         ]);
 
         return response()->json([
-            'families' => $pilgrimService->existingFamiliesForCompany((int) $validated['company_id']),
+            'families' => $pilgrimService->existingFamiliesForCompany(
+                (int) $validated['company_id'],
+                (int) $validated['hajj_year'],
+            ),
         ]);
     }
 
@@ -103,24 +108,16 @@ class PilgrimController extends Controller
     {
         $data = $request->validated();
         $company = Company::query()->findOrFail($data['company_id']);
-
+        $hajjYear = (int) $data['hajj_year'];
         $existingFamilyNumber = isset($data['existing_family_number'])
             ? (int) $data['existing_family_number']
             : null;
 
-        if ($existingFamilyNumber) {
-            $familyData = $pilgrimService->prepareAddToFamily($company, $existingFamilyNumber);
-        } else {
-            $familyData = $pilgrimService->prepareNewSingleFamily($company);
-        }
-
-        $data = array_merge($data, $familyData);
         $data['full_name'] = $pilgrimService->buildFullName($data['surname'], $data['given_name']);
         $data['age'] = $pilgrimService->calculateAge(
             Carbon::parse($data['date_of_birth']),
-            (int) $data['hajj_year']
+            $hajjYear
         );
-        $data['created_by'] = auth()->id();
 
         if ($request->hasFile('photo')) {
             $data['photo_path'] = $request->file('photo')->store('pilgrims', 'public');
@@ -128,20 +125,35 @@ class PilgrimController extends Controller
 
         unset(
             $data['photo'],
+            $data['remove_photo'],
             $data['family_member_suffix'],
             $data['existing_family_number'],
             $data['promote_single'],
             $data['existing_pilgrim_id'],
         );
 
-        DB::transaction(function () use ($pilgrimService, $company, $familyData, $data): void {
-            if ($familyData['promote_single'] ?? false) {
-                $existingPilgrim = Pilgrim::query()->findOrFail($familyData['existing_pilgrim_id']);
-                $pilgrimService->promoteSingleToA($existingPilgrim, $company);
-            }
+        $pilgrimService->withFamilyLock(
+            $company->id,
+            $hajjYear,
+            $existingFamilyNumber,
+            function () use ($pilgrimService, $company, $hajjYear, $existingFamilyNumber, &$data): void {
+                if ($existingFamilyNumber) {
+                    $familyData = $pilgrimService->prepareAddToFamily($company, $hajjYear, $existingFamilyNumber);
 
-            Pilgrim::create($data);
-        });
+                    if ($familyData['promote_single'] ?? false) {
+                        $existingPilgrim = Pilgrim::query()->findOrFail($familyData['existing_pilgrim_id']);
+                        $pilgrimService->promoteSingleToA($existingPilgrim, $company);
+                    }
+                } else {
+                    $familyData = $pilgrimService->prepareNewSingleFamily($company, $hajjYear);
+                }
+
+                $data = array_merge($data, $familyData);
+                $data['created_by'] = auth()->id();
+
+                Pilgrim::query()->create($data);
+            }
+        );
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration saved successfully.');
     }
@@ -169,6 +181,13 @@ class PilgrimController extends Controller
         );
         $data['updated_by'] = auth()->id();
 
+        if ($request->boolean('remove_photo')) {
+            if ($pilgrim->photo_path) {
+                Storage::disk('public')->delete($pilgrim->photo_path);
+            }
+            $data['photo_path'] = null;
+        }
+
         if ($request->hasFile('photo')) {
             if ($pilgrim->photo_path) {
                 Storage::disk('public')->delete($pilgrim->photo_path);
@@ -176,20 +195,20 @@ class PilgrimController extends Controller
             $data['photo_path'] = $request->file('photo')->store('pilgrims', 'public');
         }
 
-        unset($data['photo'], $data['family_member_suffix']);
+        unset($data['photo'], $data['remove_photo'], $data['family_member_suffix']);
 
         $pilgrim->update($data);
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration updated successfully.');
     }
 
-    public function destroy(Pilgrim $pilgrim)
+    public function destroy(Pilgrim $pilgrim, PilgrimService $pilgrimService)
     {
         if ($pilgrim->photo_path) {
             Storage::disk('public')->delete($pilgrim->photo_path);
         }
 
-        $pilgrim->delete();
+        $pilgrimService->deletePilgrim($pilgrim);
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration deleted successfully.');
     }

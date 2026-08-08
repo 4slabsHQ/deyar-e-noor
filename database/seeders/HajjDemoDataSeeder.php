@@ -240,7 +240,7 @@ class HajjDemoDataSeeder extends Seeder
                     'family_number' => $familyNumber,
                     'family_member_suffix' => $suffix,
                 ]
-                : $pilgrimService->prepareNewSingleFamily($company);
+                : $pilgrimService->prepareNewSingleFamily($company, $hajjYear);
 
             if ($index === 2) {
                 $familyNumber++;

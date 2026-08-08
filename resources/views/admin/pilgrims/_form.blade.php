@@ -29,7 +29,7 @@
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="form_owner_id">Form Owner <span class="text-danger">*</span></label>
-                <select name="form_owner_id" id="form_owner_id" class="form-control @error('form_owner_id') is-invalid @enderror" required>
+                <select name="form_owner_id" id="form_owner_id" class="form-control js-searchable-select @error('form_owner_id') is-invalid @enderror" data-placeholder="Select form owner" required>
                     <option value="" disabled {{ old('form_owner_id', $pilgrim->form_owner_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($formOwners as $formOwner)
                         <option value="{{ $formOwner->id }}" {{ old('form_owner_id', $pilgrim->form_owner_id ?? '') == $formOwner->id ? 'selected' : '' }}>
@@ -41,7 +41,7 @@
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="company_id">Company <span class="text-danger">*</span></label>
-                <select name="company_id" id="company_id" class="form-control @error('company_id') is-invalid @enderror" required>
+                <select name="company_id" id="company_id" class="form-control js-searchable-select @error('company_id') is-invalid @enderror" data-placeholder="Select company" required>
                     <option value="" disabled {{ old('company_id', $pilgrim->company_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($companies as $company)
                         <option value="{{ $company->id }}" {{ old('company_id', $pilgrim->company_id ?? '') == $company->id ? 'selected' : '' }}>
@@ -53,7 +53,7 @@
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="maktab_category_id">Maktab <span class="text-danger">*</span></label>
-                <select name="maktab_category_id" id="maktab_category_id" class="form-control @error('maktab_category_id') is-invalid @enderror" required>
+                <select name="maktab_category_id" id="maktab_category_id" class="form-control js-searchable-select @error('maktab_category_id') is-invalid @enderror" data-placeholder="Select maktab" required>
                     <option value="" disabled {{ old('maktab_category_id', $pilgrim->maktab_category_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($maktabCategories as $category)
                         <option value="{{ $category->id }}" {{ old('maktab_category_id', $pilgrim->maktab_category_id ?? '') == $category->id ? 'selected' : '' }}>
@@ -65,7 +65,7 @@
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="package_id">Package <span class="text-danger">*</span></label>
-                <select name="package_id" id="package_id" class="form-control @error('package_id') is-invalid @enderror" required>
+                <select name="package_id" id="package_id" class="form-control js-searchable-select @error('package_id') is-invalid @enderror" data-placeholder="Select package" required>
                     <option value="" disabled {{ old('package_id', $pilgrim->package_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($packages as $package)
                         <option value="{{ $package->id }}" {{ old('package_id', $pilgrim->package_id ?? '') == $package->id ? 'selected' : '' }}>
@@ -77,7 +77,7 @@
             </div>
             <div class="col-lg-4 col-md-4">
                 <label class="form-label" for="care_off_id">Care Off <span class="text-danger">*</span></label>
-                <select name="care_off_id" id="care_off_id" class="form-control @error('care_off_id') is-invalid @enderror" required>
+                <select name="care_off_id" id="care_off_id" class="form-control js-searchable-select @error('care_off_id') is-invalid @enderror" data-placeholder="Select care off" required>
                     <option value="" disabled {{ old('care_off_id', $pilgrim->care_off_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($careOffs as $careOff)
                         <option value="{{ $careOff->id }}" {{ old('care_off_id', $pilgrim->care_off_id ?? '') == $careOff->id ? 'selected' : '' }}>
@@ -89,7 +89,7 @@
             </div>
             <div class="col-lg-4 col-md-4">
                 <label class="form-label" for="pod_city_id">POD <span class="text-danger">*</span></label>
-                <select name="pod_city_id" id="pod_city_id" class="form-control @error('pod_city_id') is-invalid @enderror" required>
+                <select name="pod_city_id" id="pod_city_id" class="form-control js-searchable-select @error('pod_city_id') is-invalid @enderror" data-placeholder="Select city" required>
                     <option value="" disabled {{ old('pod_city_id', $pilgrim->pod_city_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($cities as $city)
                         <option value="{{ $city->id }}" {{ old('pod_city_id', $pilgrim->pod_city_id ?? '') == $city->id ? 'selected' : '' }}>
@@ -101,7 +101,7 @@
             </div>
             <div class="col-lg-4 col-md-4">
                 <label class="form-label" for="room_type_id">Room <span class="text-danger">*</span></label>
-                <select name="room_type_id" id="room_type_id" class="form-control @error('room_type_id') is-invalid @enderror" required>
+                <select name="room_type_id" id="room_type_id" class="form-control js-searchable-select @error('room_type_id') is-invalid @enderror" data-placeholder="Select room" required>
                     <option value="" disabled {{ old('room_type_id', $pilgrim->room_type_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($roomTypes as $roomType)
                         <option value="{{ $roomType->id }}" {{ old('room_type_id', $pilgrim->room_type_id ?? '') == $roomType->id ? 'selected' : '' }}>
@@ -142,6 +142,12 @@
                        class="form-control @error('given_name') is-invalid @enderror" required>
                 @error('given_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <label class="form-label" for="full_name_display">Haji Full Name</label>
+                <input type="text" id="full_name_display" class="form-control" readonly tabindex="-1"
+                       value="{{ old('full_name_display', $pilgrim->full_name ?? '') }}">
+                <span class="form-hint">Built from given name and surname.</span>
+            </div>
             <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label" for="blood_group">Blood <span class="text-danger">*</span></label>
                 <select name="blood_group" id="blood_group" class="form-control @error('blood_group') is-invalid @enderror" required>
@@ -168,6 +174,12 @@
                        value="{{ old('date_of_birth', optional($pilgrim?->date_of_birth)->format('Y-m-d')) }}"
                        class="form-control @error('date_of_birth') is-invalid @enderror" required>
                 @error('date_of_birth') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-1 col-md-2 col-4">
+                <label class="form-label" for="age_display">Age</label>
+                <input type="text" id="age_display" class="form-control" readonly tabindex="-1"
+                       value="{{ old('age_display', isset($pilgrim) ? (string) $pilgrim->age : '') }}">
+                <span class="form-hint">Hajj year − DOB.</span>
             </div>
             <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label" for="birth_place">Birth Place <span class="text-danger">*</span></label>
@@ -233,7 +245,7 @@
             </div>
             <div class="col-lg-3 col-md-4">
                 <label class="form-label" for="mehram_relation_id">Mehram Relation <span class="text-danger">*</span></label>
-                <select name="mehram_relation_id" id="mehram_relation_id" class="form-control @error('mehram_relation_id') is-invalid @enderror" required>
+                <select name="mehram_relation_id" id="mehram_relation_id" class="form-control js-searchable-select @error('mehram_relation_id') is-invalid @enderror" data-placeholder="Select relation" required>
                     <option value="" disabled {{ old('mehram_relation_id', $pilgrim->mehram_relation_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($mehramRelations as $relation)
                         <option value="{{ $relation->id }}" {{ old('mehram_relation_id', $pilgrim->mehram_relation_id ?? '') == $relation->id ? 'selected' : '' }}>
@@ -251,7 +263,7 @@
             </div>
             <div class="col-lg-3 col-md-4">
                 <label class="form-label" for="waris_relation_id">Waris Relation <span class="text-danger">*</span></label>
-                <select name="waris_relation_id" id="waris_relation_id" class="form-control @error('waris_relation_id') is-invalid @enderror" required>
+                <select name="waris_relation_id" id="waris_relation_id" class="form-control js-searchable-select @error('waris_relation_id') is-invalid @enderror" data-placeholder="Select relation" required>
                     <option value="" disabled {{ old('waris_relation_id', $pilgrim->waris_relation_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($warisRelations as $relation)
                         <option value="{{ $relation->id }}" {{ old('waris_relation_id', $pilgrim->waris_relation_id ?? '') == $relation->id ? 'selected' : '' }}>
@@ -285,7 +297,7 @@
             @if (! $pilgrim)
                 <div class="col-lg-5 col-md-6">
                     <label class="form-label" for="existing_family_number">Link to Family <span class="text-muted">(optional)</span></label>
-                    <select name="existing_family_number" id="existing_family_number" class="form-control @error('existing_family_number') is-invalid @enderror">
+                    <select name="existing_family_number" id="existing_family_number" class="form-control js-searchable-select js-family-select @error('existing_family_number') is-invalid @enderror" data-placeholder="Search family">
                         <option value="">New — single (S)</option>
                     </select>
                     <span class="form-hint js-family-members-hint"></span>
@@ -302,26 +314,30 @@
                        data-pilgrim-id="{{ $pilgrim->id ?? '' }}">
                 @error('family_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            @if ($pilgrim)
-                <div class="col-lg-2 col-md-3 col-6">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-control" value="{{ $pilgrim->full_name }}" readonly disabled>
-                </div>
-                <div class="col-lg-1 col-md-2 col-4">
-                    <label class="form-label">Age</label>
-                    <input type="text" class="form-control" value="{{ $pilgrim->age }}" readonly disabled>
-                </div>
-            @endif
-            <div class="col-lg-{{ $pilgrim ? '3' : '5' }} col-md-{{ $pilgrim ? '4' : '6' }}">
-                <label class="form-label" for="photo">Photo (JPEG)</label>
-                @if ($pilgrim?->photo_path)
-                    <div class="mb-1">
-                        <img src="{{ asset('storage/'.$pilgrim->photo_path) }}" alt="Pilgrim photo" class="rounded" style="max-height: 56px;">
+            <div class="col-lg-{{ $pilgrim ? '5' : '5' }} col-md-{{ $pilgrim ? '6' : '6' }}">
+                <label class="form-label">Photo (JPEG)</label>
+                <div class="pilgrim-photo-field @error('photo') is-invalid @enderror"
+                     @if ($pilgrim?->photo_path) data-existing-url="{{ asset('storage/'.$pilgrim->photo_path) }}" @endif>
+                    <input type="file" name="photo" id="photo" accept="image/jpeg,.jpg"
+                           class="pilgrim-photo-field__input @error('photo') is-invalid @enderror">
+                    <input type="hidden" name="remove_photo" value="0" class="js-remove-photo">
+
+                    <div class="pilgrim-photo-field__empty js-photo-empty">
+                        <button type="button" class="btn btn-sm btn-outline-secondary js-photo-upload">
+                            Upload photo
+                        </button>
+                        <span class="pilgrim-photo-field__hint">JPEG only, max 2MB</span>
                     </div>
-                @endif
-                <input type="file" name="photo" id="photo" accept="image/jpeg,.jpg"
-                       class="form-control @error('photo') is-invalid @enderror">
-                @error('photo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                    <div class="pilgrim-photo-field__preview js-photo-preview" hidden>
+                        <img src="" alt="Photo preview" class="pilgrim-photo-field__image js-photo-image">
+                        <div class="pilgrim-photo-field__actions">
+                            <button type="button" class="btn btn-sm btn-outline-primary js-photo-change">Change</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-photo-remove">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                @error('photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-12 js-family-notice-wrap" hidden>
                 <div class="family-notice js-family-notice"></div>
@@ -373,13 +389,58 @@
             input.addEventListener('paste', function () { setTimeout(function () { formatCnicInput(input); }, 0); });
         });
 
-        document.querySelectorAll('.pilgrim-form select.form-control').forEach(function (select) {
-            function syncPlaceholder() {
-                select.classList.toggle('is-placeholder', !select.value);
+        const surnameInput = document.getElementById('surname');
+        const givenNameInput = document.getElementById('given_name');
+        const fullNameDisplay = document.getElementById('full_name_display');
+        const hajjYearInput = document.getElementById('hajj_year');
+        const dateOfBirthInput = document.getElementById('date_of_birth');
+        const ageDisplay = document.getElementById('age_display');
+
+        function updateFullNameDisplay() {
+            if (!fullNameDisplay) {
+                return;
             }
-            select.addEventListener('change', syncPlaceholder);
-            syncPlaceholder();
+
+            const givenName = (givenNameInput?.value || '').trim();
+            const surname = (surnameInput?.value || '').trim();
+            fullNameDisplay.value = [givenName, surname].filter(Boolean).join(' ');
+        }
+
+        function updateAgeDisplay() {
+            if (!ageDisplay) {
+                return;
+            }
+
+            const hajjYear = parseInt(hajjYearInput?.value || '', 10);
+            const dobValue = dateOfBirthInput?.value || '';
+
+            if (!hajjYear || !dobValue) {
+                ageDisplay.value = '';
+                return;
+            }
+
+            const dobYear = parseInt(dobValue.slice(0, 4), 10);
+
+            if (Number.isNaN(dobYear)) {
+                ageDisplay.value = '';
+                return;
+            }
+
+            ageDisplay.value = String(Math.max(0, hajjYear - dobYear));
+        }
+
+        [surnameInput, givenNameInput].forEach(function (input) {
+            input?.addEventListener('input', updateFullNameDisplay);
+            input?.addEventListener('change', updateFullNameDisplay);
         });
+
+        [hajjYearInput, dateOfBirthInput].forEach(function (input) {
+            input?.addEventListener('input', updateAgeDisplay);
+            input?.addEventListener('change', updateAgeDisplay);
+        });
+
+        updateFullNameDisplay();
+        updateAgeDisplay();
 
         const familyCodeInput = document.getElementById('family_code');
         const companySelect = document.getElementById('company_id');
@@ -400,7 +461,10 @@
             loadedFamilies = [];
 
             try {
-                const params = new URLSearchParams({ company_id: companySelect.value });
+                const params = new URLSearchParams({
+                    company_id: companySelect.value,
+                    hajj_year: hajjYearInput?.value || '',
+                });
                 const response = await fetch(familyCodeInput.dataset.familiesUrl + '?' + params.toString(), {
                     headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 });
@@ -422,6 +486,10 @@
                 const oldValue = @json(old('existing_family_number'));
                 existingFamilySelect.value = oldValue || currentValue || '';
                 updateFamilyHint();
+
+                if (window.AdminForm) {
+                    window.AdminForm.syncTomSelect(existingFamilySelect);
+                }
             } catch (error) {
                 loadedFamilies = [];
             }
@@ -456,7 +524,10 @@
                 return;
             }
 
-            const params = new URLSearchParams({ company_id: companySelect.value });
+            const params = new URLSearchParams({
+                company_id: companySelect.value,
+                hajj_year: hajjYearInput?.value || '',
+            });
 
             if (familyCodeInput.dataset.pilgrimId) {
                 params.append('pilgrim_id', familyCodeInput.dataset.pilgrimId);
@@ -495,6 +566,11 @@
             loadFamilies().then(refreshFamilyCode);
         });
 
+        hajjYearInput?.addEventListener('change', function () {
+            updateAgeDisplay();
+            loadFamilies().then(refreshFamilyCode);
+        });
+
         existingFamilySelect?.addEventListener('change', function () {
             updateFamilyHint();
             refreshFamilyCode();
@@ -505,6 +581,73 @@
         } else {
             refreshFamilyCode();
         }
+
+        document.querySelectorAll('.pilgrim-photo-field').forEach(function (field) {
+            const input = field.querySelector('.pilgrim-photo-field__input');
+            const removeInput = field.querySelector('.js-remove-photo');
+            const emptyState = field.querySelector('.js-photo-empty');
+            const previewState = field.querySelector('.js-photo-preview');
+            const image = field.querySelector('.js-photo-image');
+            const existingUrl = field.dataset.existingUrl || '';
+            let objectUrl = null;
+
+            function revokeObjectUrl() {
+                if (objectUrl) {
+                    URL.revokeObjectURL(objectUrl);
+                    objectUrl = null;
+                }
+            }
+
+            function showEmpty() {
+                emptyState.hidden = false;
+                previewState.hidden = true;
+                image.removeAttribute('src');
+            }
+
+            function showPreview(url) {
+                image.src = url;
+                emptyState.hidden = true;
+                previewState.hidden = false;
+            }
+
+            function openFilePicker() {
+                input.click();
+            }
+
+            field.querySelector('.js-photo-upload')?.addEventListener('click', openFilePicker);
+            field.querySelector('.js-photo-change')?.addEventListener('click', openFilePicker);
+
+            field.querySelector('.js-photo-remove')?.addEventListener('click', function () {
+                input.value = '';
+                removeInput.value = '1';
+                revokeObjectUrl();
+                showEmpty();
+            });
+
+            input.addEventListener('change', function () {
+                const file = input.files?.[0];
+
+                if (!file) {
+                    if (existingUrl && removeInput.value !== '1') {
+                        showPreview(existingUrl);
+                    } else {
+                        showEmpty();
+                    }
+
+                    return;
+                }
+
+                removeInput.value = '0';
+                revokeObjectUrl();
+                objectUrl = URL.createObjectURL(file);
+                showPreview(objectUrl);
+            });
+
+            if (existingUrl) {
+                removeInput.value = '0';
+                showPreview(existingUrl);
+            }
+        });
     })();
 </script>
 @endpush

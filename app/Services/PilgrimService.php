@@ -6,6 +6,8 @@ use App\Models\Company;
 use App\Models\Pilgrim;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class PilgrimService
@@ -20,68 +22,100 @@ class PilgrimService
         return max(0, $hajjYear - $dateOfBirth->year);
     }
 
-    public function nextFamilyNumber(int $companyId): int
-    {
-        $max = Pilgrim::query()
-            ->where('company_id', $companyId)
-            ->max('family_number');
-
-        return ((int) $max) + 1;
-    }
-
     public function formatFamilyCode(Company $company, int $familyNumber, string $suffix): string
     {
         return sprintf(
-            '%s-%d-%s',
+            '%s-%02d-%s',
             strtoupper((string) $company->code),
             $familyNumber,
             strtoupper($suffix)
         );
     }
 
+    /**
+     * @param  callable(): mixed  $callback
+     */
+    public function withFamilyLock(int $companyId, int $hajjYear, ?int $familyNumber, callable $callback): mixed
+    {
+        $lockKey = $familyNumber === null
+            ? "pilgrim-family:{$companyId}:{$hajjYear}"
+            : "pilgrim-family:{$companyId}:{$hajjYear}:{$familyNumber}";
+
+        return Cache::lock($lockKey, 10)->block(5, function () use ($callback, $companyId, $hajjYear, $familyNumber): mixed {
+            return DB::transaction(function () use ($callback, $companyId, $hajjYear, $familyNumber): mixed {
+                if ($familyNumber !== null) {
+                    $this->lockFamilyRows($companyId, $hajjYear, $familyNumber);
+                } else {
+                    Pilgrim::query()
+                        ->where('company_id', $companyId)
+                        ->where('hajj_year', $hajjYear)
+                        ->lockForUpdate()
+                        ->pluck('id');
+                }
+
+                return $callback();
+            });
+        });
+    }
+
+    public function nextFamilyNumber(int $companyId, int $hajjYear): int
+    {
+        $inUse = Pilgrim::query()
+            ->where('company_id', $companyId)
+            ->where('hajj_year', $hajjYear)
+            ->distinct()
+            ->orderBy('family_number')
+            ->pluck('family_number')
+            ->map(fn ($number) => (int) $number)
+            ->all();
+
+        $candidate = 1;
+
+        foreach ($inUse as $usedNumber) {
+            if ($usedNumber > $candidate) {
+                break;
+            }
+
+            if ($usedNumber === $candidate) {
+                $candidate++;
+            }
+        }
+
+        return $candidate;
+    }
+
     /** @return Collection<int, Pilgrim> */
-    public function familyMembers(int $companyId, int $familyNumber): Collection
+    public function familyMembers(int $companyId, int $hajjYear, int $familyNumber): Collection
     {
         return Pilgrim::query()
             ->where('company_id', $companyId)
+            ->where('hajj_year', $hajjYear)
             ->where('family_number', $familyNumber)
-            ->orderBy('family_member_suffix')
+            ->orderBy('created_at')
+            ->orderBy('id')
             ->get();
     }
 
-    public function isSingleFamily(int $companyId, int $familyNumber): bool
+    public function isSingleFamily(int $companyId, int $hajjYear, int $familyNumber): bool
     {
-        $members = $this->familyMembers($companyId, $familyNumber);
+        $members = $this->familyMembers($companyId, $hajjYear, $familyNumber);
 
         return $members->count() === 1
             && strtoupper($members->first()->family_member_suffix) === 'S';
     }
 
-    public function nextLetterSuffix(array $usedSuffixes): ?string
-    {
-        $used = array_map('strtoupper', $usedSuffixes);
-
-        foreach (range('A', 'Z') as $letter) {
-            if (! in_array($letter, $used, true)) {
-                return $letter;
-            }
-        }
-
-        return null;
-    }
-
     /**
      * @return array{suffix: string, promote_single: bool, existing_pilgrim_id: int|null}
      */
-    public function resolveNewMemberAssignment(int $companyId, int $familyNumber): array
+    public function resolveNewMemberAssignment(int $companyId, int $hajjYear, int $familyNumber): array
     {
-        $members = $this->familyMembers($companyId, $familyNumber);
+        $members = $this->familyMembers($companyId, $hajjYear, $familyNumber);
 
         if ($members->isEmpty()) {
             throw new RuntimeException('Family not found.');
         }
 
-        if ($this->isSingleFamily($companyId, $familyNumber)) {
+        if ($this->isSingleFamily($companyId, $hajjYear, $familyNumber)) {
             return [
                 'suffix' => 'B',
                 'promote_single' => true,
@@ -89,12 +123,7 @@ class PilgrimService
             ];
         }
 
-        $usedSuffixes = $members
-            ->pluck('family_member_suffix')
-            ->map(fn (string $suffix) => strtoupper($suffix))
-            ->all();
-
-        $suffix = $this->nextLetterSuffix($usedSuffixes);
+        $suffix = $this->suffixForMemberIndex($members->count());
 
         if ($suffix === null) {
             throw new RuntimeException('No family member suffix available.');
@@ -116,26 +145,74 @@ class PilgrimService
         ]);
     }
 
+    public function rebalanceFamily(Company $company, int $hajjYear, int $familyNumber): void
+    {
+        $members = $this->familyMembers($company->id, $hajjYear, $familyNumber);
+
+        if ($members->isEmpty()) {
+            return;
+        }
+
+        if ($members->count() === 1) {
+            $member = $members->first();
+            $member->update([
+                'family_member_suffix' => 'S',
+                'family_code' => $this->formatFamilyCode($company, $familyNumber, 'S'),
+                'updated_by' => auth()->id(),
+            ]);
+
+            return;
+        }
+
+        foreach ($members->values() as $index => $member) {
+            $suffix = $this->suffixForMemberIndex($index);
+
+            if ($suffix === null) {
+                throw new RuntimeException('Unable to rebalance family suffixes.');
+            }
+
+            $member->update([
+                'family_member_suffix' => $suffix,
+                'family_code' => $this->formatFamilyCode($company, $familyNumber, $suffix),
+                'updated_by' => auth()->id(),
+            ]);
+        }
+    }
+
+    public function deletePilgrim(Pilgrim $pilgrim): void
+    {
+        $company = Company::query()->findOrFail($pilgrim->company_id);
+        $companyId = (int) $pilgrim->company_id;
+        $hajjYear = (int) $pilgrim->hajj_year;
+        $familyNumber = (int) $pilgrim->family_number;
+
+        $this->withFamilyLock($companyId, $hajjYear, $familyNumber, function () use ($pilgrim, $company, $hajjYear, $familyNumber): void {
+            $pilgrim->delete();
+            $this->rebalanceFamily($company, $hajjYear, $familyNumber);
+        });
+    }
+
     /**
      * @return array<int, array{family_number: int, family_code: string, is_single: bool, members: array<int, array{suffix: string, name: string, family_code: string}>, used_suffixes: array<int, string>, label: string}>
      */
-    public function existingFamiliesForCompany(int $companyId): array
+    public function existingFamiliesForCompany(int $companyId, int $hajjYear): array
     {
         /** @var Collection<int, Collection<int, Pilgrim>> $grouped */
         $grouped = Pilgrim::query()
             ->where('company_id', $companyId)
+            ->where('hajj_year', $hajjYear)
             ->orderBy('family_number')
             ->orderBy('family_member_suffix')
             ->get()
             ->groupBy('family_number');
 
-        return $grouped->map(function (Collection $members, int|string $familyNumber) use ($companyId) {
+        return $grouped->map(function (Collection $members, int|string $familyNumber) use ($companyId, $hajjYear) {
             $members = $members->values();
             $familyNumber = (int) $familyNumber;
 
             /** @var Pilgrim $first */
             $first = $members->first();
-            $isSingle = $this->isSingleFamily($companyId, $familyNumber);
+            $isSingle = $this->isSingleFamily($companyId, $hajjYear, $familyNumber);
             $baseCode = preg_replace('/-[A-Z]$/', '', $first->family_code) ?: $first->family_code;
 
             $usedSuffixes = $members
@@ -172,9 +249,9 @@ class PilgrimService
     /**
      * @return array{family_code: string, family_number: int, family_member_suffix: string}
      */
-    public function prepareNewSingleFamily(Company $company): array
+    public function prepareNewSingleFamily(Company $company, int $hajjYear): array
     {
-        $familyNumber = $this->nextFamilyNumber($company->id);
+        $familyNumber = $this->nextFamilyNumber($company->id, $hajjYear);
 
         return [
             'family_code' => $this->formatFamilyCode($company, $familyNumber, 'S'),
@@ -186,9 +263,9 @@ class PilgrimService
     /**
      * @return array{family_code: string, family_number: int, family_member_suffix: string, promote_single: bool, existing_pilgrim_id: int|null}
      */
-    public function prepareAddToFamily(Company $company, int $familyNumber): array
+    public function prepareAddToFamily(Company $company, int $hajjYear, int $familyNumber): array
     {
-        $assignment = $this->resolveNewMemberAssignment($company->id, $familyNumber);
+        $assignment = $this->resolveNewMemberAssignment($company->id, $hajjYear, $familyNumber);
 
         return [
             'family_code' => $this->formatFamilyCode($company, $familyNumber, $assignment['suffix']),
@@ -204,6 +281,7 @@ class PilgrimService
      */
     public function previewFamilyCode(
         Company $company,
+        int $hajjYear,
         ?Pilgrim $pilgrim = null,
         ?int $familyNumber = null,
     ): array {
@@ -217,7 +295,7 @@ class PilgrimService
         }
 
         if ($familyNumber !== null) {
-            $assignment = $this->resolveNewMemberAssignment($company->id, $familyNumber);
+            $assignment = $this->resolveNewMemberAssignment($company->id, $hajjYear, $familyNumber);
 
             return [
                 'family_code' => $this->formatFamilyCode($company, $familyNumber, $assignment['suffix']),
@@ -227,20 +305,18 @@ class PilgrimService
             ];
         }
 
-        $familyNumber = $pilgrim !== null && $pilgrim->company_id === $company->id
-            ? $pilgrim->family_number
-            : $this->nextFamilyNumber($company->id);
+        $nextFamilyNumber = $this->nextFamilyNumber($company->id, $hajjYear);
 
         return [
-            'family_code' => $this->formatFamilyCode($company, $familyNumber, 'S'),
-            'family_number' => $familyNumber,
+            'family_code' => $this->formatFamilyCode($company, $nextFamilyNumber, 'S'),
+            'family_number' => $nextFamilyNumber,
             'suffix' => 'S',
             'promote_single' => false,
         ];
     }
 
     /** @return array{family_code: string, family_number: int, family_member_suffix: string} */
-    public function prepareFamilyDataForEdit(Company $company, string $familyCode, string $suffix): array
+    public function prepareFamilyDataForEdit(Company $company, int $hajjYear, string $familyCode, string $suffix): array
     {
         if (preg_match('/^([A-Z0-9]+)-(\d+)-([A-Z])$/i', $familyCode, $matches)) {
             return [
@@ -250,6 +326,25 @@ class PilgrimService
             ];
         }
 
-        return $this->prepareNewSingleFamily($company);
+        return $this->prepareNewSingleFamily($company, $hajjYear);
+    }
+
+    private function lockFamilyRows(int $companyId, int $hajjYear, int $familyNumber): void
+    {
+        Pilgrim::query()
+            ->where('company_id', $companyId)
+            ->where('hajj_year', $hajjYear)
+            ->where('family_number', $familyNumber)
+            ->lockForUpdate()
+            ->pluck('id');
+    }
+
+    private function suffixForMemberIndex(int $index): ?string
+    {
+        if ($index < 0 || $index > 25) {
+            return null;
+        }
+
+        return chr(ord('A') + $index);
     }
 }
