@@ -4,6 +4,8 @@ use App\Models\Company;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -69,4 +71,29 @@ test('company code must be unique', function () {
 
     $response->assertRedirect(route('admin.companies.create'));
     $response->assertSessionHasErrors('code');
+});
+
+test('admin can remove company logo on update', function () {
+    Storage::fake('public');
+
+    $path = UploadedFile::fake()->image('logo.jpg')->store('companies/logos', 'public');
+
+    $company = Company::query()->create([
+        'name' => 'Test Co',
+        'code' => 'TST',
+        'logo' => $path,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($this->user)->put(route('admin.companies.update', $company), [
+        'name' => 'Test Co',
+        'code' => 'TST',
+        'is_active' => '1',
+        'remove_logo' => '1',
+    ]);
+
+    $response->assertRedirect(route('admin.companies.index'));
+
+    expect($company->fresh()->logo)->toBeNull();
+    Storage::disk('public')->assertMissing($path);
 });

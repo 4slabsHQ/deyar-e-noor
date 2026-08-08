@@ -44,10 +44,17 @@ class CompanyService
     */
     public function update(Company $company, array $data): Company
     {
+        if (! empty($data['remove_logo'])) {
+            $this->deleteLogo($company->logo);
+            $data['logo'] = null;
+        }
+
         if (isset($data['logo']) && $data['logo'] instanceof UploadedFile) {
             $this->deleteLogo($company->logo);
             $data['logo'] = $this->uploadLogo($data['logo']);
         }
+
+        unset($data['remove_logo']);
 
         $company->update($data);
 
