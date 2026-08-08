@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             CountriesSeeder::class,
             CurrenciesSeeder::class,
             SuperAdminSeeder::class,
+            HajjDemoDataSeeder::class,
         ]);
     }
 }

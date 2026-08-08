@@ -51,12 +51,21 @@ class AirlineController extends Controller
     {
         $data = $request->validated();
 
+        if ($request->boolean('remove_logo')) {
+            if ($airline->logo) {
+                Storage::disk('public')->delete($airline->logo);
+            }
+            $data['logo'] = null;
+        }
+
         if ($request->hasFile('logo')) {
             if ($airline->logo) {
                 Storage::disk('public')->delete($airline->logo);
             }
             $data['logo'] = $request->file('logo')->store('airlines', 'public');
         }
+
+        unset($data['remove_logo']);
 
         $data['updated_by'] = auth()->id();
 

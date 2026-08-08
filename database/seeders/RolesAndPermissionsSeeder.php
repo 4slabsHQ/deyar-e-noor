@@ -26,6 +26,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'cities.view', 'cities.create', 'cities.update', 'cities.delete',
             'currencies.view', 'currencies.create', 'currencies.update', 'currencies.delete',
             'airlines.view', 'airlines.create', 'airlines.update', 'airlines.delete',
+            'airports.view', 'airports.create', 'airports.update', 'airports.delete',
+            'form-owners.view', 'form-owners.create', 'form-owners.update', 'form-owners.delete',
+            'maktab-categories.view', 'maktab-categories.create', 'maktab-categories.update', 'maktab-categories.delete',
+            'care-offs.view', 'care-offs.create', 'care-offs.update', 'care-offs.delete',
+            'packages.view', 'packages.create', 'packages.update', 'packages.delete',
+            'room-types.view', 'room-types.create', 'room-types.update', 'room-types.delete',
+            'mehram-relations.view', 'mehram-relations.create', 'mehram-relations.update', 'mehram-relations.delete',
+            'waris-relations.view', 'waris-relations.create', 'waris-relations.update', 'waris-relations.delete',
+            'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
+            'flights.view', 'flights.create', 'flights.update', 'flights.delete',
             'hotels.view', 'hotels.create', 'hotels.update', 'hotels.delete',
             'transporters.view', 'transporters.create', 'transporters.update', 'transporters.delete',
             'guides.view', 'guides.create', 'guides.update', 'guides.delete',
@@ -140,6 +150,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'invoices.view', 'tours.view', 'tours.create', 'tours.update',
             'umrah.view', 'umrah.create', 'umrah.update',
             'visa.view', 'visa.status.update', 'visa.documents.manage',
+            'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
+            'flights.view', 'flights.create', 'flights.update', 'flights.delete',
+            'form-owners.view', 'maktab-categories.view', 'packages.view', 'care-offs.view',
+            'room-types.view', 'mehram-relations.view', 'waris-relations.view', 'companies.view', 'cities.view',
         ]);
 
         // Visa Officer
@@ -176,6 +190,17 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Supplier User — for supplier portal (separate guard later)
         Role::firstOrCreate(['name' => 'Supplier User', 'guard_name' => 'web']);
+
+        // Registration Staff — Hajj data entry only
+        $registrationStaff = Role::firstOrCreate(['name' => 'Registration Staff', 'guard_name' => 'web']);
+        $registrationStaff->syncPermissions([
+            'pilgrims.view',
+            'pilgrims.create',
+            'pilgrims.update',
+            'flights.view',
+            'flights.create',
+            'flights.update',
+        ]);
 
         $this->command->info('Roles and permissions seeded successfully.');
     }
