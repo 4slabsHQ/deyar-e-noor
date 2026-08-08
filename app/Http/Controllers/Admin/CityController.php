@@ -7,32 +7,27 @@ use App\Http\Requests\StoreCityRequest;
 use App\Http\Requests\UpdateCityRequest;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Flight;
 
 class CityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $cities = City::orderBy('name')->paginate(15);
+        $cities = City::query()
+            ->with('country')
+            ->orderBy('name')
+            ->paginate(15);
 
         return view('admin.cities.index', compact('cities'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-         $countries = Country::orderBy('name')->get();
+        $countries = Country::orderBy('name')->get();
 
         return view('admin.cities.create', compact('countries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreCityRequest $request)
     {
         City::create($request->validated());
@@ -40,35 +35,44 @@ class CityController extends Controller
         return redirect()->route('admin.cities.index')->with('success', 'City created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(City $city)
     {
-        //
+        $countries = Country::orderBy('name')->get();
+
+        return view('admin.cities.edit', compact('city', 'countries'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateCityRequest $request, City $city)
     {
-        //
+        $city->update($request->validated());
+
+        return redirect()->route('admin.cities.index')->with('success', 'City updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCityRequest $request, string $id)
+    public function destroy(City $city)
     {
-        //
-    }
+        if ($city->airports()->exists()) {
+            return back()->with('error', 'Cannot delete a city that has airports linked to it.');
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        if ($city->branches()->exists()) {
+            return back()->with('error', 'Cannot delete a city that has branches linked to it.');
+        }
+
+        if ($city->pilgrims()->exists()) {
+            return back()->with('error', 'Cannot delete a city used in pilgrim registrations.');
+        }
+
+        if (Flight::query()
+            ->where('departure_city_id', $city->id)
+            ->orWhere('via_city_id', $city->id)
+            ->orWhere('arrival_city_id', $city->id)
+            ->exists()) {
+            return back()->with('error', 'Cannot delete a city that is linked to flights.');
+        }
+
+        $city->delete();
+
+        return redirect()->route('admin.cities.index')->with('success', 'City deleted successfully.');
     }
 }

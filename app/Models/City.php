@@ -26,6 +26,16 @@ class City extends Model
         return $this->belongsTo(Country::class);
     }
 
+    public function airports(): HasMany
+    {
+        return $this->hasMany(Airport::class);
+    }
+
+    public function pilgrims(): HasMany
+    {
+        return $this->hasMany(Pilgrim::class, 'pod_city_id');
+    }
+
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);
