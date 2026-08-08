@@ -4,85 +4,69 @@
 @section('page-title', 'Qualified Statuses')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Qualified Statuses</h4>
-        @can('qualified-statuses.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qsModal"
-                    onclick="openCreateQsModal()">
-                <i class="fas fa-plus me-1"></i> New Qualified Status
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Qualified Statuses" card-title="All Qualified Statuses">
+        <x-slot:headerActions>
+            @can('qualified-statuses.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qsModal"
+                        onclick="openCreateQsModal()">
+                    <i class="fas fa-plus me-1"></i> New Qualified Status
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Qualified Statuses</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No qualified statuses yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Name</th>
-                            <th>Color</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($qualifiedStatuses as $qs)
-                            <tr>
-                                <td>{{ $qs->sort_order }}</td>
-                                <td class="fw-medium">{{ $qs->name }}</td>
-                                <td>
-                                    @if ($qs->color)
-                                        <span class="badge" style="background-color: {{ $qs->color }};">&nbsp;&nbsp;&nbsp;</span>
-                                        {{ $qs->color }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge light badge-{{ $qs->is_active ? 'success' : 'secondary' }}">
-                                        {{ $qs->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('qualified-statuses.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#qsModal"
-                                                    data-id="{{ $qs->id }}"
-                                                    data-name="{{ $qs->name }}"
-                                                    data-color="{{ $qs->color }}"
-                                                    data-sort-order="{{ $qs->sort_order }}"
-                                                    data-is-active="{{ $qs->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.qualified-statuses.update', $qs) }}"
-                                                    onclick="openEditQsModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('qualified-statuses.delete')
-                                            <form action="{{ route('admin.qualified-statuses.destroy', $qs) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $qs->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No qualified statuses yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Name</th>
+                    <th>Color</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($qualifiedStatuses as $qs)
+                    <tr>
+                        <td>{{ $qs->sort_order }}</td>
+                        <td class="fw-medium">{{ $qs->name }}</td>
+                        <td>
+                            @if ($qs->color)
+                                <span class="badge" style="background-color: {{ $qs->color }};">&nbsp;&nbsp;&nbsp;</span>
+                                {{ $qs->color }}
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td>
+                            <x-admin.status-badge :active="$qs->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('qualified-statuses.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#qsModal"
+                                            data-id="{{ $qs->id }}"
+                                            data-name="{{ $qs->name }}"
+                                            data-color="{{ $qs->color }}"
+                                            data-sort-order="{{ $qs->sort_order }}"
+                                            data-is-active="{{ $qs->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.qualified-statuses.update', $qs) }}"
+                                            onclick="openEditQsModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.qualified-statuses.destroy', $qs)"
+                                    delete-permission="qualified-statuses.delete"
+                                    :delete-confirm="'Delete '.$qs->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     <div class="modal fade" id="qsModal" tabindex="-1">
         <div class="modal-dialog">

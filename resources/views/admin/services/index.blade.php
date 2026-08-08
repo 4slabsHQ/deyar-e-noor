@@ -4,75 +4,59 @@
 @section('page-title', 'Services')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Services</h4>
-        @can('services.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal"
-                    onclick="openCreateServiceModal()">
-                <i class="fas fa-plus me-1"></i> New Service
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Services" card-title="All Services">
+        <x-slot:headerActions>
+            @can('services.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal"
+                        onclick="openCreateServiceModal()">
+                    <i class="fas fa-plus me-1"></i> New Service
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Services</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No services yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($services as $service)
-                            <tr>
-                                <td class="fw-medium">{{ $service->name }}</td>
-                                <td>{{ $service->code ?? '—' }}</td>
-                                <td>
-                                    <span class="badge light badge-{{ $service->is_active ? 'success' : 'secondary' }}">
-                                        {{ $service->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('services.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#serviceModal"
-                                                    data-id="{{ $service->id }}"
-                                                    data-name="{{ $service->name }}"
-                                                    data-code="{{ $service->code }}"
-                                                    data-is-active="{{ $service->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.services.update', $service) }}"
-                                                    onclick="openEditServiceModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('services.delete')
-                                            <form action="{{ route('admin.services.destroy', $service) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $service->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No services yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($services as $service)
+                    <tr>
+                        <td class="fw-medium">{{ $service->name }}</td>
+                        <td>{{ $service->code ?? '—' }}</td>
+                        <td>
+                            <x-admin.status-badge :active="$service->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('services.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#serviceModal"
+                                            data-id="{{ $service->id }}"
+                                            data-name="{{ $service->name }}"
+                                            data-code="{{ $service->code }}"
+                                            data-is-active="{{ $service->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.services.update', $service) }}"
+                                            onclick="openEditServiceModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.services.destroy', $service)"
+                                    delete-permission="services.delete"
+                                    :delete-confirm="'Delete '.$service->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     <div class="modal fade" id="serviceModal" tabindex="-1">
         <div class="modal-dialog">

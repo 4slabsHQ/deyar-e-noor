@@ -18,9 +18,18 @@
             </li>
             @endcan
 
+            @can('flights.view')
+            <li>
+                <a href="{{ route('admin.flights.index') }}" class="{{ request()->routeIs('admin.flights.*') ? 'mm-active' : '' }}">
+                    <i class="fas fa-plane"></i>
+                    <span class="nav-text">Flights</span>
+                </a>
+            </li>
+            @endcan
+
             @unless(auth()->user()?->hasRole('Registration Staff'))
 
-            @canany(['companies.view','form-owners.view','maktab-categories.view','packages.view','care-offs.view','room-types.view','mehram-relations.view','waris-relations.view','cities.view','countries.view'])
+            @canany(['companies.view','form-owners.view','maktab-categories.view','packages.view','care-offs.view','room-types.view','mehram-relations.view','waris-relations.view','cities.view','countries.view','airlines.view','airports.view'])
             <li>
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-mosque"></i>
@@ -57,6 +66,12 @@
                     @unless(config('modules.show_legacy_travel_erp'))
                     @can('countries.view')
                     <li><a href="{{ route('admin.countries.index') }}">Countries</a></li>
+                    @endcan
+                    @can('airlines.view')
+                    <li><a href="{{ route('admin.airlines.index') }}">Airlines</a></li>
+                    @endcan
+                    @can('airports.view')
+                    <li><a href="{{ route('admin.airports.index') }}">Airports</a></li>
                     @endcan
                     @endunless
                 </ul>

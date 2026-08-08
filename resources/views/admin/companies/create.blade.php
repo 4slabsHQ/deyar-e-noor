@@ -4,21 +4,13 @@
 @section('page-title', 'New Company')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Create Company</h4>
-    <a href="{{ route('admin.companies.index') }}" class="btn btn-light">Back</a>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <form action="{{ route('admin.companies.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @include('admin.companies._form')
-            <div class="text-end mt-3">
-                <a href="{{ route('admin.companies.index') }}" class="btn btn-light me-2">Cancel</a>
-                <button class="btn btn-primary">Save Company</button>
-            </div>
-        </form>
-    </div>
-</div>
+    <x-admin.form-page
+        title="Create Company"
+        :action="route('admin.companies.store')"
+        :cancel-url="route('admin.companies.index')"
+        submit-label="Save Company"
+        enctype="multipart/form-data"
+    >
+        @include('admin.companies._form')
+    </x-admin.form-page>
 @endsection

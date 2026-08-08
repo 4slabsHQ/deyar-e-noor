@@ -1,30 +1,19 @@
 @php $maktabCategory = $maktabCategory ?? null; @endphp
 
-<div class="mb-3 row">
-    <label class="col-lg-3 col-form-label">Category <span class="text-danger">*</span></label>
-    <div class="col-lg-8">
-        <input type="text" name="name" value="{{ old('name', $maktabCategory->name ?? '') }}"
+<x-admin.form-grid>
+    <x-admin.form-field label="Category" for="name" class="col-lg-6 col-md-6" :required="true">
+        <input type="text" name="name" id="name" value="{{ old('name', $maktabCategory->name ?? '') }}"
                class="form-control @error('name') is-invalid @enderror" required>
         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-    </div>
-</div>
+    </x-admin.form-field>
 
-<div class="mb-3 row">
-    <label class="col-lg-3 col-form-label">Zone <span class="text-danger">*</span></label>
-    <div class="col-lg-8">
-        <input type="text" name="zone" maxlength="50" value="{{ old('zone', $maktabCategory->zone ?? '') }}"
+    <x-admin.form-field label="Zone" for="zone" class="col-lg-4 col-md-4" :required="true">
+        <input type="text" name="zone" id="zone" maxlength="50" value="{{ old('zone', $maktabCategory->zone ?? '') }}"
                class="form-control @error('zone') is-invalid @enderror" required>
         @error('zone') <div class="invalid-feedback">{{ $message }}</div> @enderror
-    </div>
-</div>
+    </x-admin.form-field>
 
-<div class="mb-3 row">
-    <div class="col-lg-3"></div>
-    <div class="col-lg-8">
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active"
-                   {{ old('is_active', $maktabCategory->is_active ?? true) ? 'checked' : '' }}>
-            <label class="form-check-label" for="is_active">Active</label>
-        </div>
-    </div>
-</div>
+    <x-admin.form-field label="Status" class="col-lg-2 col-md-2">
+        <x-admin.form-switch :checked="$maktabCategory->is_active ?? true" inline />
+    </x-admin.form-field>
+</x-admin.form-grid>

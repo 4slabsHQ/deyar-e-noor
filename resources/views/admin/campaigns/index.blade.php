@@ -4,85 +4,69 @@
 @section('page-title', 'Campaigns')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Campaigns</h4>
-        @can('campaigns.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#campaignModal"
-                    onclick="openCreateCampaignModal()">
-                <i class="fas fa-plus me-1"></i> New Campaign
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Campaigns" card-title="All Campaigns">
+        <x-slot:headerActions>
+            @can('campaigns.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#campaignModal"
+                        onclick="openCreateCampaignModal()">
+                    <i class="fas fa-plus me-1"></i> New Campaign
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Campaigns</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No campaigns yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Channel</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th>Budget</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($campaigns as $campaign)
-                            <tr>
-                                <td class="fw-medium">{{ $campaign->name }}</td>
-                                <td>{{ $campaign->channel->name ?? '—' }}</td>
-                                <td>{{ $campaign->start_date?->format('d M Y') ?? '—' }}</td>
-                                <td>{{ $campaign->end_date?->format('d M Y') ?? '—' }}</td>
-                                <td>{{ $campaign->budget ? number_format($campaign->budget, 2) : '—' }}</td>
-                                <td>
-                                    <span class="badge light badge-{{ $campaign->is_active ? 'success' : 'secondary' }}">
-                                        {{ $campaign->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('campaigns.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#campaignModal"
-                                                    data-id="{{ $campaign->id }}"
-                                                    data-name="{{ $campaign->name }}"
-                                                    data-code="{{ $campaign->code }}"
-                                                    data-channel-id="{{ $campaign->channel_id }}"
-                                                    data-start-date="{{ $campaign->start_date?->format('Y-m-d') }}"
-                                                    data-end-date="{{ $campaign->end_date?->format('Y-m-d') }}"
-                                                    data-budget="{{ $campaign->budget }}"
-                                                    data-is-active="{{ $campaign->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.campaigns.update', $campaign) }}"
-                                                    onclick="openEditCampaignModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('campaigns.delete')
-                                            <form action="{{ route('admin.campaigns.destroy', $campaign) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $campaign->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No campaigns yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Channel</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Budget</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($campaigns as $campaign)
+                    <tr>
+                        <td class="fw-medium">{{ $campaign->name }}</td>
+                        <td>{{ $campaign->channel->name ?? '—' }}</td>
+                        <td>{{ $campaign->start_date?->format('d M Y') ?? '—' }}</td>
+                        <td>{{ $campaign->end_date?->format('d M Y') ?? '—' }}</td>
+                        <td>{{ $campaign->budget ? number_format($campaign->budget, 2) : '—' }}</td>
+                        <td>
+                            <x-admin.status-badge :active="$campaign->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('campaigns.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#campaignModal"
+                                            data-id="{{ $campaign->id }}"
+                                            data-name="{{ $campaign->name }}"
+                                            data-code="{{ $campaign->code }}"
+                                            data-channel-id="{{ $campaign->channel_id }}"
+                                            data-start-date="{{ $campaign->start_date?->format('Y-m-d') }}"
+                                            data-end-date="{{ $campaign->end_date?->format('Y-m-d') }}"
+                                            data-budget="{{ $campaign->budget }}"
+                                            data-is-active="{{ $campaign->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.campaigns.update', $campaign) }}"
+                                            onclick="openEditCampaignModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.campaigns.destroy', $campaign)"
+                                    delete-permission="campaigns.delete"
+                                    :delete-confirm="'Delete '.$campaign->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     <div class="modal fade" id="campaignModal" tabindex="-1">
         <div class="modal-dialog">

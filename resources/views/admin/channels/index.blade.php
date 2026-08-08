@@ -4,75 +4,59 @@
 @section('page-title', 'Channels')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Channels</h4>
-        @can('channels.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#channelModal"
-                    onclick="openCreateChannelModal()">
-                <i class="fas fa-plus me-1"></i> New Channel
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Channels" card-title="All Channels">
+        <x-slot:headerActions>
+            @can('channels.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#channelModal"
+                        onclick="openCreateChannelModal()">
+                    <i class="fas fa-plus me-1"></i> New Channel
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Channels</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No channels yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($channels as $channel)
-                            <tr>
-                                <td class="fw-medium">{{ $channel->name }}</td>
-                                <td>{{ $channel->code ?? '—' }}</td>
-                                <td>
-                                    <span class="badge light badge-{{ $channel->is_active ? 'success' : 'secondary' }}">
-                                        {{ $channel->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('channels.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#channelModal"
-                                                    data-id="{{ $channel->id }}"
-                                                    data-name="{{ $channel->name }}"
-                                                    data-code="{{ $channel->code }}"
-                                                    data-is-active="{{ $channel->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.channels.update', $channel) }}"
-                                                    onclick="openEditChannelModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('channels.delete')
-                                            <form action="{{ route('admin.channels.destroy', $channel) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $channel->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No channels yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($channels as $channel)
+                    <tr>
+                        <td class="fw-medium">{{ $channel->name }}</td>
+                        <td>{{ $channel->code ?? '—' }}</td>
+                        <td>
+                            <x-admin.status-badge :active="$channel->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('channels.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#channelModal"
+                                            data-id="{{ $channel->id }}"
+                                            data-name="{{ $channel->name }}"
+                                            data-code="{{ $channel->code }}"
+                                            data-is-active="{{ $channel->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.channels.update', $channel) }}"
+                                            onclick="openEditChannelModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.channels.destroy', $channel)"
+                                    delete-permission="channels.delete"
+                                    :delete-confirm="'Delete '.$channel->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     {{-- Single modal, reused for both Create and Edit --}}
     <div class="modal fade" id="channelModal" tabindex="-1">

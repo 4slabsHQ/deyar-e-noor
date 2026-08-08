@@ -4,23 +4,13 @@
 @section('page-title', 'Edit Package')
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Edit Package</h4>
-    </div>
-    <div class="card-body">
-        <form action="{{ route('admin.packages.update', $package) }}" method="POST">
-            @csrf
-            @method('PUT')
-            @include('admin.packages._form')
-
-            <div class="mb-3 row">
-                <div class="col-lg-8 offset-lg-3">
-                    <button class="btn btn-primary">Update Package</button>
-                    <a href="{{ route('admin.packages.index') }}" class="btn btn-light">Cancel</a>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
+    <x-admin.form-page
+        title="Edit Package"
+        :action="route('admin.packages.update', $package)"
+        method="PUT"
+        :cancel-url="route('admin.packages.index')"
+        submit-label="Update Package"
+    >
+        @include('admin.packages._form')
+    </x-admin.form-page>
 @endsection

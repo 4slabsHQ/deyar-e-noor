@@ -4,78 +4,62 @@
 @section('page-title', 'Sub Services')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Sub Services</h4>
-        @can('sub-services.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#subServiceModal"
-                    onclick="openCreateSubServiceModal()">
-                <i class="fas fa-plus me-1"></i> New Sub Service
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Sub Services" card-title="All Sub Services">
+        <x-slot:headerActions>
+            @can('sub-services.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#subServiceModal"
+                        onclick="openCreateSubServiceModal()">
+                    <i class="fas fa-plus me-1"></i> New Sub Service
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Sub Services</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No sub-services yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Service</th>
-                            <th>Code</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($subServices as $subService)
-                            <tr>
-                                <td class="fw-medium">{{ $subService->name }}</td>
-                                <td>{{ $subService->service->name ?? '—' }}</td>
-                                <td>{{ $subService->code ?? '—' }}</td>
-                                <td>
-                                    <span class="badge light badge-{{ $subService->is_active ? 'success' : 'secondary' }}">
-                                        {{ $subService->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('sub-services.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#subServiceModal"
-                                                    data-id="{{ $subService->id }}"
-                                                    data-name="{{ $subService->name }}"
-                                                    data-code="{{ $subService->code }}"
-                                                    data-service-id="{{ $subService->service_id }}"
-                                                    data-is-active="{{ $subService->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.sub-services.update', $subService) }}"
-                                                    onclick="openEditSubServiceModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('sub-services.delete')
-                                            <form action="{{ route('admin.sub-services.destroy', $subService) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $subService->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No sub-services yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Service</th>
+                    <th>Code</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($subServices as $subService)
+                    <tr>
+                        <td class="fw-medium">{{ $subService->name }}</td>
+                        <td>{{ $subService->service->name ?? '—' }}</td>
+                        <td>{{ $subService->code ?? '—' }}</td>
+                        <td>
+                            <x-admin.status-badge :active="$subService->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('sub-services.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#subServiceModal"
+                                            data-id="{{ $subService->id }}"
+                                            data-name="{{ $subService->name }}"
+                                            data-code="{{ $subService->code }}"
+                                            data-service-id="{{ $subService->service_id }}"
+                                            data-is-active="{{ $subService->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.sub-services.update', $subService) }}"
+                                            onclick="openEditSubServiceModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.sub-services.destroy', $subService)"
+                                    delete-permission="sub-services.delete"
+                                    :delete-confirm="'Delete '.$subService->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     <div class="modal fade" id="subServiceModal" tabindex="-1">
         <div class="modal-dialog">

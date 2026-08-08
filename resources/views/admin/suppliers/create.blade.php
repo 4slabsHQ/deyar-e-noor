@@ -4,22 +4,12 @@
 @section('page-title', 'Create Supplier')
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Create Supplier</h4>
-    </div>
-    <div class="card-body">
-        <form action="{{ route('admin.suppliers.store') }}" method="POST">
-            @csrf
-            @include('admin.suppliers._form')
-
-            <div class="mb-3 row">
-                <div class="col-lg-8 offset-lg-3">
-                    <button class="btn btn-primary">Create Supplier</button>
-                    <a href="{{ route('admin.suppliers.index') }}" class="btn btn-light">Cancel</a>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
+    <x-admin.form-page
+        title="Create Supplier"
+        :action="route('admin.suppliers.store')"
+        :cancel-url="route('admin.suppliers.index')"
+        submit-label="Create Supplier"
+    >
+        @include('admin.suppliers._form')
+    </x-admin.form-page>
 @endsection

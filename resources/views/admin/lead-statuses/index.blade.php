@@ -4,92 +4,76 @@
 @section('page-title', 'Lead Statuses')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fs-20 font-w700 mb-0">Lead Statuses</h4>
-        @can('lead-statuses.create')
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statusModal"
-                    onclick="openCreateStatusModal()">
-                <i class="fas fa-plus me-1"></i> New Status
-            </button>
-        @endcan
-    </div>
+    <x-admin.index-page title="Lead Statuses" card-title="All Lead Statuses">
+        <x-slot:headerActions>
+            @can('lead-statuses.create')
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statusModal"
+                        onclick="openCreateStatusModal()">
+                    <i class="fas fa-plus me-1"></i> New Status
+                </button>
+            @endcan
+        </x-slot:headerActions>
 
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">All Lead Statuses</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table data-datatable data-empty-message="No lead statuses yet." class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Name</th>
-                            <th>Color</th>
-                            <th>Won</th>
-                            <th>Lost</th>
-                            <th>Status</th>
-                            <th class="no-sort">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($leadStatuses as $status)
-                            <tr>
-                                <td>{{ $status->sort_order }}</td>
-                                <td class="fw-medium">{{ $status->name }}</td>
-                                <td>
-                                    @if ($status->color)
-                                        <span class="badge" style="background-color: {{ $status->color }};">&nbsp;&nbsp;&nbsp;</span>
-                                        {{ $status->color }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
-                                <td>{!! $status->is_won ? '<i class="fas fa-check text-success"></i>' : '—' !!}</td>
-                                <td>{!! $status->is_lost ? '<i class="fas fa-check text-danger"></i>' : '—' !!}</td>
-                                <td>
-                                    <span class="badge light badge-{{ $status->is_active ? 'success' : 'secondary' }}">
-                                        {{ $status->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        @can('lead-statuses.update')
-                                            <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
-                                                    data-bs-toggle="modal" data-bs-target="#statusModal"
-                                                    data-id="{{ $status->id }}"
-                                                    data-name="{{ $status->name }}"
-                                                    data-slug="{{ $status->slug }}"
-                                                    data-color="{{ $status->color }}"
-                                                    data-sort-order="{{ $status->sort_order }}"
-                                                    data-is-won="{{ $status->is_won ? '1' : '0' }}"
-                                                    data-is-lost="{{ $status->is_lost ? '1' : '0' }}"
-                                                    data-is-active="{{ $status->is_active ? '1' : '0' }}"
-                                                    data-update-url="{{ route('admin.lead-statuses.update', $status) }}"
-                                                    onclick="openEditStatusModal(this)">
-                                                <i class="fas fa-pencil-alt"></i>
-                                            </button>
-                                        @endcan
-                                        @can('lead-statuses.delete')
-                                            <form action="{{ route('admin.lead-statuses.destroy', $status) }}"
-                                                  method="POST"
-                                                  onsubmit="return confirm('Delete {{ $status->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger shadow btn-xs sharp">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <table data-datatable data-empty-message="No lead statuses yet." class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Name</th>
+                    <th>Color</th>
+                    <th>Won</th>
+                    <th>Lost</th>
+                    <th>Status</th>
+                    <th class="no-sort">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($leadStatuses as $status)
+                    <tr>
+                        <td>{{ $status->sort_order }}</td>
+                        <td class="fw-medium">{{ $status->name }}</td>
+                        <td>
+                            @if ($status->color)
+                                <span class="badge" style="background-color: {{ $status->color }};">&nbsp;&nbsp;&nbsp;</span>
+                                {{ $status->color }}
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td>{!! $status->is_won ? '<i class="fas fa-check text-success"></i>' : '—' !!}</td>
+                        <td>{!! $status->is_lost ? '<i class="fas fa-check text-danger"></i>' : '—' !!}</td>
+                        <td>
+                            <x-admin.status-badge :active="$status->is_active" />
+                        </td>
+                        <td>
+                            <div class="d-flex">
+                                @can('lead-statuses.update')
+                                    <button type="button" class="btn btn-primary shadow btn-xs sharp me-1"
+                                            data-bs-toggle="modal" data-bs-target="#statusModal"
+                                            data-id="{{ $status->id }}"
+                                            data-name="{{ $status->name }}"
+                                            data-slug="{{ $status->slug }}"
+                                            data-color="{{ $status->color }}"
+                                            data-sort-order="{{ $status->sort_order }}"
+                                            data-is-won="{{ $status->is_won ? '1' : '0' }}"
+                                            data-is-lost="{{ $status->is_lost ? '1' : '0' }}"
+                                            data-is-active="{{ $status->is_active ? '1' : '0' }}"
+                                            data-update-url="{{ route('admin.lead-statuses.update', $status) }}"
+                                            onclick="openEditStatusModal(this)">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                @endcan
+                                <x-admin.table-actions
+                                    :delete-route="route('admin.lead-statuses.destroy', $status)"
+                                    delete-permission="lead-statuses.delete"
+                                    :delete-confirm="'Delete '.$status->name.'?'"
+                                />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.index-page>
 
     <div class="modal fade" id="statusModal" tabindex="-1">
         <div class="modal-dialog">
