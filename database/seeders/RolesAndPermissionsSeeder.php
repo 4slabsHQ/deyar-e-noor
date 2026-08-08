@@ -35,6 +35,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'mehram-relations.view', 'mehram-relations.create', 'mehram-relations.update', 'mehram-relations.delete',
             'waris-relations.view', 'waris-relations.create', 'waris-relations.update', 'waris-relations.delete',
             'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
+            'flights.view', 'flights.create', 'flights.update', 'flights.delete',
             'hotels.view', 'hotels.create', 'hotels.update', 'hotels.delete',
             'transporters.view', 'transporters.create', 'transporters.update', 'transporters.delete',
             'guides.view', 'guides.create', 'guides.update', 'guides.delete',
@@ -144,6 +145,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'umrah.view', 'umrah.create', 'umrah.update',
             'visa.view', 'visa.status.update', 'visa.documents.manage',
             'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
+            'flights.view', 'flights.create', 'flights.update', 'flights.delete',
             'form-owners.view', 'maktab-categories.view', 'packages.view', 'care-offs.view',
             'room-types.view', 'mehram-relations.view', 'waris-relations.view', 'companies.view', 'cities.view',
         ]);
@@ -189,6 +191,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'pilgrims.view',
             'pilgrims.create',
             'pilgrims.update',
+            'flights.view',
+            'flights.create',
+            'flights.update',
         ]);
 
         $this->command->info('Roles and permissions seeded successfully.');

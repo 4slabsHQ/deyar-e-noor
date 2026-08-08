@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\FlightController;
 use App\Http\Controllers\Admin\FormOwnerController;
 use App\Http\Controllers\Admin\GuideController;
 use App\Http\Controllers\Admin\HotelController;
@@ -57,7 +58,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'update' => 'permission:countries.update',
             'destroy' => 'permission:countries.delete',
         ]);
-    Route::resource('cities', CityController::class);
+    Route::resource('cities', CityController::class)
+        ->except(['show'])
+        ->middleware([
+            'index' => 'permission:cities.view',
+            'create' => 'permission:cities.create',
+            'store' => 'permission:cities.create',
+            'edit' => 'permission:cities.update',
+            'update' => 'permission:cities.update',
+            'destroy' => 'permission:cities.delete',
+        ]);
     Route::resource('currencies', CurrencyController::class)
         ->except(['show'])
         ->middleware([
@@ -210,6 +220,17 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'edit' => 'permission:pilgrims.update',
             'update' => 'permission:pilgrims.update',
             'destroy' => 'permission:pilgrims.delete',
+        ]);
+
+    Route::resource('flights', FlightController::class)
+        ->except(['show'])
+        ->middleware([
+            'index' => 'permission:flights.view',
+            'create' => 'permission:flights.create',
+            'store' => 'permission:flights.create',
+            'edit' => 'permission:flights.update',
+            'update' => 'permission:flights.update',
+            'destroy' => 'permission:flights.delete',
         ]);
 
     /*
