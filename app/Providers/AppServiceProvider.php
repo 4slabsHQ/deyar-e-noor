@@ -29,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configureDefaults();
+        $this->configureAuthorization();
+    }
+
+    protected function configureAuthorization(): void
+    {
+        Gate::before(function ($user, string $ability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
     }
 
     /**
