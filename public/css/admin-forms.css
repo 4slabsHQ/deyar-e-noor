@@ -1,0 +1,400 @@
+/* Shared admin form system — CRUD masters + global field consistency */
+
+:root {
+    --admin-input-border: #cbd5e1;
+    --admin-input-bg: #ffffff;
+    --admin-label: #374151;
+    --admin-placeholder: #9ca3af;
+    --admin-section-border: #e5e7eb;
+    --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+    --admin-field-height: 2.125rem;
+    --admin-field-padding-x: 0.55rem;
+    --admin-field-font-size: 0.8125rem;
+    --admin-field-radius: var(--deyar-radius-control, 0.125rem);
+    --admin-label-size: 0.75rem;
+}
+
+/* ── CRUD horizontal forms ── */
+
+.admin-form-page .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.admin-form {
+    --bs-gutter-x: 1rem;
+}
+
+.admin-form-label,
+.admin-form .col-form-label {
+    font-size: var(--admin-label-size);
+    font-weight: 500;
+    color: var(--admin-label);
+}
+
+.admin-form-row {
+    align-items: flex-start;
+}
+
+/* Compact grid layout (label above field, multi-column) */
+.admin-form-grid {
+    --bs-gutter-x: 0.65rem;
+    --bs-gutter-y: 0.55rem;
+    margin-bottom: 0.25rem;
+}
+
+.admin-form-field .admin-form-label {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.admin-form-field .form-hint {
+    margin-top: 0.15rem;
+}
+
+.admin-form-switch-inline {
+    padding-top: 0.15rem;
+    min-height: var(--admin-field-height);
+    display: flex;
+    align-items: center;
+}
+
+.admin-form-grid .admin-form-switch-inline .form-check-label {
+    font-size: var(--admin-field-font-size);
+    color: var(--admin-label);
+}
+
+.admin-form .form-control:not([type="file"]):not(.ts-wrapper),
+.admin-form select.form-control:not(.tomselected),
+.admin-form textarea.form-control {
+    background-color: var(--admin-input-bg);
+    border: 1px solid var(--admin-input-border);
+    color: #111827;
+    height: var(--admin-field-height);
+    min-height: var(--admin-field-height);
+    padding: 0 var(--admin-field-padding-x);
+    font-size: var(--admin-field-font-size);
+    line-height: 1.5;
+    border-radius: var(--admin-field-radius);
+    box-shadow: none;
+}
+
+.admin-form textarea.form-control {
+    height: auto;
+    min-height: 3rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+
+.admin-form .form-control:not(.ts-wrapper):focus,
+.admin-form select.form-control:not(.tomselected):focus,
+.admin-form textarea.form-control:focus {
+    border-color: #b8956a;
+    box-shadow: 0 0 0 0.15rem rgba(184, 149, 106, 0.15);
+}
+
+.admin-form .form-control::placeholder {
+    color: var(--admin-placeholder);
+    opacity: 1;
+}
+
+.admin-form .form-hint {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.6875rem;
+    color: #6b7280;
+    line-height: 1.3;
+}
+
+.admin-form-section {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--admin-section-border);
+}
+
+.admin-form-section:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.admin-form-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.admin-form-section .form-check-label {
+    font-size: var(--admin-field-font-size);
+}
+
+.admin-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--admin-section-border);
+}
+
+.admin-form .invalid-feedback {
+    font-size: 0.6875rem;
+}
+
+/* ── Select chevron (all admin forms) ── */
+
+.admin-form select.form-control:not(.tomselected),
+.hajj-form select.form-control:not(.tomselected),
+.pilgrim-form select.form-control:not(.tomselected) {
+    appearance: none;
+    background-image: var(--admin-select-chevron);
+    background-repeat: no-repeat;
+    background-position: right var(--admin-field-padding-x) center;
+    background-size: 12px;
+    padding-right: 2rem;
+}
+
+.admin-form select.form-control:not(.tomselected).is-placeholder,
+.hajj-form select.form-control:not(.tomselected).is-placeholder,
+.pilgrim-form select.form-control:not(.tomselected).is-placeholder {
+    color: var(--admin-placeholder);
+}
+
+.admin-form select.form-control option,
+.hajj-form select.form-control option,
+.pilgrim-form select.form-control option {
+    color: #111827;
+}
+
+.admin-form select.form-control option[value=""],
+.hajj-form select.form-control option[value=""],
+.pilgrim-form select.form-control option[value=""] {
+    color: var(--admin-placeholder);
+}
+
+/* ── Tom Select — match admin theme ── */
+
+.admin-form .ts-wrapper,
+.hajj-form .ts-wrapper,
+.pilgrim-form .ts-wrapper {
+    width: 100%;
+    display: block !important;
+    min-height: 0 !important;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.admin-form .ts-wrapper.single .ts-control,
+.hajj-form .ts-wrapper.single .ts-control,
+.pilgrim-form .ts-wrapper.single .ts-control {
+    width: 100%;
+    background-color: var(--admin-input-bg);
+    background-image: none;
+    border: 1px solid var(--admin-input-border);
+    border-radius: var(--admin-field-radius);
+    height: var(--admin-field-height);
+    min-height: var(--admin-field-height);
+    padding: 0 2rem 0 var(--admin-field-padding-x);
+    font-size: var(--admin-field-font-size);
+    line-height: 1.5;
+    box-shadow: none;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+}
+
+.admin-form .ts-wrapper.single .ts-control > .item,
+.hajj-form .ts-wrapper.single .ts-control > .item,
+.pilgrim-form .ts-wrapper.single .ts-control > .item {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 0.25rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.admin-form .ts-wrapper.plugin-dropdown_input .ts-control input.items-placeholder,
+.hajj-form .ts-wrapper.plugin-dropdown_input .ts-control input.items-placeholder,
+.pilgrim-form .ts-wrapper.plugin-dropdown_input .ts-control input.items-placeholder {
+    flex: 1 1 auto;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    color: var(--admin-placeholder);
+    font-size: var(--admin-field-font-size);
+    line-height: 1.5;
+}
+
+.admin-form .ts-wrapper.single .ts-control .items-placeholder,
+.hajj-form .ts-wrapper.single .ts-control .items-placeholder,
+.pilgrim-form .ts-wrapper.single .ts-control .items-placeholder {
+    color: var(--admin-placeholder);
+}
+
+.admin-form .ts-wrapper.single.focus .ts-control,
+.hajj-form .ts-wrapper.single.focus .ts-control,
+.pilgrim-form .ts-wrapper.single.focus .ts-control {
+    border-color: #b8956a;
+    box-shadow: 0 0 0 0.15rem rgba(184, 149, 106, 0.15);
+}
+
+.admin-form .ts-wrapper.single .ts-control::after,
+.hajj-form .ts-wrapper.single .ts-control::after,
+.pilgrim-form .ts-wrapper.single .ts-control::after {
+    border: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    right: var(--admin-field-padding-x);
+    background-color: transparent;
+    background-image: var(--admin-select-chevron);
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.admin-form .ts-wrapper.single.dropdown-active .ts-control::after,
+.hajj-form .ts-wrapper.single.dropdown-active .ts-control::after,
+.pilgrim-form .ts-wrapper.single.dropdown-active .ts-control::after {
+    transform: rotate(180deg);
+    margin-top: -6px;
+}
+
+.admin-form .ts-dropdown,
+.hajj-form .ts-dropdown,
+.pilgrim-form .ts-dropdown {
+    border-color: var(--admin-input-border);
+    border-radius: var(--admin-field-radius);
+    font-size: var(--admin-field-font-size);
+}
+
+.admin-form .ts-dropdown .dropdown-input-wrap,
+.hajj-form .ts-dropdown .dropdown-input-wrap,
+.pilgrim-form .ts-dropdown .dropdown-input-wrap {
+    padding: 0.3rem 0.45rem;
+    border-bottom: 1px solid var(--admin-input-border);
+}
+
+.admin-form .ts-dropdown .dropdown-input,
+.hajj-form .ts-dropdown .dropdown-input,
+.pilgrim-form .ts-dropdown .dropdown-input {
+    width: 100%;
+    padding: 0.3rem 0.45rem;
+    font-size: var(--admin-field-font-size);
+    border: 1px solid var(--admin-input-border);
+    border-radius: var(--admin-field-radius);
+    box-shadow: none;
+}
+
+.admin-form .ts-dropdown .dropdown-input:focus,
+.hajj-form .ts-dropdown .dropdown-input:focus,
+.pilgrim-form .ts-dropdown .dropdown-input:focus {
+    border-color: #b8956a;
+    outline: none;
+    box-shadow: 0 0 0 0.15rem rgba(184, 149, 106, 0.15);
+}
+
+.admin-form .ts-dropdown .active,
+.hajj-form .ts-dropdown .active,
+.pilgrim-form .ts-dropdown .active {
+    background-color: #b8956a;
+}
+
+.hajj-form .ts-wrapper.single.has-items .ts-control > .item,
+.pilgrim-form .ts-wrapper.single.has-items .ts-control > .item {
+    color: #111827;
+}
+
+/* Index pages */
+.admin-index-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.admin-index-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Image upload with preview */
+.admin-image-upload {
+    position: relative;
+}
+
+.admin-image-upload__input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.admin-image-upload__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.65rem;
+    border: 1px dashed var(--admin-input-border);
+    border-radius: var(--deyar-radius-container, 0.25rem);
+    background: #f9fafb;
+}
+
+.admin-image-upload__hint {
+    font-size: 0.6875rem;
+    color: #6b7280;
+    line-height: 1.3;
+}
+
+.admin-image-upload__preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+.admin-image-upload__image {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--deyar-radius-control, 0.125rem);
+    border: 1px solid var(--admin-input-border);
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+.admin-image-upload__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding-top: 0.15rem;
+}
+
+.admin-image-upload.is-invalid .admin-image-upload__empty,
+.admin-image-upload.is-invalid .admin-image-upload__image {
+    border-color: #dc3545;
+}
+
+.admin-table-actions .btn.sharp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -7,10 +7,11 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-<link href="{{ asset('vendor/jquery-nice-select/css/nice-select.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/owl-carousel/owl.carousel.css') }}" rel="stylesheet">
 <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 <link href="{{ asset('css/deyar-brand.css') }}" rel="stylesheet">
+<link href="{{ asset('css/admin-forms.css') }}" rel="stylesheet">
+<link href="{{ asset('vendor/tom-select/css/tom-select.default.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
 
 @stack('styles')
