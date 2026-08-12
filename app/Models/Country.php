@@ -24,9 +24,4 @@ class Country extends Model
     {
         return $this->hasMany(City::class);
     }
-
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
 }

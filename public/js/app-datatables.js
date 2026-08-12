@@ -9,6 +9,8 @@
                 return;
             }
 
+            $table.addClass('admin-index-table');
+
             $table.DataTable({
                 language: {
                     paginate: {

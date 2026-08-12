@@ -13,7 +13,7 @@ class DashboardController extends Controller
         $pilgrimStats = null;
         $flightStats = null;
 
-        if (auth()->user()?->can('pilgrims.view')) {
+        if (config('features.hajj_registration') && auth()->user()?->can('pilgrims.view')) {
             $pilgrimStats = [
                 'total' => Pilgrim::count(),
                 'this_year' => Pilgrim::where('hajj_year', now()->year)->count(),
@@ -25,7 +25,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if (auth()->user()?->can('flights.view')) {
+        if (config('features.flights') && auth()->user()?->can('flights.view')) {
             $flightStats = [
                 'total' => Flight::count(),
                 'by_airline' => $this->flightsByAirline(),
@@ -44,7 +44,11 @@ class DashboardController extends Controller
     {
         $start = now()->subMonths(5)->startOfMonth();
 
-        $counts = Pilgrim::selectRaw("DATE_FORMAT(booking_date, '%Y-%m') as month, COUNT(*) as total")
+        $monthExpression = Pilgrim::query()->getConnection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', booking_date)"
+            : "DATE_FORMAT(booking_date, '%Y-%m')";
+
+        $counts = Pilgrim::selectRaw("{$monthExpression} as month, COUNT(*) as total")
             ->where('booking_date', '>=', $start)
             ->groupBy('month')
             ->pluck('total', 'month');

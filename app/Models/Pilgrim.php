@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
 use Database\Factories\PilgrimFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Pilgrim extends Model
 {
@@ -120,5 +122,17 @@ class Pilgrim extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /** @return Attribute<?string, never> */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {
+                return null;
+            }
+
+            return asset('storage/'.$this->photo_path);
+        });
     }
 }

@@ -2,20 +2,12 @@
 
 use App\Http\Controllers\Admin\AirlineController;
 use App\Http\Controllers\Admin\AirportController;
-// Admin Controllers
-use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CareOffController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CountryController;
-use App\Http\Controllers\Admin\CurrencyController;
-use App\Http\Controllers\Admin\CustomerController;
-use App\Http\Controllers\Admin\DepartmentController;
-use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\FlightController;
 use App\Http\Controllers\Admin\FormOwnerController;
-use App\Http\Controllers\Admin\GuideController;
-use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\MaktabCategoryController;
 use App\Http\Controllers\Admin\MehramRelationController;
 use App\Http\Controllers\Admin\PackageController;
@@ -23,31 +15,17 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PilgrimController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomTypeController;
-use App\Http\Controllers\Admin\SupplierController;
-use App\Http\Controllers\Admin\TaxController;
-use App\Http\Controllers\Admin\TransporterController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\WarisRelationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Profile
-    |--------------------------------------------------------------------------
-    */
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Master Data
-    |--------------------------------------------------------------------------
-    */
     Route::resource('countries', CountryController::class)
         ->except(['show'])
         ->middleware([
@@ -67,16 +45,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'edit' => 'permission:cities.update',
             'update' => 'permission:cities.update',
             'destroy' => 'permission:cities.delete',
-        ]);
-    Route::resource('currencies', CurrencyController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:currencies.view',
-            'create' => 'permission:currencies.create',
-            'store' => 'permission:currencies.create',
-            'edit' => 'permission:currencies.update',
-            'update' => 'permission:currencies.update',
-            'destroy' => 'permission:currencies.delete',
         ]);
     Route::resource('airlines', AirlineController::class)
         ->except(['show'])
@@ -98,35 +66,17 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'update' => 'permission:airports.update',
             'destroy' => 'permission:airports.delete',
         ]);
-    Route::resource('hotels', HotelController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:hotels.view',
-            'create' => 'permission:hotels.create',
-            'store' => 'permission:hotels.create',
-            'edit' => 'permission:hotels.update',
-            'update' => 'permission:hotels.update',
-            'destroy' => 'permission:hotels.delete',
-        ]);
-    Route::resource('transporters', TransporterController::class);
-    Route::resource('guides', GuideController::class);
-    Route::resource('vendors', VendorController::class);
-    Route::resource('taxes', TaxController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:taxes.view',
-            'create' => 'permission:taxes.create',
-            'store' => 'permission:taxes.create',
-            'edit' => 'permission:taxes.update',
-            'update' => 'permission:taxes.update',
-            'destroy' => 'permission:taxes.delete',
-        ]);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hajj Masters
-    |--------------------------------------------------------------------------
-    */
+    Route::resource('companies', CompanyController::class)
+        ->except(['show'])
+        ->middleware([
+            'index' => 'permission:companies.view',
+            'create' => 'permission:companies.create',
+            'store' => 'permission:companies.create',
+            'edit' => 'permission:companies.edit',
+            'update' => 'permission:companies.edit',
+            'destroy' => 'permission:companies.destroy',
+        ]);
     Route::resource('form-owners', FormOwnerController::class)
         ->except(['show'])
         ->middleware([
@@ -198,82 +148,40 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'destroy' => 'permission:waris-relations.delete',
         ]);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hajj Operations
-    |--------------------------------------------------------------------------
-    */
-    Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
-        ->name('pilgrims.preview-family-code')
-        ->middleware('permission:pilgrims.create|pilgrims.update');
+    Route::middleware('feature:hajj_registration')->group(function () {
+        Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
+            ->name('pilgrims.preview-family-code')
+            ->middleware('permission:pilgrims.create|pilgrims.update');
 
-    Route::get('pilgrims/families', [PilgrimController::class, 'families'])
-        ->name('pilgrims.families')
-        ->middleware('permission:pilgrims.create|pilgrims.update');
+        Route::get('pilgrims/families', [PilgrimController::class, 'families'])
+            ->name('pilgrims.families')
+            ->middleware('permission:pilgrims.create|pilgrims.update');
 
-    Route::resource('pilgrims', PilgrimController::class)
-        ->middleware([
-            'index' => 'permission:pilgrims.view',
-            'show' => 'permission:pilgrims.view',
-            'create' => 'permission:pilgrims.create',
-            'store' => 'permission:pilgrims.create',
-            'edit' => 'permission:pilgrims.update',
-            'update' => 'permission:pilgrims.update',
-            'destroy' => 'permission:pilgrims.delete',
-        ]);
+        Route::resource('pilgrims', PilgrimController::class)
+            ->middleware([
+                'index' => 'permission:pilgrims.view',
+                'show' => 'permission:pilgrims.view',
+                'create' => 'permission:pilgrims.create',
+                'store' => 'permission:pilgrims.create',
+                'edit' => 'permission:pilgrims.update',
+                'update' => 'permission:pilgrims.update',
+                'destroy' => 'permission:pilgrims.delete',
+            ]);
+    });
 
-    Route::resource('flights', FlightController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:flights.view',
-            'create' => 'permission:flights.create',
-            'store' => 'permission:flights.create',
-            'edit' => 'permission:flights.update',
-            'update' => 'permission:flights.update',
-            'destroy' => 'permission:flights.delete',
-        ]);
+    Route::middleware('feature:flights')->group(function () {
+        Route::resource('flights', FlightController::class)
+            ->except(['show'])
+            ->middleware([
+                'index' => 'permission:flights.view',
+                'create' => 'permission:flights.create',
+                'store' => 'permission:flights.create',
+                'edit' => 'permission:flights.update',
+                'update' => 'permission:flights.update',
+                'destroy' => 'permission:flights.delete',
+            ]);
+    });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Organization
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('companies', CompanyController::class)->except('show');
-    Route::resource('branches', BranchController::class);
-    Route::resource('departments', DepartmentController::class);
-    Route::resource('employees', EmployeeController::class);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Parties
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('customers', CustomerController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:customers.view',
-            'create' => 'permission:customers.create',
-            'store' => 'permission:customers.create',
-            'edit' => 'permission:customers.update',
-            'update' => 'permission:customers.update',
-            'destroy' => 'permission:customers.delete',
-        ]);
-    Route::resource('suppliers', SupplierController::class)
-        ->except(['show'])
-        ->middleware([
-            'index' => 'permission:suppliers.view',
-            'create' => 'permission:suppliers.create',
-            'store' => 'permission:suppliers.create',
-            'edit' => 'permission:suppliers.update',
-            'update' => 'permission:suppliers.update',
-            'destroy' => 'permission:suppliers.delete',
-        ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Access Control
-    |--------------------------------------------------------------------------
-    */
     Route::resource('users', UserController::class)
         ->middleware([
             'index' => 'permission:users.view',
@@ -283,7 +191,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'update' => 'permission:users.update',
         ]);
 
-    // Roles
     Route::resource('roles', RoleController::class)
         ->middleware([
             'index' => 'permission:roles.view',
@@ -295,7 +202,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'destroy' => 'permission:roles.delete',
         ]);
 
-    // Permissions
     Route::resource('permissions', PermissionController::class)
         ->middleware([
             'index' => 'permission:roles.view',
@@ -305,6 +211,4 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'update' => 'permission:roles.update',
             'destroy' => 'permission:roles.delete',
         ]);
-
-    require __DIR__.'/crm.php';
 });

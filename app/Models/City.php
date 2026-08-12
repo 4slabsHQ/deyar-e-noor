@@ -35,9 +35,4 @@ class City extends Model
     {
         return $this->hasMany(Pilgrim::class, 'pod_city_id');
     }
-
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
 }

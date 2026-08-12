@@ -317,7 +317,7 @@
             <div class="col-lg-{{ $pilgrim ? '5' : '5' }} col-md-{{ $pilgrim ? '6' : '6' }}">
                 <label class="form-label">Photo (JPEG)</label>
                 <div class="pilgrim-photo-field @error('photo') is-invalid @enderror"
-                     @if ($pilgrim?->photo_path) data-existing-url="{{ asset('storage/'.$pilgrim->photo_path) }}" @endif>
+                     @if ($pilgrim?->photo_url) data-existing-url="{{ $pilgrim->photo_url }}" @endif>
                     <input type="file" name="photo" id="photo" accept="image/jpeg,.jpg"
                            class="pilgrim-photo-field__input @error('photo') is-invalid @enderror">
                     <input type="hidden" name="remove_photo" value="0" class="js-remove-photo">

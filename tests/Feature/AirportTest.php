@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     $this->user = User::factory()->create();
-    $this->user->assignRole('Admin');
+    $this->user->assignRole('Super Admin');
 
     $this->city = City::factory()->create(['name' => 'Lahore']);
 });

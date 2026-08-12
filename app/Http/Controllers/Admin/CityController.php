@@ -55,10 +55,6 @@ class CityController extends Controller
             return back()->with('error', 'Cannot delete a city that has airports linked to it.');
         }
 
-        if ($city->branches()->exists()) {
-            return back()->with('error', 'Cannot delete a city that has branches linked to it.');
-        }
-
         if ($city->pilgrims()->exists()) {
             return back()->with('error', 'Cannot delete a city used in pilgrim registrations.');
         }

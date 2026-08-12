@@ -11,6 +11,6 @@
         :cancel-url="route('admin.roles.index')"
         submit-label="Update Role"
     >
-        @include('admin.roles._form', ['role' => $role, 'showSelectAll' => true])
+        @include('admin.roles._form')
     </x-admin.form-page>
 @endsection

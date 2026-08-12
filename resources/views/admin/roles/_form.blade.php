@@ -1,6 +1,6 @@
 @php
     $role = $role ?? null;
-    $showSelectAll = $showSelectAll ?? false;
+    $showSelectAll = $showSelectAll ?? true;
 @endphp
 
 <x-admin.form-grid>

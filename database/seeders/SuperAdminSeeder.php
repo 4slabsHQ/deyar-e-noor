@@ -13,14 +13,14 @@ class SuperAdminSeeder extends Seeder
         $user = User::updateOrCreate(
             ['email' => 'superadmin@travel.com'],
             [
-                'name'     => 'Super Admin',
-                'email'    => 'superadmin@travel.com',
+                'name' => 'Super Admin',
+                'email' => 'superadmin@travel.com',
                 'password' => Hash::make('Admin@12345'),
             ]
         );
 
-        $user->assignRole('Super Admin');
+        $user->syncRoles(['Super Admin']);
 
-        $this->command->info('Super Admin created: superadmin@travel.com / Admin@12345');
+        $this->command?->info('Super Admin: superadmin@travel.com / Admin@12345');
     }
 }

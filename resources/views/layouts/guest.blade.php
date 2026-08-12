@@ -10,6 +10,7 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="{{ asset('css/deyar-brand.css') }}" rel="stylesheet">
         <link href="{{ asset('css/login.css') }}" rel="stylesheet">
     </head>
     <body style="font-family: Figtree, ui-sans-serif, system-ui, sans-serif;">

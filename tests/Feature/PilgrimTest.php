@@ -17,10 +17,9 @@ use App\Models\User;
 use App\Models\WarisRelation;
 use App\Services\PilgrimService;
 use Carbon\Carbon;
-use Database\Seeders\CountriesSeeder;
-use Database\Seeders\HajjDemoDataSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -29,7 +28,7 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     $this->user = User::factory()->create();
-    $this->user->assignRole('Admin');
+    $this->user->assignRole('Super Admin');
 
     $this->country = Country::factory()->create(['iso2' => 'PK', 'name' => 'Pakistan']);
     $this->city = City::factory()->create(['country_id' => $this->country->id, 'name' => 'Lahore', 'is_active' => true]);
@@ -116,6 +115,25 @@ test('admin can update a pilgrim', function () {
 
     expect($pilgrim->fresh()->full_name)->toBe('Ali Khan')
         ->and($pilgrim->fresh()->family_code)->toBe('DYN-01-S');
+});
+
+test('admin can upload pilgrim photo on create and view registration', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), array_merge(validPilgrimPayload(), [
+        'photo' => UploadedFile::fake()->image('pilgrim.jpg'),
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    expect($pilgrim->photo_path)->not->toBeNull()
+        ->and($pilgrim->photo_url)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($pilgrim->photo_path);
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee($pilgrim->photo_url, false);
 });
 
 test('admin can remove pilgrim photo on update', function () {
@@ -300,22 +318,11 @@ test('pilgrim registration normalizes cnic without dashes', function () {
 
 test('pilgrim service builds family code and age', function () {
     $service = app(PilgrimService::class);
-    $company = Company::factory()->create(['code' => 'DYN']);
+    $company = Company::factory()->create(['code' => 'XYZ']);
 
     $family = $service->prepareNewSingleFamily($company, 2026);
 
-    expect($family['family_code'])->toBe('DYN-01-S')
+    expect($family['family_code'])->toBe('XYZ-01-S')
         ->and($service->buildFullName('Khan', 'Ahmed'))->toBe('Ahmed Khan')
         ->and($service->calculateAge(Carbon::parse('1975-03-15'), 2026))->toBe(51);
-});
-
-test('hajj demo seeder creates master data and pilgrims', function () {
-    $this->seed(CountriesSeeder::class);
-
-    $this->seed(HajjDemoDataSeeder::class);
-
-    expect(Company::query()->where('code', 'DYN')->exists())->toBeTrue()
-        ->and(FormOwner::query()->count())->toBeGreaterThan(0)
-        ->and(Package::query()->count())->toBeGreaterThan(0)
-        ->and(Pilgrim::query()->count())->toBe(3);
 });

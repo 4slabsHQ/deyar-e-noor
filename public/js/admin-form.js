@@ -244,19 +244,23 @@
                 return;
             }
 
-            var selectAll = section.querySelector('[data-role-permissions-select-all]');
-
-            if (!selectAll) {
-                return;
-            }
-
             section.dataset.rolePermissionsInit = '1';
 
+            var selectAll = section.querySelector('[data-role-permissions-select-all]');
+
             function permissionCheckboxes() {
-                return section.querySelectorAll('input[type="checkbox"][name="permissions[]"]');
+                return section.querySelectorAll('input.js-permission-checkbox[name="permissions[]"]');
+            }
+
+            function groupCheckboxes(groupKey) {
+                return section.querySelectorAll('input.js-permission-checkbox[data-permission-group="' + groupKey + '"]');
             }
 
             function syncSelectAllState() {
+                if (!selectAll) {
+                    return;
+                }
+
                 var checkboxes = permissionCheckboxes();
                 var checkedCount = Array.from(checkboxes).filter(function (checkbox) {
                     return checkbox.checked;
@@ -266,15 +270,41 @@
                 selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
             }
 
-            selectAll.addEventListener('change', function () {
-                permissionCheckboxes().forEach(function (checkbox) {
-                    checkbox.checked = selectAll.checked;
-                });
-                selectAll.indeterminate = false;
+            section.addEventListener('click', function (event) {
+                var groupButton = event.target.closest('[data-permission-group-select]');
+
+                if (groupButton) {
+                    event.preventDefault();
+
+                    var groupKey = groupButton.getAttribute('data-permission-group-select');
+                    var checkboxes = groupCheckboxes(groupKey);
+                    var shouldCheck = !Array.from(checkboxes).every(function (checkbox) {
+                        return checkbox.checked;
+                    });
+
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = shouldCheck;
+                    });
+
+                    syncSelectAllState();
+
+                    return;
+                }
             });
 
             section.addEventListener('change', function (event) {
-                if (event.target.matches('input[type="checkbox"][name="permissions[]"]')) {
+                var target = event.target;
+
+                if (target.matches('[data-role-permissions-select-all]')) {
+                    permissionCheckboxes().forEach(function (checkbox) {
+                        checkbox.checked = target.checked;
+                    });
+                    target.indeterminate = false;
+
+                    return;
+                }
+
+                if (target.matches('input.js-permission-checkbox[name="permissions[]"]')) {
                     syncSelectAllState();
                 }
             });

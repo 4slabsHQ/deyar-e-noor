@@ -11,9 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             CountriesSeeder::class,
-            CurrenciesSeeder::class,
             SuperAdminSeeder::class,
-            HajjDemoDataSeeder::class,
         ]);
     }
 }

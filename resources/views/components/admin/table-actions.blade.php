@@ -27,12 +27,12 @@
     @if($editRoute)
         @if($editPermission)
             @can($editPermission)
-                <a href="{{ $editRoute }}" class="btn btn-primary shadow btn-xs sharp me-1" title="Edit">
+                <a href="{{ $editRoute }}" class="btn btn-warning shadow btn-xs sharp me-1" title="Edit">
                     <i class="fas fa-pencil-alt"></i>
                 </a>
             @endcan
         @else
-            <a href="{{ $editRoute }}" class="btn btn-primary shadow btn-xs sharp me-1" title="Edit">
+            <a href="{{ $editRoute }}" class="btn btn-warning shadow btn-xs sharp me-1" title="Edit">
                 <i class="fas fa-pencil-alt"></i>
             </a>
         @endif

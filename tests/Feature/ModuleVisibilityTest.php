@@ -3,36 +3,40 @@
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config(['modules.show_legacy_travel_erp' => false]);
+    config([
+        'features.hajj_registration' => true,
+        'features.flights' => true,
+    ]);
     $this->seed(RolesAndPermissionsSeeder::class);
 });
 
-test('sidebar hides legacy travel erp modules by default', function () {
+test('sidebar shows hajj masters and access control for super admin', function () {
     $user = User::factory()->create();
-    $user->assignRole('Admin');
+    $user->assignRole('Super Admin');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('nav-text">Hajj Registration', false)
         ->assertSee('nav-text">Hajj Masters', false)
-        ->assertDontSee('nav-text">CRM', false)
-        ->assertDontSee('nav-text">Organization', false)
-        ->assertDontSee('nav-text">Parties', false)
-        ->assertDontSee('nav-text">Master Data', false);
+        ->assertSee('nav-text">Access Control', false)
+        ->assertSee('nav-text">Hajj Registration', false);
 });
 
-test('sidebar shows legacy travel erp modules when enabled', function () {
-    config(['modules.show_legacy_travel_erp' => true]);
+test('sidebar hides hajj registration when feature flag is disabled', function () {
+    config(['features.hajj_registration' => false]);
 
     $user = User::factory()->create();
-    $user->assignRole('Admin');
+    $user->assignRole('Super Admin');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('nav-text">CRM', false)
-        ->assertSee('nav-text">Master Data', false);
+        ->assertDontSee('nav-text">Hajj Registration', false);
+});
+
+test('only super admin role exists after seeding', function () {
+    expect(Role::pluck('name')->all())->toBe(['Super Admin']);
 });

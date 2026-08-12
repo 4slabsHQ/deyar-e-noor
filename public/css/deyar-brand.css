@@ -22,6 +22,57 @@
     /* Shape — 2px controls, 4px containers */
     --deyar-radius-control: 0.125rem;
     --deyar-radius-container: 0.25rem;
+
+    /* Semantic feedback & actions (HCI — universal associations) */
+    --deyar-success: #15803d;
+    --deyar-success-hover: #166534;
+    --deyar-success-bg: #f0fdf4;
+    --deyar-success-border: #bbf7d0;
+    --deyar-success-focus: rgba(21, 128, 61, 0.2);
+
+    --deyar-danger: #dc2626;
+    --deyar-danger-hover: #b91c1c;
+    --deyar-danger-bg: #fef2f2;
+    --deyar-danger-border: #fecaca;
+    --deyar-danger-focus: rgba(220, 38, 38, 0.2);
+
+    --deyar-warning: #b45309;
+    --deyar-warning-hover: #92400e;
+    --deyar-warning-bg: #fffbeb;
+    --deyar-warning-border: #fde68a;
+    --deyar-warning-focus: rgba(180, 83, 9, 0.2);
+
+    --deyar-info: #1d4ed8;
+    --deyar-info-hover: #1e40af;
+    --deyar-info-bg: #eff6ff;
+    --deyar-info-border: #bfdbfe;
+    --deyar-info-focus: rgba(29, 78, 216, 0.2);
+
+    --deyar-neutral: #4b5563;
+    --deyar-neutral-hover: #374151;
+    --deyar-neutral-bg: #f9fafb;
+    --deyar-neutral-border: #e5e7eb;
+    --deyar-neutral-focus: rgba(75, 85, 99, 0.15);
+
+    /* Chart palette — matches semantic colors */
+    --deyar-chart-1: var(--deyar-gold);
+    --deyar-chart-2: var(--deyar-info);
+    --deyar-chart-3: var(--deyar-success);
+    --deyar-chart-4: var(--deyar-warning);
+    --deyar-chart-5: var(--deyar-danger);
+    --deyar-chart-6: #9ca3af;
+
+    /* Bootstrap 5 — align theme variables with semantic palette */
+    --bs-success: var(--deyar-success);
+    --bs-success-rgb: 21, 128, 61;
+    --bs-danger: var(--deyar-danger);
+    --bs-danger-rgb: 220, 38, 38;
+    --bs-warning: var(--deyar-warning);
+    --bs-warning-rgb: 180, 83, 9;
+    --bs-info: var(--deyar-info);
+    --bs-info-rgb: 29, 78, 216;
+    --bs-secondary: var(--deyar-neutral);
+    --bs-secondary-rgb: 75, 85, 99;
 }
 
 /* Brand bar — light, separated from sidebar */
@@ -325,6 +376,93 @@
     font-weight: 500;
 }
 
+/* Dashboard panels & charts */
+.deyar-dashboard .deyar-metric-card .card-body {
+    padding: 1rem 1.25rem;
+}
+
+.deyar-panel-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--deyar-border);
+    padding: 0.75rem 1.25rem;
+}
+
+.deyar-panel-card__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+}
+
+.deyar-panel-card .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+.deyar-chart-wrap {
+    position: relative;
+    min-height: 10rem;
+}
+
+.deyar-chart-wrap canvas {
+    max-height: 220px;
+}
+
+.deyar-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 10rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--deyar-muted);
+    background: var(--deyar-neutral-bg);
+    border: 1px dashed var(--deyar-neutral-border);
+    border-radius: var(--deyar-radius-control);
+}
+
+.deyar-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--deyar-border);
+    font-size: 0.8125rem;
+}
+
+.deyar-list-item:last-child {
+    border-bottom: 0;
+}
+
+.deyar-list-item__meta {
+    color: var(--deyar-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.deyar-dashboard-table thead th {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--deyar-muted);
+    background: var(--deyar-neutral-bg);
+    border-bottom: 1px solid var(--deyar-border);
+    padding: 0.625rem 0.75rem;
+}
+
+.deyar-dashboard-table tbody td {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+}
+
+.deyar-dashboard-table tbody td:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+
 /* Footer */
 .footer {
     background: #fff;
@@ -431,8 +569,8 @@
     border-radius: var(--deyar-radius-container) !important;
 }
 
-.btn:focus,
-.btn-check:focus + .btn {
+.btn-primary:focus,
+.btn-check:focus + .btn-primary {
     box-shadow: 0 0 0 0.15rem var(--rgba-primary-2) !important;
 }
 
@@ -535,4 +673,281 @@
     border-radius: var(--deyar-radius-control) !important;
     font-size: 0.8125rem !important;
     border-color: var(--deyar-border) !important;
+}
+
+/* ── Semantic actions & feedback (HCI) ──
+   Primary (gold) = main positive CTA — Create, Save, Submit
+   Info (blue)    = read / view
+   Warning (amber)= edit / modify
+   Danger (red)   = delete / destructive
+   Success (green)= confirmation / active / saved
+   Secondary      = cancel / neutral
+*/
+
+/* Solid action buttons */
+.btn-success {
+    background-color: var(--deyar-success) !important;
+    border-color: var(--deyar-success) !important;
+    color: #fff !important;
+}
+
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: var(--deyar-success-hover) !important;
+    border-color: var(--deyar-success-hover) !important;
+    color: #fff !important;
+}
+
+.btn-danger {
+    background-color: var(--deyar-danger) !important;
+    border-color: var(--deyar-danger) !important;
+    color: #fff !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active {
+    background-color: var(--deyar-danger-hover) !important;
+    border-color: var(--deyar-danger-hover) !important;
+    color: #fff !important;
+}
+
+.btn-warning {
+    background-color: var(--deyar-warning) !important;
+    border-color: var(--deyar-warning) !important;
+    color: #fff !important;
+}
+
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+    background-color: var(--deyar-warning-hover) !important;
+    border-color: var(--deyar-warning-hover) !important;
+    color: #fff !important;
+}
+
+.btn-info {
+    background-color: var(--deyar-info) !important;
+    border-color: var(--deyar-info) !important;
+    color: #fff !important;
+}
+
+.btn-info:hover,
+.btn-info:focus,
+.btn-info:active {
+    background-color: var(--deyar-info-hover) !important;
+    border-color: var(--deyar-info-hover) !important;
+    color: #fff !important;
+}
+
+.btn-secondary,
+.btn-light {
+    background-color: #fff !important;
+    border-color: var(--deyar-neutral-border) !important;
+    color: var(--deyar-neutral) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-light:hover,
+.btn-light:focus {
+    background-color: var(--deyar-neutral-bg) !important;
+    border-color: #d1d5db !important;
+    color: var(--deyar-neutral-hover) !important;
+}
+
+/* Outline variants */
+.btn-outline-success {
+    color: var(--deyar-success) !important;
+    border-color: var(--deyar-success) !important;
+}
+
+.btn-outline-success:hover {
+    background-color: var(--deyar-success) !important;
+    border-color: var(--deyar-success) !important;
+    color: #fff !important;
+}
+
+.btn-outline-danger {
+    color: var(--deyar-danger) !important;
+    border-color: var(--deyar-danger) !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--deyar-danger) !important;
+    border-color: var(--deyar-danger) !important;
+    color: #fff !important;
+}
+
+.btn-outline-warning {
+    color: var(--deyar-warning) !important;
+    border-color: var(--deyar-warning) !important;
+}
+
+.btn-outline-warning:hover {
+    background-color: var(--deyar-warning) !important;
+    border-color: var(--deyar-warning) !important;
+    color: #fff !important;
+}
+
+.btn-outline-info {
+    color: var(--deyar-info) !important;
+    border-color: var(--deyar-info) !important;
+}
+
+.btn-outline-info:hover {
+    background-color: var(--deyar-info) !important;
+    border-color: var(--deyar-info) !important;
+    color: #fff !important;
+}
+
+.btn-outline-secondary {
+    color: var(--deyar-neutral) !important;
+    border-color: var(--deyar-neutral-border) !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--deyar-neutral-bg) !important;
+    border-color: #d1d5db !important;
+    color: var(--deyar-neutral-hover) !important;
+}
+
+.btn-outline-primary {
+    color: var(--deyar-gold) !important;
+    border-color: var(--deyar-gold) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--deyar-gold) !important;
+    border-color: var(--deyar-gold) !important;
+    color: #fff !important;
+}
+
+/* Focus rings — match button intent */
+.btn-success:focus,
+.btn-check:focus + .btn-success {
+    box-shadow: 0 0 0 0.15rem var(--deyar-success-focus) !important;
+}
+
+.btn-danger:focus,
+.btn-check:focus + .btn-danger {
+    box-shadow: 0 0 0 0.15rem var(--deyar-danger-focus) !important;
+}
+
+.btn-warning:focus,
+.btn-check:focus + .btn-warning {
+    box-shadow: 0 0 0 0.15rem var(--deyar-warning-focus) !important;
+}
+
+.btn-info:focus,
+.btn-check:focus + .btn-info {
+    box-shadow: 0 0 0 0.15rem var(--deyar-info-focus) !important;
+}
+
+.btn-secondary:focus,
+.btn-light:focus,
+.btn-check:focus + .btn-secondary,
+.btn-check:focus + .btn-light {
+    box-shadow: 0 0 0 0.15rem var(--deyar-neutral-focus) !important;
+}
+
+/* Flash / inline alerts */
+.alert-success {
+    background-color: var(--deyar-success-bg) !important;
+    border-color: var(--deyar-success-border) !important;
+    color: var(--deyar-success-hover) !important;
+}
+
+.alert-danger {
+    background-color: var(--deyar-danger-bg) !important;
+    border-color: var(--deyar-danger-border) !important;
+    color: var(--deyar-danger-hover) !important;
+}
+
+.alert-warning {
+    background-color: var(--deyar-warning-bg) !important;
+    border-color: var(--deyar-warning-border) !important;
+    color: var(--deyar-warning-hover) !important;
+}
+
+.alert-info {
+    background-color: var(--deyar-info-bg) !important;
+    border-color: var(--deyar-info-border) !important;
+    color: var(--deyar-info-hover) !important;
+}
+
+/* Status badges — theme "light" badges use non-standard colors */
+.badge.light.badge-success,
+.badge.badge-success.light {
+    background-color: var(--deyar-success-bg) !important;
+    border: 1px solid var(--deyar-success-border) !important;
+    color: var(--deyar-success) !important;
+}
+
+.badge.light.badge-danger,
+.badge.badge-danger.light {
+    background-color: var(--deyar-danger-bg) !important;
+    border: 1px solid var(--deyar-danger-border) !important;
+    color: var(--deyar-danger) !important;
+}
+
+.badge.light.badge-warning,
+.badge.badge-warning.light {
+    background-color: var(--deyar-warning-bg) !important;
+    border: 1px solid var(--deyar-warning-border) !important;
+    color: var(--deyar-warning) !important;
+}
+
+.badge.light.badge-info,
+.badge.badge-info.light {
+    background-color: var(--deyar-info-bg) !important;
+    border: 1px solid var(--deyar-info-border) !important;
+    color: var(--deyar-info) !important;
+}
+
+.badge.light.badge-secondary,
+.badge.badge-secondary.light {
+    background-color: var(--deyar-neutral-bg) !important;
+    border: 1px solid var(--deyar-neutral-border) !important;
+    color: var(--deyar-neutral) !important;
+}
+
+.badge.light.badge-primary,
+.badge.badge-primary.light {
+    background-color: var(--rgba-primary-1) !important;
+    border: 1px solid var(--rgba-primary-2) !important;
+    color: var(--primary-hover) !important;
+}
+
+.bg-success {
+    background-color: var(--deyar-success) !important;
+}
+
+.bg-danger {
+    background-color: var(--deyar-danger) !important;
+}
+
+.bg-warning {
+    background-color: var(--deyar-warning) !important;
+}
+
+.bg-info {
+    background-color: var(--deyar-info) !important;
+}
+
+.text-success {
+    color: var(--deyar-success) !important;
+}
+
+.text-danger {
+    color: var(--deyar-danger) !important;
+}
+
+.text-warning {
+    color: var(--deyar-warning) !important;
+}
+
+.text-info {
+    color: var(--deyar-info) !important;
 }

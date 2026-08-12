@@ -13,7 +13,7 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     $this->user = User::factory()->create();
-    $this->user->assignRole('Admin');
+    $this->user->assignRole('Super Admin');
 });
 
 test('admin can remove airline logo on update', function () {

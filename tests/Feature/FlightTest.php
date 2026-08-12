@@ -17,7 +17,7 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 
     $this->user = User::factory()->create();
-    $this->user->assignRole('Admin');
+    $this->user->assignRole('Super Admin');
 
     $this->country = Country::factory()->create(['iso2' => 'PK', 'name' => 'Pakistan']);
     $this->departureCity = City::factory()->create(['country_id' => $this->country->id, 'name' => 'Lahore', 'is_active' => true]);

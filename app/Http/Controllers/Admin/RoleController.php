@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Role\StoreRoleRequest;
 use App\Http\Requests\Role\UpdateRoleRequest;
 use App\Services\RoleService;
+use App\Support\PermissionCatalog;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
@@ -25,7 +25,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = PermissionCatalog::activePermissions();
 
         return view('admin.roles.create', compact('permissions'));
     }
@@ -39,7 +39,7 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = PermissionCatalog::activePermissions();
         $role->load('permissions');
 
         return view('admin.roles.edit', compact('role', 'permissions'));

@@ -16,8 +16,8 @@
 
             <div class="pilgrim-doc-photo-wrap">
                 <span class="pilgrim-doc-photo-label">Photograph</span>
-                @if ($pilgrim->photo_path)
-                    <img src="{{ asset('storage/'.$pilgrim->photo_path) }}" alt="Pilgrim photo" class="pilgrim-doc-photo">
+                @if ($pilgrim->photo_url)
+                    <img src="{{ $pilgrim->photo_url }}" alt="Pilgrim photo" class="pilgrim-doc-photo">
                 @else
                     <div class="pilgrim-doc-photo placeholder">No Photo</div>
                 @endif

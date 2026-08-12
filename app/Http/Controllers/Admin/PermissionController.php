@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\PermissionCatalog;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -11,7 +12,7 @@ class PermissionController extends Controller
 {
     public function index()
     {
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = PermissionCatalog::activePermissions();
 
         return view('admin.permissions.index', compact('permissions'));
     }
@@ -28,7 +29,7 @@ class PermissionController extends Controller
         ]);
 
         Permission::create([
-            'name'       => $validated['name'],
+            'name' => $validated['name'],
             'guard_name' => 'web',
         ]);
 
@@ -45,7 +46,7 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:150', 'unique:permissions,name,' . $permission->id],
+            'name' => ['required', 'string', 'max:150', 'unique:permissions,name,'.$permission->id],
         ]);
 
         $permission->update(['name' => $validated['name']]);
