@@ -11,10 +11,6 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-Route::get('/login', function () {
-    return view('auth.login');
-});
-
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
