@@ -9,7 +9,6 @@
                 </a>
             </li>
 
-            @if(config('features.hajj_registration'))
             @can('pilgrims.view')
             <li>
                 <a href="{{ route('admin.pilgrims.index') }}" class="{{ request()->routeIs('admin.pilgrims.*') ? 'mm-active' : '' }}">
@@ -18,9 +17,7 @@
                 </a>
             </li>
             @endcan
-            @endif
 
-            @if(config('features.flights'))
             @can('flights.view')
             <li>
                 <a href="{{ route('admin.flights.index') }}" class="{{ request()->routeIs('admin.flights.*') ? 'mm-active' : '' }}">
@@ -29,7 +26,6 @@
                 </a>
             </li>
             @endcan
-            @endif
 
             @canany(['companies.view','form-owners.view','maktab-categories.view','packages.view','care-offs.view','room-types.view','mehram-relations.view','waris-relations.view','cities.view','countries.view','airlines.view','airports.view'])
             <li>

@@ -13,7 +13,7 @@ class DashboardController extends Controller
         $pilgrimStats = null;
         $flightStats = null;
 
-        if (config('features.hajj_registration') && auth()->user()?->can('pilgrims.view')) {
+        if (auth()->user()?->can('pilgrims.view')) {
             $pilgrimStats = [
                 'total' => Pilgrim::count(),
                 'this_year' => Pilgrim::where('hajj_year', now()->year)->count(),
@@ -25,7 +25,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if (config('features.flights') && auth()->user()?->can('flights.view')) {
+        if (auth()->user()?->can('flights.view')) {
             $flightStats = [
                 'total' => Flight::count(),
                 'by_airline' => $this->flightsByAirline(),

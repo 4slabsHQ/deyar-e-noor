@@ -148,39 +148,35 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'destroy' => 'permission:waris-relations.delete',
         ]);
 
-    Route::middleware('feature:hajj_registration')->group(function () {
-        Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
-            ->name('pilgrims.preview-family-code')
-            ->middleware('permission:pilgrims.create|pilgrims.update');
+    Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
+        ->name('pilgrims.preview-family-code')
+        ->middleware('permission:pilgrims.create|pilgrims.update');
 
-        Route::get('pilgrims/families', [PilgrimController::class, 'families'])
-            ->name('pilgrims.families')
-            ->middleware('permission:pilgrims.create|pilgrims.update');
+    Route::get('pilgrims/families', [PilgrimController::class, 'families'])
+        ->name('pilgrims.families')
+        ->middleware('permission:pilgrims.create|pilgrims.update');
 
-        Route::resource('pilgrims', PilgrimController::class)
-            ->middleware([
-                'index' => 'permission:pilgrims.view',
-                'show' => 'permission:pilgrims.view',
-                'create' => 'permission:pilgrims.create',
-                'store' => 'permission:pilgrims.create',
-                'edit' => 'permission:pilgrims.update',
-                'update' => 'permission:pilgrims.update',
-                'destroy' => 'permission:pilgrims.delete',
-            ]);
-    });
+    Route::resource('pilgrims', PilgrimController::class)
+        ->middleware([
+            'index' => 'permission:pilgrims.view',
+            'show' => 'permission:pilgrims.view',
+            'create' => 'permission:pilgrims.create',
+            'store' => 'permission:pilgrims.create',
+            'edit' => 'permission:pilgrims.update',
+            'update' => 'permission:pilgrims.update',
+            'destroy' => 'permission:pilgrims.delete',
+        ]);
 
-    Route::middleware('feature:flights')->group(function () {
-        Route::resource('flights', FlightController::class)
-            ->except(['show'])
-            ->middleware([
-                'index' => 'permission:flights.view',
-                'create' => 'permission:flights.create',
-                'store' => 'permission:flights.create',
-                'edit' => 'permission:flights.update',
-                'update' => 'permission:flights.update',
-                'destroy' => 'permission:flights.delete',
-            ]);
-    });
+    Route::resource('flights', FlightController::class)
+        ->except(['show'])
+        ->middleware([
+            'index' => 'permission:flights.view',
+            'create' => 'permission:flights.create',
+            'store' => 'permission:flights.create',
+            'edit' => 'permission:flights.update',
+            'update' => 'permission:flights.update',
+            'destroy' => 'permission:flights.delete',
+        ]);
 
     Route::resource('users', UserController::class)
         ->middleware([

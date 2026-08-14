@@ -8,14 +8,13 @@ use Spatie\Permission\Models\Permission;
 class PermissionCatalog
 {
     /**
-     * @return array<string, array{label: string, feature: ?string, permissions: list<string>}>
+     * @return array<string, array{label: string, permissions: list<string>}>
      */
     public static function groups(): array
     {
         return [
             'access' => [
                 'label' => 'Access Control',
-                'feature' => null,
                 'permissions' => [
                     'users.view', 'users.create', 'users.update', 'users.delete',
                     'roles.view', 'roles.create', 'roles.update', 'roles.delete',
@@ -23,14 +22,12 @@ class PermissionCatalog
             ],
             'companies' => [
                 'label' => 'Companies',
-                'feature' => null,
                 'permissions' => [
                     'companies.view', 'companies.create', 'companies.edit', 'companies.destroy',
                 ],
             ],
             'hajj_masters' => [
                 'label' => 'Hajj Masters',
-                'feature' => null,
                 'permissions' => [
                     'form-owners.view', 'form-owners.create', 'form-owners.update', 'form-owners.delete',
                     'maktab-categories.view', 'maktab-categories.create', 'maktab-categories.update', 'maktab-categories.delete',
@@ -43,7 +40,6 @@ class PermissionCatalog
             ],
             'geographic' => [
                 'label' => 'Geographic & Travel',
-                'feature' => null,
                 'permissions' => [
                     'countries.view', 'countries.create', 'countries.update', 'countries.delete',
                     'cities.view', 'cities.create', 'cities.update', 'cities.delete',
@@ -53,28 +49,17 @@ class PermissionCatalog
             ],
             'hajj_registration' => [
                 'label' => 'Hajj Registration',
-                'feature' => 'hajj_registration',
                 'permissions' => [
                     'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
                 ],
             ],
             'flights' => [
                 'label' => 'Flights',
-                'feature' => 'flights',
                 'permissions' => [
                     'flights.view', 'flights.create', 'flights.update', 'flights.delete',
                 ],
             ],
         ];
-    }
-
-    public static function isGroupActive(?string $feature): bool
-    {
-        if ($feature === null) {
-            return true;
-        }
-
-        return (bool) config("features.{$feature}", false);
     }
 
     /**
@@ -92,35 +77,13 @@ class PermissionCatalog
     }
 
     /**
-     * @return list<string>
-     */
-    public static function activePermissionNames(): array
-    {
-        $names = [];
-
-        foreach (self::groups() as $group) {
-            if (! self::isGroupActive($group['feature'])) {
-                continue;
-            }
-
-            array_push($names, ...$group['permissions']);
-        }
-
-        return $names;
-    }
-
-    /**
      * @return array<string, list<string>>
      */
-    public static function groupedActivePermissions(): array
+    public static function groupedPermissions(): array
     {
         $grouped = [];
 
         foreach (self::groups() as $group) {
-            if (! self::isGroupActive($group['feature'])) {
-                continue;
-            }
-
             $grouped[$group['label']] = $group['permissions'];
         }
 
@@ -130,10 +93,10 @@ class PermissionCatalog
     /**
      * @return EloquentCollection<int, Permission>
      */
-    public static function activePermissions(): EloquentCollection
+    public static function permissions(): EloquentCollection
     {
         return Permission::query()
-            ->whereIn('name', self::activePermissionNames())
+            ->whereIn('name', self::allPermissionNames())
             ->orderBy('name')
             ->get();
     }

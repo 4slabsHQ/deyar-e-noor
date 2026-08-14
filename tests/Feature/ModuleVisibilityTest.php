@@ -8,10 +8,6 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config([
-        'features.hajj_registration' => true,
-        'features.flights' => true,
-    ]);
     $this->seed(RolesAndPermissionsSeeder::class);
 });
 
@@ -23,14 +19,22 @@ test('sidebar shows hajj masters and access control for super admin', function (
         ->assertOk()
         ->assertSee('nav-text">Hajj Masters', false)
         ->assertSee('nav-text">Access Control', false)
+        ->assertSee('nav-text">Hajj Registration', false)
+        ->assertSee('nav-text">Flights', false);
+});
+
+test('sidebar shows hajj registration for users with pilgrim permission', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('pilgrims.view');
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertOk()
         ->assertSee('nav-text">Hajj Registration', false);
 });
 
-test('sidebar hides hajj registration when feature flag is disabled', function () {
-    config(['features.hajj_registration' => false]);
-
+test('sidebar hides hajj registration for users without pilgrim permission', function () {
     $user = User::factory()->create();
-    $user->assignRole('Super Admin');
+    $user->givePermissionTo('companies.view');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()

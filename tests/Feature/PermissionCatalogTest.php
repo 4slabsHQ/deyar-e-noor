@@ -10,16 +10,13 @@ use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
-test('permission catalog hides disabled feature permissions', function () {
-    config([
-        'features.hajj_registration' => false,
-        'features.flights' => false,
-    ]);
+test('permission catalog includes hajj registration and flights permissions', function () {
+    $names = PermissionCatalog::allPermissionNames();
 
-    $names = PermissionCatalog::activePermissionNames();
-
-    expect($names)->not->toContain('pilgrims.view');
-    expect($names)->not->toContain('flights.view');
+    expect($names)->toContain('pilgrims.view');
+    expect($names)->toContain('pilgrims.create');
+    expect($names)->toContain('flights.view');
+    expect($names)->toContain('flights.create');
     expect($names)->toContain('companies.view');
 });
 

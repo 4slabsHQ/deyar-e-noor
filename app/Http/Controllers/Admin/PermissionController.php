@@ -12,7 +12,7 @@ class PermissionController extends Controller
 {
     public function index()
     {
-        $permissions = PermissionCatalog::activePermissions();
+        $permissions = PermissionCatalog::permissions();
 
         return view('admin.permissions.index', compact('permissions'));
     }

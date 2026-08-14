@@ -2,7 +2,7 @@
     $assigned = isset($role) ? $role->permissions->pluck('id')->toArray() : [];
     $selected = old('permissions', $assigned);
     $showSelectAll = $showSelectAll ?? true;
-    $groupedPermissions = \App\Support\PermissionCatalog::groupedActivePermissions();
+    $groupedPermissions = \App\Support\PermissionCatalog::groupedPermissions();
     $permissionsByName = $permissions->keyBy('name');
 @endphp
 
