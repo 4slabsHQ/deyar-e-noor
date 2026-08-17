@@ -22,6 +22,7 @@ test('admin can create a company with hajj fields', function () {
         'code' => 'dyn',
         'enr_number' => 'ENR-001',
         'munazzam_code' => 'MZ-100',
+        'quota' => '500',
         'is_active' => '1',
     ]);
 
@@ -32,7 +33,8 @@ test('admin can create a company with hajj fields', function () {
     expect($company)->not->toBeNull()
         ->and($company->code)->toBe('DYN')
         ->and($company->enr_number)->toBe('ENR-001')
-        ->and($company->munazzam_code)->toBe('MZ-100');
+        ->and($company->munazzam_code)->toBe('MZ-100')
+        ->and($company->quota)->toBe(500);
 });
 
 test('admin can update company hajj fields', function () {

@@ -166,8 +166,8 @@
                     <div class="card-body">
                         @forelse ($flightStats['upcoming'] as $flight)
                             <div class="deyar-list-item">
-                                <span>{{ $flight->departureCity?->name }} → {{ $flight->arrivalCity?->name }}</span>
-                                <span class="deyar-list-item__meta">{{ $flight->departure_date?->format('d M Y') }}</span>
+                                <span>{{ $flight->direction->label() }}: {{ $flight->departureCity?->name }} → {{ $flight->arrivalCity?->name }}</span>
+                                <span class="deyar-list-item__meta">{{ number_format($flight->pilgrims_count) }} hujaj · {{ $flight->departure_date?->format('d M Y') }}</span>
                             </div>
                         @empty
                             <div class="deyar-empty-state">No upcoming flights scheduled.</div>

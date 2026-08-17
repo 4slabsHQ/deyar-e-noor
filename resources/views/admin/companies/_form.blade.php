@@ -25,6 +25,12 @@
         @error('munazzam_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </x-admin.form-field>
 
+    <x-admin.form-field label="Quota" for="quota" class="col-lg-2 col-md-3" hint="Max pilgrims per Hajj year. Leave empty for unlimited.">
+        <input type="number" name="quota" id="quota" min="1" value="{{ old('quota', $c?->quota) }}"
+               class="form-control @error('quota') is-invalid @enderror" placeholder="Unlimited">
+        @error('quota') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </x-admin.form-field>
+
     <x-admin.form-field label="Legal Name" for="legal_name" class="col-lg-6 col-md-6">
         <input type="text" name="legal_name" id="legal_name" value="{{ old('legal_name', $c?->legal_name) }}"
                class="form-control @error('legal_name') is-invalid @enderror">

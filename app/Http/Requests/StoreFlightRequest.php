@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Models\Airport;
 use App\Services\FlightService;
@@ -105,6 +106,7 @@ class StoreFlightRequest extends FormRequest
 
         return [
             'flight_type' => ['required', Rule::enum(FlightType::class)],
+            'direction' => ['required', Rule::enum(FlightDirection::class)],
 
             'departure_city_id' => ['required', Rule::exists('cities', 'id')],
             'departure_airport_id' => ['required', Rule::exists('airports', 'id')],

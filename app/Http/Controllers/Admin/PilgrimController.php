@@ -107,17 +107,15 @@ class PilgrimController extends Controller
     public function store(StorePilgrimRequest $request, PilgrimService $pilgrimService)
     {
         $data = $request->validated();
-        $company = Company::query()->findOrFail($data['company_id']);
-        $hajjYear = (int) $data['hajj_year'];
+        $company = isset($data['company_id'])
+            ? Company::query()->find($data['company_id'])
+            : null;
+        $hajjYear = isset($data['hajj_year']) ? (int) $data['hajj_year'] : null;
         $existingFamilyNumber = isset($data['existing_family_number'])
             ? (int) $data['existing_family_number']
             : null;
 
-        $data['full_name'] = $pilgrimService->buildFullName($data['surname'], $data['given_name']);
-        $data['age'] = $pilgrimService->calculateAge(
-            Carbon::parse($data['date_of_birth']),
-            $hajjYear
-        );
+        $data = $this->applyDerivedPilgrimFields($data, $pilgrimService, $hajjYear);
 
         if ($request->hasFile('photo')) {
             $data['photo_path'] = $request->file('photo')->store('pilgrims', 'public');
@@ -132,28 +130,37 @@ class PilgrimController extends Controller
             $data['existing_pilgrim_id'],
         );
 
-        $pilgrimService->withFamilyLock(
-            $company->id,
-            $hajjYear,
-            $existingFamilyNumber,
-            function () use ($pilgrimService, $company, $hajjYear, $existingFamilyNumber, &$data): void {
-                if ($existingFamilyNumber) {
-                    $familyData = $pilgrimService->prepareAddToFamily($company, $hajjYear, $existingFamilyNumber);
+        if ($company && $company->code && $hajjYear) {
+            $pilgrimService->withFamilyLock(
+                $company->id,
+                $hajjYear,
+                $existingFamilyNumber,
+                function () use ($pilgrimService, $company, $hajjYear, $existingFamilyNumber, &$data): void {
+                    if ($existingFamilyNumber) {
+                        $familyData = $pilgrimService->prepareAddToFamily($company, $hajjYear, $existingFamilyNumber);
 
-                    if ($familyData['promote_single'] ?? false) {
-                        $existingPilgrim = Pilgrim::query()->findOrFail($familyData['existing_pilgrim_id']);
-                        $pilgrimService->promoteSingleToA($existingPilgrim, $company);
+                        if ($familyData['promote_single'] ?? false) {
+                            $existingPilgrim = Pilgrim::query()->findOrFail($familyData['existing_pilgrim_id']);
+                            $pilgrimService->promoteSingleToA($existingPilgrim, $company);
+                        }
+                    } else {
+                        $familyData = $pilgrimService->prepareNewSingleFamily($company, $hajjYear);
                     }
-                } else {
-                    $familyData = $pilgrimService->prepareNewSingleFamily($company, $hajjYear);
+
+                    $data = array_merge($data, $familyData);
+                    $data['created_by'] = auth()->id();
+
+                    Pilgrim::query()->create($data);
                 }
+            );
+        } else {
+            $data['family_code'] = null;
+            $data['family_number'] = null;
+            $data['family_member_suffix'] = null;
+            $data['created_by'] = auth()->id();
 
-                $data = array_merge($data, $familyData);
-                $data['created_by'] = auth()->id();
-
-                Pilgrim::query()->create($data);
-            }
-        );
+            Pilgrim::query()->create($data);
+        }
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration saved successfully.');
     }
@@ -174,10 +181,10 @@ class PilgrimController extends Controller
         $data['family_number'] = $pilgrim->family_number;
         $data['family_member_suffix'] = $pilgrim->family_member_suffix;
 
-        $data['full_name'] = $pilgrimService->buildFullName($data['surname'], $data['given_name']);
-        $data['age'] = $pilgrimService->calculateAge(
-            Carbon::parse($data['date_of_birth']),
-            (int) $data['hajj_year']
+        $data = $this->applyDerivedPilgrimFields(
+            $data,
+            $pilgrimService,
+            isset($data['hajj_year']) ? (int) $data['hajj_year'] : null,
         );
         $data['updated_by'] = auth()->id();
 
@@ -211,6 +218,28 @@ class PilgrimController extends Controller
         $pilgrimService->deletePilgrim($pilgrim);
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration deleted successfully.');
+    }
+
+    /** @return array<string, mixed> */
+    private function applyDerivedPilgrimFields(array $data, PilgrimService $pilgrimService, ?int $hajjYear): array
+    {
+        $fullName = $pilgrimService->buildFullName(
+            (string) ($data['surname'] ?? ''),
+            (string) ($data['given_name'] ?? ''),
+        );
+
+        $data['full_name'] = $fullName !== '' ? $fullName : null;
+
+        if (isset($data['date_of_birth']) && $hajjYear) {
+            $data['age'] = $pilgrimService->calculateAge(
+                Carbon::parse($data['date_of_birth']),
+                $hajjYear,
+            );
+        } else {
+            $data['age'] = null;
+        }
+
+        return $data;
     }
 
     /** @return array<string, mixed> */

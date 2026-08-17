@@ -1,13 +1,17 @@
 @php
     $companyName = $pilgrim->company?->name ?? config('branding.legal_name');
     $companyCode = $pilgrim->company?->code;
+    $companyLogoUrl = $pilgrim->company?->logo
+        ? Storage::url($pilgrim->company->logo)
+        : asset('images/logo.png');
+    $companyLogoAlt = $pilgrim->company?->name ?? config('branding.title');
 @endphp
 
 <article class="pilgrim-registration-doc">
     <header class="pilgrim-doc-header">
         <div class="pilgrim-doc-header-top">
             <div class="pilgrim-doc-logo-wrap">
-                <img src="{{ asset('images/logo.png') }}" alt="{{ config('branding.title') }}" class="pilgrim-doc-logo">
+                <img src="{{ $companyLogoUrl }}" alt="{{ $companyLogoAlt }}" class="pilgrim-doc-logo">
             </div>
 
             <div class="pilgrim-doc-title-wrap">
@@ -95,8 +99,8 @@
                     <span class="field-value">{{ $pilgrim->roomType?->name ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
-                    <span class="field-label">Family Member</span>
-                    <span class="field-value">{{ $pilgrim->family_member_suffix }}</span>
+                    <span class="field-label">Family Code</span>
+                    <span class="field-value">{{ $pilgrim->family_code ?? '—' }}</span>
                 </div>
             </div>
         </section>

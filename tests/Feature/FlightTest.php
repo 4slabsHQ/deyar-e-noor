@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Flight;
+use App\Models\Pilgrim;
 use App\Models\User;
 use App\Services\FlightService;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -49,6 +51,7 @@ function validDirectFlightPayload(array $overrides = []): array
 {
     return array_merge([
         'flight_type' => FlightType::Direct->value,
+        'direction' => FlightDirection::Outbound->value,
         'departure_city_id' => test()->departureCity->id,
         'departure_airport_id' => test()->departureAirport->id,
         'departure_airline_id' => test()->departureAirline->id,
@@ -97,6 +100,7 @@ it('stores a direct flight with prefixed flight number', function () {
 
     expect($flight)->not->toBeNull()
         ->and($flight->flight_type)->toBe(FlightType::Direct)
+        ->and($flight->direction)->toBe(FlightDirection::Outbound)
         ->and($flight->departure_flight_no)->toBe('PK740')
         ->and($flight->via_city_id)->toBeNull()
         ->and($flight->via_total_stay_minutes)->toBeNull();
@@ -176,6 +180,53 @@ it('builds flight numbers in the service', function () {
             now()->addWeek()->toDateString(),
             '16:30',
         ))->toBe(330);
+});
+
+it('requires flight direction on create', function () {
+    $payload = validDirectFlightPayload();
+    unset($payload['direction']);
+
+    $this->actingAs($this->user)
+        ->from(route('admin.flights.create'))
+        ->post(route('admin.flights.store'), $payload)
+        ->assertRedirect(route('admin.flights.create'))
+        ->assertSessionHasErrors('direction');
+});
+
+it('stores a return from hajj flight', function () {
+    $payload = validDirectFlightPayload([
+        'direction' => FlightDirection::Return->value,
+    ]);
+
+    $this->actingAs($this->user)
+        ->post(route('admin.flights.store'), $payload)
+        ->assertRedirect(route('admin.flights.index'));
+
+    expect(Flight::query()->first()?->direction)->toBe(FlightDirection::Return);
+});
+
+it('shows assigned hujaj count on flight index', function () {
+    $flight = Flight::factory()->create([
+        'departure_city_id' => $this->departureCity->id,
+        'departure_airport_id' => $this->departureAirport->id,
+        'departure_airline_id' => $this->departureAirline->id,
+        'arrival_city_id' => $this->arrivalCity->id,
+        'arrival_airport_id' => $this->arrivalAirport->id,
+    ]);
+
+    $pilgrim = Pilgrim::query()->create([
+        'hajj_year' => now()->year,
+    ]);
+
+    $flight->pilgrims()->attach($pilgrim->id);
+
+    expect($flight->fresh()->loadCount('pilgrims')->pilgrims_count)->toBe(1);
+
+    $this->actingAs($this->user)
+        ->get(route('admin.flights.index'))
+        ->assertOk()
+        ->assertSee('Departure to Hajj')
+        ->assertSee($flight->departure_flight_no);
 });
 
 it('denies flight access without permission', function () {

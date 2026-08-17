@@ -23,6 +23,7 @@ class FlightController extends Controller
                 'arrivalCity',
                 'arrivalAirport',
             ])
+            ->withCount('pilgrims')
             ->latest()
             ->paginate(15);
 

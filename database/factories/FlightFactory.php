@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Models\Airline;
 use App\Models\Airport;
@@ -29,8 +30,8 @@ class FlightFactory extends Factory
         $arrivalAirport = Airport::factory()->create(['city_id' => $arrivalCity->id, 'is_active' => true]);
         $airline = Airline::query()->create([
             'name' => 'Test Airline',
-            'code' => 'TA',
-            'iata_code' => 'TA',
+            'code' => strtoupper(fake()->unique()->lexify('??')),
+            'iata_code' => strtoupper(fake()->unique()->lexify('??')),
             'country_id' => $country->id,
             'is_active' => true,
         ]);
@@ -39,6 +40,7 @@ class FlightFactory extends Factory
 
         return [
             'flight_type' => FlightType::Direct,
+            'direction' => FlightDirection::Outbound,
             'departure_city_id' => $departureCity->id,
             'departure_airport_id' => $departureAirport->id,
             'departure_airline_id' => $airline->id,
@@ -60,8 +62,8 @@ class FlightFactory extends Factory
             $viaAirport = Airport::factory()->create(['city_id' => $viaCity->id, 'is_active' => true]);
             $viaAirline = Airline::query()->create([
                 'name' => 'Via Airline',
-                'code' => 'VA',
-                'iata_code' => 'VA',
+                'code' => strtoupper(fake()->unique()->lexify('??')),
+                'iata_code' => strtoupper(fake()->unique()->lexify('??')),
                 'country_id' => $country->id,
                 'is_active' => true,
             ]);

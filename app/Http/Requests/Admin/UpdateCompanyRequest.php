@@ -12,6 +12,13 @@ class UpdateCompanyRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('quota') && $this->input('quota') === '') {
+            $this->merge(['quota' => null]);
+        }
+    }
+
     public function rules(): array
     {
         $id = $this->route('company')->id;
@@ -21,6 +28,7 @@ class UpdateCompanyRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', 'alpha_num', Rule::unique('companies')->ignore($id)],
             'enr_number' => ['nullable', 'string', 'max:100'],
             'munazzam_code' => ['nullable', 'string', 'max:100'],
+            'quota' => ['nullable', 'integer', 'min:1'],
             'legal_name' => ['nullable', 'string', 'max:255'],
             'registration_number' => ['nullable', 'string', 'max:100', Rule::unique('companies')->ignore($id)],
             'tax_number' => ['nullable', 'string', 'max:100', Rule::unique('companies')->ignore($id)],

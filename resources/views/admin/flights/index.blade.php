@@ -14,12 +14,14 @@
         <table data-datatable data-empty-message="No flights yet." class="display" style="width:100%">
             <thead>
                 <tr>
+                    <th>Journey</th>
                     <th>Type</th>
                     <th>From</th>
                     <th>Via</th>
                     <th>To</th>
                     <th>Departure</th>
                     <th>Flight No</th>
+                    <th>Hujaj</th>
                     <th>Total Stay</th>
                     <th class="no-sort">Action</th>
                 </tr>
@@ -27,6 +29,7 @@
             <tbody>
                 @foreach ($flights as $flight)
                     <tr>
+                        <td>{{ $flight->direction->label() }}</td>
                         <td>{{ $flight->flight_type->label() }}</td>
                         <td>{{ $flight->departureCity?->name }} ({{ $flight->departureAirport?->code }})</td>
                         <td>
@@ -39,6 +42,7 @@
                         <td>{{ $flight->arrivalCity?->name }} ({{ $flight->arrivalAirport?->code }})</td>
                         <td>{{ $flight->departure_date?->format('d M Y') }} {{ substr((string) $flight->departure_time, 0, 5) }}</td>
                         <td class="fw-medium">{{ $flight->departure_flight_no }}</td>
+                        <td>{{ number_format($flight->pilgrims_count) }}</td>
                         <td>{{ $flight->via_total_stay_label ?? '—' }}</td>
                         <td>
                             <x-admin.table-actions

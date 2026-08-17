@@ -181,6 +181,12 @@ class PilgrimService
 
     public function deletePilgrim(Pilgrim $pilgrim): void
     {
+        if ($pilgrim->company_id === null || $pilgrim->hajj_year === null || $pilgrim->family_number === null) {
+            $pilgrim->delete();
+
+            return;
+        }
+
         $company = Company::query()->findOrFail($pilgrim->company_id);
         $companyId = (int) $pilgrim->company_id;
         $hajjYear = (int) $pilgrim->hajj_year;

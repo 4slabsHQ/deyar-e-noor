@@ -19,6 +19,7 @@
                     <th>Code</th>
                     <th>ENR No</th>
                     <th>Munazzam Code</th>
+                    <th>Quota</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -44,6 +45,7 @@
                         <td>{{ $company->code ?? '—' }}</td>
                         <td>{{ $company->enr_number ?? '—' }}</td>
                         <td>{{ $company->munazzam_code ?? '—' }}</td>
+                        <td>{{ $company->quota ?? 'Unlimited' }}</td>
                         <td>
                             <x-admin.status-badge :active="$company->is_active" />
                         </td>

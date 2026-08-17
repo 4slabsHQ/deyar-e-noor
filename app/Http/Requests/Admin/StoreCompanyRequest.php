@@ -11,6 +11,13 @@ class StoreCompanyRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('quota') && $this->input('quota') === '') {
+            $this->merge(['quota' => null]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -18,6 +25,7 @@ class StoreCompanyRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', 'alpha_num', 'unique:companies,code'],
             'enr_number' => ['nullable', 'string', 'max:100'],
             'munazzam_code' => ['nullable', 'string', 'max:100'],
+            'quota' => ['nullable', 'integer', 'min:1'],
             'legal_name' => ['nullable', 'string', 'max:255'],
             'registration_number' => ['nullable', 'string', 'max:100', 'unique:companies'],
             'tax_number' => ['nullable', 'string', 'max:100', 'unique:companies'],

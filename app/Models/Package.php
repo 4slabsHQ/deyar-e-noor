@@ -33,4 +33,17 @@ class Package extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    public function registrationOptionLabel(): string
+    {
+        return sprintf(
+            '%s — %s | %s | %d days | %s | %s',
+            $this->number,
+            $this->name,
+            number_format((float) $this->price, 2),
+            $this->days,
+            $this->duration->label(),
+            $this->qurbani_included ? 'Qurbani included' : 'No qurbani',
+        );
+    }
 }

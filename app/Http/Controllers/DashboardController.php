@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FlightDirection;
 use App\Models\Flight;
 use App\Models\Pilgrim;
 use Illuminate\View\View;
@@ -29,7 +30,9 @@ class DashboardController extends Controller
             $flightStats = [
                 'total' => Flight::count(),
                 'by_airline' => $this->flightsByAirline(),
+                'by_direction' => $this->flightsByDirection(),
                 'upcoming' => Flight::with(['departureCity', 'arrivalCity', 'departureAirline'])
+                    ->withCount('pilgrims')
                     ->where('departure_date', '>=', now())
                     ->orderBy('departure_date')
                     ->limit(5)
@@ -93,5 +96,20 @@ class DashboardController extends Controller
                 'label' => $row->departureAirline?->name,
                 'total' => (int) $row->total,
             ])->all();
+    }
+
+    private function flightsByDirection(): array
+    {
+        $counts = Flight::query()
+            ->selectRaw('direction, COUNT(*) as total')
+            ->groupBy('direction')
+            ->pluck('total', 'direction');
+
+        return collect(FlightDirection::cases())
+            ->map(fn (FlightDirection $direction) => [
+                'label' => $direction->label(),
+                'total' => (int) ($counts[$direction->value] ?? 0),
+            ])
+            ->all();
     }
 }

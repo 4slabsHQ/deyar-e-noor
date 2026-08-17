@@ -14,6 +14,7 @@
         <table data-datatable data-empty-message="No registrations yet." class="display" style="width:100%">
             <thead>
                 <tr>
+                    <th class="no-sort">Photo</th>
                     <th>Family Code</th>
                     <th>Full Name</th>
                     <th>Passport</th>
@@ -27,6 +28,20 @@
             <tbody>
                 @foreach ($pilgrims as $pilgrim)
                     <tr>
+                        <td>
+                            @if ($pilgrim->photo_url)
+                                <img src="{{ $pilgrim->photo_url }}"
+                                     alt="{{ $pilgrim->full_name ?? 'Pilgrim photo' }}"
+                                     class="rounded"
+                                     width="40"
+                                     height="40"
+                                     style="object-fit: cover;">
+                            @else
+                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted"
+                                      style="width: 40px; height: 40px; font-size: 0.65rem; border: 1px solid #dee2e6;"
+                                      aria-hidden="true">—</span>
+                            @endif
+                        </td>
                         <td class="fw-medium">{{ $pilgrim->family_code }}</td>
                         <td>{{ $pilgrim->full_name }}</td>
                         <td>{{ $pilgrim->passport_no }}</td>
@@ -43,7 +58,7 @@
                                 view-permission="pilgrims.view"
                                 edit-permission="pilgrims.update"
                                 delete-permission="pilgrims.delete"
-                                :delete-confirm="'Delete '.$pilgrim->full_name.'?'"
+                                :delete-confirm="'Delete '.($pilgrim->full_name ?: 'this registration').'?'"
                             />
                         </td>
                     </tr>

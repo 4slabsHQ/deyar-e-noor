@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Services\FlightService;
 use Database\Factories\FlightFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Flight extends Model
@@ -17,6 +19,7 @@ class Flight extends Model
 
     protected $fillable = [
         'flight_type',
+        'direction',
         'departure_city_id',
         'departure_airport_id',
         'departure_airline_id',
@@ -44,6 +47,7 @@ class Flight extends Model
     {
         return [
             'flight_type' => FlightType::class,
+            'direction' => FlightDirection::class,
             'departure_date' => 'date',
             'via_arrival_date' => 'date',
             'via_departure_date' => 'date',
@@ -100,6 +104,11 @@ class Flight extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function pilgrims(): BelongsToMany
+    {
+        return $this->belongsToMany(Pilgrim::class)->withTimestamps();
     }
 
     public function getViaTotalStayLabelAttribute(): ?string

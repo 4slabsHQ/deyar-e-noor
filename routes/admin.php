@@ -28,125 +28,77 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::resource('countries', CountryController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:countries.view',
-            'create' => 'permission:countries.create',
-            'store' => 'permission:countries.create',
-            'edit' => 'permission:countries.update',
-            'update' => 'permission:countries.update',
-            'destroy' => 'permission:countries.delete',
-        ]);
+        ->middlewareFor('index', 'permission:countries.view')
+        ->middlewareFor(['create', 'store'], 'permission:countries.create')
+        ->middlewareFor(['edit', 'update'], 'permission:countries.update')
+        ->middlewareFor('destroy', 'permission:countries.delete');
     Route::resource('cities', CityController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:cities.view',
-            'create' => 'permission:cities.create',
-            'store' => 'permission:cities.create',
-            'edit' => 'permission:cities.update',
-            'update' => 'permission:cities.update',
-            'destroy' => 'permission:cities.delete',
-        ]);
+        ->middlewareFor('index', 'permission:cities.view')
+        ->middlewareFor(['create', 'store'], 'permission:cities.create')
+        ->middlewareFor(['edit', 'update'], 'permission:cities.update')
+        ->middlewareFor('destroy', 'permission:cities.delete');
     Route::resource('airlines', AirlineController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:airlines.view',
-            'create' => 'permission:airlines.create',
-            'store' => 'permission:airlines.create',
-            'edit' => 'permission:airlines.update',
-            'update' => 'permission:airlines.update',
-            'destroy' => 'permission:airlines.delete',
-        ]);
+        ->middlewareFor('index', 'permission:airlines.view')
+        ->middlewareFor(['create', 'store'], 'permission:airlines.create')
+        ->middlewareFor(['edit', 'update'], 'permission:airlines.update')
+        ->middlewareFor('destroy', 'permission:airlines.delete');
     Route::resource('airports', AirportController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:airports.view',
-            'create' => 'permission:airports.create',
-            'store' => 'permission:airports.create',
-            'edit' => 'permission:airports.update',
-            'update' => 'permission:airports.update',
-            'destroy' => 'permission:airports.delete',
-        ]);
+        ->middlewareFor('index', 'permission:airports.view')
+        ->middlewareFor(['create', 'store'], 'permission:airports.create')
+        ->middlewareFor(['edit', 'update'], 'permission:airports.update')
+        ->middlewareFor('destroy', 'permission:airports.delete');
 
     Route::resource('companies', CompanyController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:companies.view',
-            'create' => 'permission:companies.create',
-            'store' => 'permission:companies.create',
-            'edit' => 'permission:companies.edit',
-            'update' => 'permission:companies.edit',
-            'destroy' => 'permission:companies.destroy',
-        ]);
+        ->middlewareFor('index', 'permission:companies.view')
+        ->middlewareFor(['create', 'store'], 'permission:companies.create')
+        ->middlewareFor(['edit', 'update'], 'permission:companies.edit')
+        ->middlewareFor('destroy', 'permission:companies.destroy');
     Route::resource('form-owners', FormOwnerController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:form-owners.view',
-            'create' => 'permission:form-owners.create',
-            'store' => 'permission:form-owners.create',
-            'edit' => 'permission:form-owners.update',
-            'update' => 'permission:form-owners.update',
-            'destroy' => 'permission:form-owners.delete',
-        ]);
+        ->middlewareFor('index', 'permission:form-owners.view')
+        ->middlewareFor(['create', 'store'], 'permission:form-owners.create')
+        ->middlewareFor(['edit', 'update'], 'permission:form-owners.update')
+        ->middlewareFor('destroy', 'permission:form-owners.delete');
     Route::resource('maktab-categories', MaktabCategoryController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:maktab-categories.view',
-            'create' => 'permission:maktab-categories.create',
-            'store' => 'permission:maktab-categories.create',
-            'edit' => 'permission:maktab-categories.update',
-            'update' => 'permission:maktab-categories.update',
-            'destroy' => 'permission:maktab-categories.delete',
-        ]);
+        ->middlewareFor('index', 'permission:maktab-categories.view')
+        ->middlewareFor(['create', 'store'], 'permission:maktab-categories.create')
+        ->middlewareFor(['edit', 'update'], 'permission:maktab-categories.update')
+        ->middlewareFor('destroy', 'permission:maktab-categories.delete');
     Route::resource('care-offs', CareOffController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:care-offs.view',
-            'create' => 'permission:care-offs.create',
-            'store' => 'permission:care-offs.create',
-            'edit' => 'permission:care-offs.update',
-            'update' => 'permission:care-offs.update',
-            'destroy' => 'permission:care-offs.delete',
-        ]);
+        ->middlewareFor('index', 'permission:care-offs.view')
+        ->middlewareFor(['create', 'store'], 'permission:care-offs.create')
+        ->middlewareFor(['edit', 'update'], 'permission:care-offs.update')
+        ->middlewareFor('destroy', 'permission:care-offs.delete');
     Route::resource('packages', PackageController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:packages.view',
-            'create' => 'permission:packages.create',
-            'store' => 'permission:packages.create',
-            'edit' => 'permission:packages.update',
-            'update' => 'permission:packages.update',
-            'destroy' => 'permission:packages.delete',
-        ]);
+        ->middlewareFor('index', 'permission:packages.view')
+        ->middlewareFor(['create', 'store'], 'permission:packages.create')
+        ->middlewareFor(['edit', 'update'], 'permission:packages.update')
+        ->middlewareFor('destroy', 'permission:packages.delete');
     Route::resource('room-types', RoomTypeController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:room-types.view',
-            'create' => 'permission:room-types.create',
-            'store' => 'permission:room-types.create',
-            'edit' => 'permission:room-types.update',
-            'update' => 'permission:room-types.update',
-            'destroy' => 'permission:room-types.delete',
-        ]);
+        ->middlewareFor('index', 'permission:room-types.view')
+        ->middlewareFor(['create', 'store'], 'permission:room-types.create')
+        ->middlewareFor(['edit', 'update'], 'permission:room-types.update')
+        ->middlewareFor('destroy', 'permission:room-types.delete');
     Route::resource('mehram-relations', MehramRelationController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:mehram-relations.view',
-            'create' => 'permission:mehram-relations.create',
-            'store' => 'permission:mehram-relations.create',
-            'edit' => 'permission:mehram-relations.update',
-            'update' => 'permission:mehram-relations.update',
-            'destroy' => 'permission:mehram-relations.delete',
-        ]);
+        ->middlewareFor('index', 'permission:mehram-relations.view')
+        ->middlewareFor(['create', 'store'], 'permission:mehram-relations.create')
+        ->middlewareFor(['edit', 'update'], 'permission:mehram-relations.update')
+        ->middlewareFor('destroy', 'permission:mehram-relations.delete');
     Route::resource('waris-relations', WarisRelationController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:waris-relations.view',
-            'create' => 'permission:waris-relations.create',
-            'store' => 'permission:waris-relations.create',
-            'edit' => 'permission:waris-relations.update',
-            'update' => 'permission:waris-relations.update',
-            'destroy' => 'permission:waris-relations.delete',
-        ]);
+        ->middlewareFor('index', 'permission:waris-relations.view')
+        ->middlewareFor(['create', 'store'], 'permission:waris-relations.create')
+        ->middlewareFor(['edit', 'update'], 'permission:waris-relations.update')
+        ->middlewareFor('destroy', 'permission:waris-relations.delete');
 
     Route::get('pilgrims/preview-family-code', [PilgrimController::class, 'previewFamilyCode'])
         ->name('pilgrims.preview-family-code')
@@ -157,54 +109,32 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         ->middleware('permission:pilgrims.create|pilgrims.update');
 
     Route::resource('pilgrims', PilgrimController::class)
-        ->middleware([
-            'index' => 'permission:pilgrims.view',
-            'show' => 'permission:pilgrims.view',
-            'create' => 'permission:pilgrims.create',
-            'store' => 'permission:pilgrims.create',
-            'edit' => 'permission:pilgrims.update',
-            'update' => 'permission:pilgrims.update',
-            'destroy' => 'permission:pilgrims.delete',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:pilgrims.view')
+        ->middlewareFor(['create', 'store'], 'permission:pilgrims.create')
+        ->middlewareFor(['edit', 'update'], 'permission:pilgrims.update')
+        ->middlewareFor('destroy', 'permission:pilgrims.delete');
 
     Route::resource('flights', FlightController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:flights.view',
-            'create' => 'permission:flights.create',
-            'store' => 'permission:flights.create',
-            'edit' => 'permission:flights.update',
-            'update' => 'permission:flights.update',
-            'destroy' => 'permission:flights.delete',
-        ]);
+        ->middlewareFor('index', 'permission:flights.view')
+        ->middlewareFor(['create', 'store'], 'permission:flights.create')
+        ->middlewareFor(['edit', 'update'], 'permission:flights.update')
+        ->middlewareFor('destroy', 'permission:flights.delete');
 
     Route::resource('users', UserController::class)
-        ->middleware([
-            'index' => 'permission:users.view',
-            'create' => 'permission:users.create',
-            'store' => 'permission:users.create',
-            'edit' => 'permission:users.update',
-            'update' => 'permission:users.update',
-        ]);
+        ->middlewareFor('index', 'permission:users.view')
+        ->middlewareFor(['create', 'store'], 'permission:users.create')
+        ->middlewareFor(['edit', 'update'], 'permission:users.update');
 
     Route::resource('roles', RoleController::class)
-        ->middleware([
-            'index' => 'permission:roles.view',
-            'show' => 'permission:roles.view',
-            'create' => 'permission:roles.create',
-            'store' => 'permission:roles.create',
-            'edit' => 'permission:roles.update',
-            'update' => 'permission:roles.update',
-            'destroy' => 'permission:roles.delete',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:roles.view')
+        ->middlewareFor(['create', 'store'], 'permission:roles.create')
+        ->middlewareFor(['edit', 'update'], 'permission:roles.update')
+        ->middlewareFor('destroy', 'permission:roles.delete');
 
     Route::resource('permissions', PermissionController::class)
-        ->middleware([
-            'index' => 'permission:roles.view',
-            'create' => 'permission:roles.create',
-            'store' => 'permission:roles.create',
-            'edit' => 'permission:roles.update',
-            'update' => 'permission:roles.update',
-            'destroy' => 'permission:roles.delete',
-        ]);
+        ->middlewareFor('index', 'permission:roles.view')
+        ->middlewareFor(['create', 'store'], 'permission:roles.create')
+        ->middlewareFor(['edit', 'update'], 'permission:roles.update')
+        ->middlewareFor('destroy', 'permission:roles.delete');
 });

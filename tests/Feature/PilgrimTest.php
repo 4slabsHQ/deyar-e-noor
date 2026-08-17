@@ -117,6 +117,47 @@ test('admin can update a pilgrim', function () {
         ->and($pilgrim->fresh()->family_code)->toBe('DYN-01-S');
 });
 
+test('admin can register a pilgrim with all fields left empty', function () {
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), [
+        'hajj_year' => '',
+        'booking_date' => '',
+    ])->assertRedirect(route('admin.pilgrims.index'));
+
+    expect(Pilgrim::count())->toBe(1);
+});
+
+test('admin can delete an incomplete pilgrim registration', function () {
+    $pilgrim = Pilgrim::query()->create([
+        'hajj_year' => null,
+        'booking_date' => null,
+        'full_name' => null,
+        'family_code' => null,
+        'family_number' => null,
+        'family_member_suffix' => null,
+        'age' => null,
+    ]);
+
+    $this->actingAs($this->user)->delete(route('admin.pilgrims.destroy', $pilgrim))
+        ->assertRedirect(route('admin.pilgrims.index'));
+
+    expect(Pilgrim::count())->toBe(0);
+});
+
+test('admin can register a pilgrim without mehram or waris name and relation', function () {
+    $pilgrim = registerPilgrim([
+        'passport_no' => 'CD7654321',
+        'mehram_name' => null,
+        'mehram_relation_id' => null,
+        'waris_name' => null,
+        'waris_relation_id' => null,
+    ]);
+
+    expect($pilgrim->mehram_name)->toBeNull()
+        ->and($pilgrim->mehram_relation_id)->toBeNull()
+        ->and($pilgrim->waris_name)->toBeNull()
+        ->and($pilgrim->waris_relation_id)->toBeNull();
+});
+
 test('admin can upload pilgrim photo on create and view registration', function () {
     Storage::fake('public');
 
@@ -132,6 +173,10 @@ test('admin can upload pilgrim photo on create and view registration', function 
     Storage::disk('public')->assertExists($pilgrim->photo_path);
 
     $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee($pilgrim->photo_url, false);
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.index'))
         ->assertOk()
         ->assertSee($pilgrim->photo_url, false);
 });
@@ -293,8 +338,27 @@ test('admin can view pilgrim registration document', function () {
         ->assertSee('Ahmed Khan')
         ->assertSee('AB1234567')
         ->assertSee('35201-1234567-1')
+        ->assertSee('DYN-01-S')
+        ->assertDontSee('Family Member')
         ->assertSee('Print')
         ->assertSee('Save as PDF');
+});
+
+test('pilgrim registration document shows company logo when available', function () {
+    Storage::fake('public');
+
+    $logoPath = UploadedFile::fake()->image('company-logo.jpg')->store('companies/logos', 'public');
+
+    $this->company->update(['logo' => $logoPath]);
+
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee(Storage::url($logoPath), false)
+        ->assertSee('pilgrim-doc-logo', false);
 });
 
 test('pilgrim registration validates passport format', function () {
@@ -325,4 +389,41 @@ test('pilgrim service builds family code and age', function () {
     expect($family['family_code'])->toBe('XYZ-01-S')
         ->and($service->buildFullName('Khan', 'Ahmed'))->toBe('Ahmed Khan')
         ->and($service->calculateAge(Carbon::parse('1975-03-15'), 2026))->toBe(51);
+});
+
+test('pilgrim registration is blocked when company quota is reached', function () {
+    $this->company->update(['quota' => 1]);
+
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->from(route('admin.pilgrims.create'))
+        ->post(route('admin.pilgrims.store'), validPilgrimPayload([
+            'passport_no' => 'AB2222222',
+        ]))
+        ->assertRedirect(route('admin.pilgrims.create'))
+        ->assertSessionHasErrors('company_id');
+
+    expect(Pilgrim::query()->count())->toBe(1);
+});
+
+test('pilgrim registration is allowed when company has no quota limit', function () {
+    $this->company->update(['quota' => null]);
+
+    registerPilgrim(['passport_no' => 'AB1111111']);
+    registerPilgrim(['passport_no' => 'AB2222222']);
+
+    expect(Pilgrim::query()->count())->toBe(2);
+});
+
+test('pilgrim update keeps registration when company quota is already full', function () {
+    $this->company->update(['quota' => 1]);
+
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Ahmed']);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'given_name' => 'Ali',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->given_name)->toBe('Ali');
 });
