@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\FlightController;
 use App\Http\Controllers\Admin\FormOwnerController;
+use App\Http\Controllers\Admin\HajjSeasonController;
 use App\Http\Controllers\Admin\MaktabCategoryController;
 use App\Http\Controllers\Admin\MehramRelationController;
 use App\Http\Controllers\Admin\PackageController;
@@ -139,4 +140,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         ->middlewareFor(['create', 'store'], 'permission:roles.create')
         ->middlewareFor(['edit', 'update'], 'permission:roles.update')
         ->middlewareFor('destroy', 'permission:roles.delete');
+
+    Route::get('hajj-seasons', [HajjSeasonController::class, 'index'])
+        ->name('hajj-seasons.index')
+        ->middleware('permission:hajj-seasons.view');
+
+    Route::post('hajj-seasons', [HajjSeasonController::class, 'store'])
+        ->name('hajj-seasons.store')
+        ->middleware('permission:hajj-seasons.manage');
+
+    Route::post('hajj-seasons/{hajjSeason}/activate', [HajjSeasonController::class, 'activate'])
+        ->name('hajj-seasons.activate')
+        ->middleware('permission:hajj-seasons.manage');
 });

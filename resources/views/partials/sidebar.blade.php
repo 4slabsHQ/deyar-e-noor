@@ -92,6 +92,15 @@
             </li>
             @endcanany
 
+            @can('hajj-seasons.view')
+            <li>
+                <a href="{{ route('admin.hajj-seasons.index') }}" class="{{ request()->routeIs('admin.hajj-seasons.*') ? 'mm-active' : '' }}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="nav-text">Hajj Seasons</span>
+                </a>
+            </li>
+            @endcan
+
         </ul>
 
         <div class="copyright">

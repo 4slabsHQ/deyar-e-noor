@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Flight;
 use App\Models\Pilgrim;
+use App\Services\HajjSeasonService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(HajjSeasonService $hajjSeasonService): View
     {
-        $hajjYear = (int) now()->year;
+        $hajjYear = $hajjSeasonService->activeYear();
         $pilgrimStats = null;
         $quotaStats = null;
         $flightStats = null;
@@ -20,8 +21,8 @@ class DashboardController extends Controller
             $pilgrimStats = [
                 'hajj_year' => $hajjYear,
                 'this_year' => Pilgrim::query()->where('hajj_year', $hajjYear)->count(),
-                'recent' => Pilgrim::query()->with('company')->latest()->limit(5)->get(),
-                'monthly_trend' => $this->registrationsByMonth(),
+                'recent' => Pilgrim::query()->with('company')->where('hajj_year', $hajjYear)->latest()->limit(5)->get(),
+                'monthly_trend' => $this->registrationsByMonth($hajjYear),
             ];
         }
 
@@ -89,7 +90,7 @@ class DashboardController extends Controller
     }
 
     /** @return list<array{label: string, total: int}> */
-    private function registrationsByMonth(): array
+    private function registrationsByMonth(int $hajjYear): array
     {
         $start = now()->subMonths(5)->startOfMonth();
 
@@ -99,6 +100,7 @@ class DashboardController extends Controller
 
         $counts = Pilgrim::query()
             ->selectRaw("{$monthExpression} as month, COUNT(*) as total")
+            ->where('hajj_year', $hajjYear)
             ->where('booking_date', '>=', $start)
             ->groupBy('month')
             ->pluck('total', 'month');

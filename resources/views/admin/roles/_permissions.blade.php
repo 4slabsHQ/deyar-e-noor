@@ -19,20 +19,31 @@
     @endif
 
     @foreach ($groupedPermissions as $groupLabel => $permissionNames)
-        @php $groupKey = \Illuminate\Support\Str::slug($groupLabel); @endphp
+        @php
+            $groupKey = \Illuminate\Support\Str::slug($groupLabel);
+            $groupPermissions = collect($permissionNames)
+                ->map(fn (string $name) => $permissionsByName->get($name))
+                ->filter()
+                ->values();
+        @endphp
         <div class="mb-4">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <h6 class="text-uppercase text-muted mb-0">{{ $groupLabel }}</h6>
-                <button type="button"
-                        class="btn btn-link btn-sm p-0 text-decoration-none"
-                        data-permission-group-select="{{ $groupKey }}">
-                    Select group
-                </button>
+                @if ($groupPermissions->isNotEmpty())
+                    <button type="button"
+                            class="btn btn-link btn-sm p-0 text-decoration-none"
+                            data-permission-group-select="{{ $groupKey }}">
+                        Select group
+                    </button>
+                @endif
             </div>
-            <div class="row g-2">
-                @foreach ($permissionNames as $permissionName)
-                    @php $permission = $permissionsByName->get($permissionName); @endphp
-                    @if ($permission)
+            @if ($groupPermissions->isEmpty())
+                <p class="text-muted small mb-0">
+                    No permissions available for this group. Run <code>php artisan permissions:sync</code> on the server.
+                </p>
+            @else
+                <div class="row g-2">
+                    @foreach ($groupPermissions as $permission)
                         <div class="col-lg-4 col-md-6">
                             <div class="form-check">
                                 <input class="form-check-input js-permission-checkbox" type="checkbox" name="permissions[]"
@@ -44,9 +55,9 @@
                                 </label>
                             </div>
                         </div>
-                    @endif
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endforeach
 </x-admin.form-section>

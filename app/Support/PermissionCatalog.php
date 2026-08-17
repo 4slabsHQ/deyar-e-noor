@@ -59,6 +59,12 @@ class PermissionCatalog
                     'flights.view', 'flights.create', 'flights.update', 'flights.delete',
                 ],
             ],
+            'system' => [
+                'label' => 'System',
+                'permissions' => [
+                    'hajj-seasons.view', 'hajj-seasons.manage',
+                ],
+            ],
         ];
     }
 
