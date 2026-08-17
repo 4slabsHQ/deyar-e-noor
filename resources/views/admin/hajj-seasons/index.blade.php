@@ -36,27 +36,32 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($season->activated_at)
-                                            {{ $season->activated_at->format('d M Y') }}
-                                            @if ($season->activator)
-                                                <span class="text-muted">· {{ $season->activator->name }}</span>
-                                            @endif
-                                        @else
-                                            —
-                                        @endif
+                                        {{ $season->activated_at?->format('d M Y') ?? '—' }}
                                     </td>
                                     <td>
                                         @can('hajj-seasons.manage')
-                                            @unless ($season->isActive())
-                                                <form method="POST" action="{{ route('admin.hajj-seasons.activate', $season) }}" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-outline-primary btn-xs">
-                                                        Set active
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="text-muted">Current</span>
-                                            @endunless
+                                            <div class="admin-table-actions d-flex align-items-center gap-1">
+                                                @if ($season->isActive())
+                                                    <span class="text-muted">Current</span>
+                                                @else
+                                                    <form method="POST" action="{{ route('admin.hajj-seasons.activate', $season) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-outline-primary btn-xs">
+                                                            Set active
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST"
+                                                          action="{{ route('admin.hajj-seasons.destroy', $season) }}"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Remove Hajj {{ $season->year }} from the seasons list? Registration data will not be deleted.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-outline-danger btn-xs">
+                                                            Remove
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         @endcan
                                     </td>
                                 </tr>

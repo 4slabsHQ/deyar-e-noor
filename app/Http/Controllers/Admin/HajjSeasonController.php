@@ -12,7 +12,6 @@ class HajjSeasonController extends Controller
     public function index()
     {
         $seasons = HajjSeason::query()
-            ->with('activator')
             ->orderByDesc('year')
             ->get();
 
@@ -35,5 +34,21 @@ class HajjSeasonController extends Controller
         return redirect()
             ->route('admin.hajj-seasons.index')
             ->with('success', "Hajj {$hajjSeason->year} is now the active season.");
+    }
+
+    public function destroy(HajjSeason $hajjSeason)
+    {
+        if ($hajjSeason->isActive()) {
+            return redirect()
+                ->route('admin.hajj-seasons.index')
+                ->with('error', 'The active Hajj season cannot be removed.');
+        }
+
+        $year = $hajjSeason->year;
+        $hajjSeason->delete();
+
+        return redirect()
+            ->route('admin.hajj-seasons.index')
+            ->with('success', "Hajj {$year} removed from the seasons list. Registration data was not deleted.");
     }
 }

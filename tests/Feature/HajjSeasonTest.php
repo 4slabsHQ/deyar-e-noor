@@ -93,6 +93,59 @@ test('hajj season service falls back to configured default year', function () {
     expect(app(HajjSeasonService::class)->activeYear())->toBe(2027);
 });
 
+test('super admin can remove an archived hajj season without deleting registrations', function () {
+    $archivedYear = now()->year;
+    $activeYear = now()->year + 1;
+
+    $archivedSeason = HajjSeason::query()->where('year', $archivedYear)->firstOrFail();
+    $activeSeason = HajjSeason::factory()->create(['year' => $activeYear]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.hajj-seasons.activate', $activeSeason))
+        ->assertRedirect(route('admin.hajj-seasons.index'));
+
+    $company = Company::factory()->create(['is_active' => true]);
+
+    Pilgrim::query()->create([
+        'company_id' => $company->id,
+        'hajj_year' => $archivedYear,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->delete(route('admin.hajj-seasons.destroy', $archivedSeason))
+        ->assertRedirect(route('admin.hajj-seasons.index'));
+
+    expect(HajjSeason::query()->where('year', $archivedYear)->exists())->toBeFalse()
+        ->and(Pilgrim::query()->where('hajj_year', $archivedYear)->count())->toBe(1);
+});
+
+test('active hajj season cannot be removed', function () {
+    $activeSeason = HajjSeason::query()->where('status', HajjSeasonStatus::Active)->firstOrFail();
+
+    $this->actingAs($this->admin)
+        ->delete(route('admin.hajj-seasons.destroy', $activeSeason))
+        ->assertRedirect(route('admin.hajj-seasons.index'))
+        ->assertSessionHas('error');
+
+    expect(HajjSeason::query()->whereKey($activeSeason->id)->exists())->toBeTrue();
+});
+
+test('archived hajj seasons show remove action', function () {
+    $archivedSeason = HajjSeason::query()
+        ->where('status', HajjSeasonStatus::Archived)
+        ->first();
+
+    if ($archivedSeason === null) {
+        $activeSeason = HajjSeason::query()->where('status', HajjSeasonStatus::Active)->firstOrFail();
+        $archivedSeason = HajjSeason::factory()->create(['year' => $activeSeason->year - 1]);
+    }
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.hajj-seasons.index'))
+        ->assertOk()
+        ->assertSee('Remove', false);
+});
+
 test('registration staff cannot manage hajj seasons', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('hajj-seasons.view');

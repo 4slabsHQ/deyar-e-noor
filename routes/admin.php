@@ -152,4 +152,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('hajj-seasons/{hajjSeason}/activate', [HajjSeasonController::class, 'activate'])
         ->name('hajj-seasons.activate')
         ->middleware('permission:hajj-seasons.manage');
+
+    Route::delete('hajj-seasons/{hajjSeason}', [HajjSeasonController::class, 'destroy'])
+        ->name('hajj-seasons.destroy')
+        ->middleware('permission:hajj-seasons.manage');
 });
