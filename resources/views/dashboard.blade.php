@@ -10,103 +10,132 @@
 <div class="deyar-dashboard">
 
     <div class="row g-3 mb-3">
-        <div class="col-sm-6 col-xl-3">
-            <div class="card h-100 deyar-metric-card">
-                <div class="card-body">
-                    <span class="deyar-metric__label">Signed in as</span>
-                    <span class="deyar-metric__value deyar-metric__value--text">{{ auth()->user()->name }}</span>
-                </div>
-            </div>
-        </div>
+        @if ($quotaStats)
+            <div class="col-12 {{ $pilgrimStats ? 'col-xl-8' : 'col-xl-12' }}">
+                <div class="card h-100 deyar-metric-card deyar-quota-overview">
+                    <div class="card-body">
+                        <div class="deyar-quota-overview__header">
+                            <h6 class="deyar-dashboard-card__title">Quota Overview</h6>
+                            <span class="deyar-quota-overview__year">Hajj {{ $hajjYear }}</span>
+                        </div>
 
-        @if ($pilgrimStats)
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 deyar-metric-card">
-                    <div class="card-body">
-                        <span class="deyar-metric__label">Total Registrations</span>
-                        <span class="deyar-metric__value">{{ number_format($pilgrimStats['total']) }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 deyar-metric-card">
-                    <div class="card-body">
-                        <span class="deyar-metric__label">Hajj {{ now()->year }}</span>
-                        <span class="deyar-metric__value">{{ number_format($pilgrimStats['this_year']) }}</span>
-                    </div>
-                </div>
-            </div>
-            @can('pilgrims.create')
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card h-100 deyar-dashboard-action deyar-metric-card">
-                        <div class="card-body d-flex flex-column justify-content-center">
-                            <a href="{{ route('admin.pilgrims.create') }}" class="btn btn-primary btn-sm">
-                                New Registration
-                            </a>
+                        <div class="deyar-quota-overview__stats">
+                            <div class="deyar-quota-stat-card deyar-quota-stat-card--total">
+                                <span class="deyar-quota-stat-card__label">Total</span>
+                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['total_quota']) }}</span>
+                            </div>
+                            <div class="deyar-quota-stat-card deyar-quota-stat-card--utilised">
+                                <span class="deyar-quota-stat-card__label">Utilised</span>
+                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['utilised']) }}</span>
+                            </div>
+                            <div class="deyar-quota-stat-card deyar-quota-stat-card--remaining">
+                                <span class="deyar-quota-stat-card__label">Remaining</span>
+                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['remaining']) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="deyar-quota-overview__footer">
+                            <div class="deyar-quota-overview__progress-header">
+                                <span class="deyar-quota-overview__progress-label">Overall utilisation</span>
+                                <span class="deyar-quota-overview__progress-value">{{ $quotaStats['utilisation_percentage'] }}%</span>
+                            </div>
+                            <div class="deyar-quota-progress" role="progressbar"
+                                 aria-valuenow="{{ $quotaStats['utilisation_percentage'] }}" aria-valuemin="0" aria-valuemax="100"
+                                 aria-label="Overall quota utilisation">
+                                <div class="deyar-quota-progress__fill {{ $quotaStats['utilisation_percentage'] >= 100 ? 'deyar-quota-progress__fill--danger' : ($quotaStats['utilisation_percentage'] >= 80 ? 'deyar-quota-progress__fill--warning' : '') }}"
+                                     style="width: {{ $quotaStats['utilisation_percentage'] }}%"></div>
+                            </div>
+
+                            @if ($quotaStats['unlimited_companies'] > 0)
+                                <p class="deyar-dashboard-note deyar-quota-overview__note mb-0">
+                                    {{ $quotaStats['unlimited_companies'] }} {{ str('company')->plural($quotaStats['unlimited_companies']) }} with unlimited quota excluded from totals.
+                                </p>
+                            @endif
                         </div>
                     </div>
                 </div>
-            @endcan
+            </div>
         @endif
 
-        @if ($flightStats)
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 deyar-metric-card">
-                    <div class="card-body">
-                        <span class="deyar-metric__label">Total Flights</span>
-                        <span class="deyar-metric__value">{{ number_format($flightStats['total']) }}</span>
+        @if ($pilgrimStats)
+            <div class="col-12 {{ $quotaStats ? 'col-xl-4' : 'col-xl-12' }}">
+                <div class="card h-100 deyar-metric-card deyar-registration-card">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="deyar-dashboard-card__title">Hajj {{ $pilgrimStats['hajj_year'] }} Registrations</h6>
+                        <span class="deyar-registration-card__value">{{ number_format($pilgrimStats['this_year']) }}</span>
+                        @can('pilgrims.create')
+                            <a href="{{ route('admin.pilgrims.create') }}" class="btn btn-primary btn-sm w-100 mt-auto">
+                                New Registration
+                            </a>
+                        @endcan
                     </div>
                 </div>
             </div>
         @endif
     </div>
 
-    @if ($pilgrimStats)
+    @if ($pilgrimStats || $quotaStats)
         <div class="row g-3 mb-3">
-            <div class="col-xl-6">
-                <div class="card h-100 deyar-panel-card">
-                    <div class="card-header">
-                        <h6 class="deyar-panel-card__title">Registrations (Last 6 Months)</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="deyar-chart-wrap" id="trendChartWrap">
-                            <canvas id="trendChart" height="100"></canvas>
-                            <div class="deyar-empty-state d-none" id="trendChartEmpty">No registration data for the last 6 months.</div>
+            @if ($pilgrimStats)
+                <div class="{{ $quotaStats ? 'col-xl-8' : 'col-xl-12' }}">
+                    <div class="card h-100 deyar-panel-card">
+                        <div class="card-header">
+                            <h6 class="deyar-panel-card__title">Registrations (Last 6 Months)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="deyar-chart-wrap" id="trendChartWrap">
+                                <canvas id="trendChart" height="100"></canvas>
+                                <div class="deyar-empty-state d-none" id="trendChartEmpty">No registration data for the last 6 months.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-xl-3">
-                <div class="card h-100 deyar-panel-card">
-                    <div class="card-header">
-                        <h6 class="deyar-panel-card__title">Gender</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="deyar-chart-wrap" id="genderChartWrap">
-                            <canvas id="genderChart" height="100"></canvas>
-                            <div class="deyar-empty-state d-none" id="genderChartEmpty">No gender breakdown yet.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3">
-                <div class="card h-100 deyar-panel-card">
-                    <div class="card-header">
-                        <h6 class="deyar-panel-card__title">Top Packages</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="deyar-chart-wrap" id="packageChartWrap">
-                            <canvas id="packageChart" height="100"></canvas>
-                            <div class="deyar-empty-state d-none" id="packageChartEmpty">No package data yet.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            @endif
 
+            @if ($quotaStats)
+                <div class="{{ $pilgrimStats ? 'col-xl-4' : 'col-xl-12' }}">
+                    <div class="card h-100 deyar-panel-card">
+                        <div class="card-header">
+                            <h6 class="deyar-panel-card__title mb-0">Company Quota Utilisation</h6>
+                        </div>
+                        <div class="card-body">
+                            @forelse ($quotaStats['companies'] as $company)
+                                <div class="deyar-quota-item">
+                                    <div class="deyar-quota-item__header">
+                                        <span class="deyar-quota-item__name">
+                                            {{ $company['name'] }}
+                                            @if ($company['code'])
+                                                <span class="text-muted">({{ $company['code'] }})</span>
+                                            @endif
+                                        </span>
+                                        <span class="deyar-quota-item__meta">
+                                            {{ number_format($company['used']) }}/{{ number_format($company['quota']) }}
+                                        </span>
+                                    </div>
+                                    <div class="deyar-quota-progress" role="progressbar"
+                                         aria-valuenow="{{ $company['percentage'] }}" aria-valuemin="0" aria-valuemax="100"
+                                         aria-label="{{ $company['name'] }} quota utilisation">
+                                        <div class="deyar-quota-progress__fill {{ $company['percentage'] >= 100 ? 'deyar-quota-progress__fill--danger' : ($company['percentage'] >= 80 ? 'deyar-quota-progress__fill--warning' : '') }}"
+                                             style="width: {{ $company['percentage'] }}%"></div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="deyar-empty-state border-0">No company quotas configured yet.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    @if ($pilgrimStats)
         <div class="card deyar-panel-card mb-3">
-            <div class="card-header">
-                <h6 class="deyar-panel-card__title">Recent Registrations</h6>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="deyar-panel-card__title mb-0">Recent Registrations</h6>
+                @can('pilgrims.view')
+                    <a href="{{ route('admin.pilgrims.index') }}" class="deyar-dashboard-link">View all</a>
+                @endcan
             </div>
             <div class="card-body p-0">
                 @if ($pilgrimStats['recent']->isNotEmpty())
@@ -117,17 +146,17 @@
                                     <th>Name</th>
                                     <th>Family Code</th>
                                     <th>Passport</th>
-                                    <th>Hajj Year</th>
+                                    <th>Company</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($pilgrimStats['recent'] as $pilgrim)
                                     <tr>
-                                        <td class="fw-medium">{{ $pilgrim->full_name }}</td>
-                                        <td>{{ $pilgrim->family_code }}</td>
-                                        <td>{{ $pilgrim->passport_no }}</td>
-                                        <td>{{ $pilgrim->hajj_year }}</td>
+                                        <td class="fw-medium">{{ $pilgrim->full_name ?: '—' }}</td>
+                                        <td>{{ $pilgrim->family_code ?: '—' }}</td>
+                                        <td>{{ $pilgrim->passport_no ?: '—' }}</td>
+                                        <td>{{ $pilgrim->company?->name ?: '—' }}</td>
                                         <td>
                                             <a href="{{ route('admin.pilgrims.show', $pilgrim) }}" class="btn btn-outline-info btn-xs">View</a>
                                         </td>
@@ -144,36 +173,22 @@
     @endif
 
     @if ($flightStats)
-        <div class="row g-3">
-            <div class="col-xl-6">
-                <div class="card h-100 deyar-panel-card">
-                    <div class="card-header">
-                        <h6 class="deyar-panel-card__title">Flights by Airline</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="deyar-chart-wrap" id="airlineChartWrap">
-                            <canvas id="airlineChart" height="100"></canvas>
-                            <div class="deyar-empty-state d-none" id="airlineChartEmpty">No flight data by airline yet.</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="card deyar-panel-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="deyar-panel-card__title mb-0">Upcoming Flights</h6>
+                @can('flights.view')
+                    <a href="{{ route('admin.flights.index') }}" class="deyar-dashboard-link">View all</a>
+                @endcan
             </div>
-            <div class="col-xl-6">
-                <div class="card h-100 deyar-panel-card">
-                    <div class="card-header">
-                        <h6 class="deyar-panel-card__title">Upcoming Departures</h6>
+            <div class="card-body">
+                @forelse ($flightStats['upcoming'] as $flight)
+                    <div class="deyar-list-item">
+                        <span>{{ $flight->direction->label() }}: {{ $flight->departureCity?->name }} → {{ $flight->arrivalCity?->name }}</span>
+                        <span class="deyar-list-item__meta">{{ number_format($flight->pilgrims_count) }} hujaj · {{ $flight->departure_date?->format('d M Y') }}</span>
                     </div>
-                    <div class="card-body">
-                        @forelse ($flightStats['upcoming'] as $flight)
-                            <div class="deyar-list-item">
-                                <span>{{ $flight->direction->label() }}: {{ $flight->departureCity?->name }} → {{ $flight->arrivalCity?->name }}</span>
-                                <span class="deyar-list-item__meta">{{ number_format($flight->pilgrims_count) }} hujaj · {{ $flight->departure_date?->format('d M Y') }}</span>
-                            </div>
-                        @empty
-                            <div class="deyar-empty-state">No upcoming flights scheduled.</div>
-                        @endforelse
-                    </div>
-                </div>
+                @empty
+                    <div class="deyar-empty-state">No upcoming flights scheduled.</div>
+                @endforelse
             </div>
         </div>
     @endif
@@ -186,17 +201,7 @@
     (function () {
         const root = document.documentElement;
         const cssVar = (name) => getComputedStyle(root).getPropertyValue(name).trim();
-
-        const chartPalette = [
-            cssVar('--deyar-chart-1'),
-            cssVar('--deyar-chart-2'),
-            cssVar('--deyar-chart-3'),
-            cssVar('--deyar-chart-4'),
-            cssVar('--deyar-chart-5'),
-            cssVar('--deyar-chart-6'),
-        ].filter(Boolean);
-
-        const chartPrimary = chartPalette[0] || '#B8956A';
+        const chartPrimary = cssVar('--deyar-chart-1') || '#B8956A';
 
         function showEmptyState(canvasId, emptyId) {
             const canvas = document.getElementById(canvasId);
@@ -211,7 +216,7 @@
             }
         }
 
-        function makeChart(id, emptyId, type, dataset, extraOptions = {}) {
+        function makeTrendChart(id, emptyId, dataset) {
             const canvas = document.getElementById(id);
 
             if (!canvas) {
@@ -224,36 +229,25 @@
                 return;
             }
 
-            const isLine = type === 'line';
-
             new Chart(canvas, {
-                type,
+                type: 'line',
                 data: {
                     labels: dataset.map((d) => d.label ?? 'Unknown'),
                     datasets: [{
                         data: dataset.map((d) => d.total),
-                        backgroundColor: isLine ? 'rgba(184, 149, 106, 0.12)' : chartPalette,
-                        borderColor: isLine ? chartPrimary : chartPalette,
-                        borderWidth: isLine ? 2 : 1,
-                        fill: isLine,
+                        backgroundColor: 'rgba(184, 149, 106, 0.12)',
+                        borderColor: chartPrimary,
+                        borderWidth: 2,
+                        fill: true,
                         tension: 0.3,
                         pointBackgroundColor: chartPrimary,
-                        pointRadius: isLine ? 3 : 0,
+                        pointRadius: 3,
                     }],
                 },
                 options: {
                     maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: type === 'doughnut',
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 11 },
-                            },
-                        },
-                    },
-                    scales: type === 'bar' || isLine ? {
+                    plugins: { legend: { display: false } },
+                    scales: {
                         x: {
                             grid: { display: false },
                             ticks: { font: { size: 11 }, color: '#6b7280' },
@@ -263,16 +257,12 @@
                             ticks: { precision: 0, font: { size: 11 }, color: '#6b7280' },
                             grid: { color: '#f3f4f6' },
                         },
-                    } : {},
-                    ...extraOptions,
+                    },
                 },
             });
         }
 
-        makeChart('trendChart', 'trendChartEmpty', 'line', @json(data_get($pilgrimStats, 'monthly_trend', [])));
-        makeChart('genderChart', 'genderChartEmpty', 'doughnut', @json(data_get($pilgrimStats, 'by_gender', [])));
-        makeChart('packageChart', 'packageChartEmpty', 'bar', @json(data_get($pilgrimStats, 'by_package', [])));
-        makeChart('airlineChart', 'airlineChartEmpty', 'bar', @json(data_get($flightStats, 'by_airline', [])));
+        makeTrendChart('trendChart', 'trendChartEmpty', @json(data_get($pilgrimStats, 'monthly_trend', [])));
     })();
 </script>
 @endpush

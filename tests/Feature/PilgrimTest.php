@@ -103,6 +103,21 @@ test('admin can register a pilgrim as single with S', function () {
         ->and($pilgrim->age)->toBe($this->hajjYear - 1975);
 });
 
+test('admin can save optional comments on pilgrim registration', function () {
+    $pilgrim = registerPilgrim([
+        'comments' => 'Needs wheelchair assistance at airport.',
+    ]);
+
+    expect($pilgrim->comments)->toBe('Needs wheelchair assistance at airport.');
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => $pilgrim->passport_no,
+        'comments' => '',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->comments)->toBeNull();
+});
+
 test('admin can update a pilgrim', function () {
     registerPilgrim();
 

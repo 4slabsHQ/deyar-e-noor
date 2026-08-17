@@ -42,6 +42,7 @@ class StorePilgrimRequest extends FormRequest
         'waris_relation_id',
         'waris_mobile',
         'existing_family_number',
+        'comments',
     ];
 
     public function authorize(): bool
@@ -241,6 +242,7 @@ class StorePilgrimRequest extends FormRequest
             'family_member_suffix' => ['nullable', 'string', 'max:2', 'regex:/^[A-Z]$/i'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,jpg', 'max:2048'],
             'remove_photo' => ['nullable', 'boolean'],
+            'comments' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

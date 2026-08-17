@@ -52,6 +52,7 @@ class Pilgrim extends Model
         'family_member_suffix',
         'age',
         'photo_path',
+        'comments',
         'created_by',
         'updated_by',
     ];

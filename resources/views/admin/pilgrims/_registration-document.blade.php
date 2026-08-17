@@ -208,6 +208,15 @@
                 </div>
             </div>
         </section>
+
+        @if (filled($pilgrim->comments))
+            <section class="pilgrim-doc-section">
+                <h2 class="pilgrim-doc-section-title">Comments</h2>
+                <div class="pilgrim-doc-field full-width">
+                    <span class="field-value">{{ $pilgrim->comments }}</span>
+                </div>
+            </section>
+        @endif
     </div>
 
     <footer class="pilgrim-doc-footer">

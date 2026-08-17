@@ -344,6 +344,19 @@
             </div>
         </div>
     </section>
+
+    <section class="pilgrim-form-section">
+        <h5 class="pilgrim-form-section-title">Comments</h5>
+        <div class="row compact g-2">
+            <div class="col-12">
+                <label class="form-label" for="comments">Comments <span class="text-muted">(optional)</span></label>
+                <textarea name="comments" id="comments" rows="3"
+                          placeholder="Any notes or remarks about this registration"
+                          class="form-control @error('comments') is-invalid @enderror">{{ old('comments', $pilgrim->comments ?? '') }}</textarea>
+                @error('comments') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+        </div>
+    </section>
 </div>
 
 @push('scripts')
