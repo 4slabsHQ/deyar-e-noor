@@ -122,9 +122,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         ->middlewareFor('destroy', 'permission:flights.delete');
 
     Route::resource('users', UserController::class)
+        ->except(['show'])
         ->middlewareFor('index', 'permission:users.view')
         ->middlewareFor(['create', 'store'], 'permission:users.create')
-        ->middlewareFor(['edit', 'update'], 'permission:users.update');
+        ->middlewareFor(['edit', 'update'], 'permission:users.update')
+        ->middlewareFor('destroy', 'permission:users.delete');
 
     Route::resource('roles', RoleController::class)
         ->middlewareFor(['index', 'show'], 'permission:roles.view')

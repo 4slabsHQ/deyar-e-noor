@@ -29,6 +29,10 @@
                         <td>
                             <x-admin.table-actions
                                 :edit-route="route('admin.users.edit', $user)"
+                                :delete-route="$user->id === auth()->id() ? null : route('admin.users.destroy', $user)"
+                                edit-permission="users.update"
+                                delete-permission="users.delete"
+                                :delete-confirm="'Delete '.$user->name.'?'"
                             />
                         </td>
                     </tr>
