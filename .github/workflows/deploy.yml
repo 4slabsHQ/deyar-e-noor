@@ -20,8 +20,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: 22
-          script_stop: true
+          port: ${{ secrets.DEPLOY_PORT }}
           script: |
             cd "${{ secrets.DEPLOY_PATH }}"
             bash scripts/deploy.sh
