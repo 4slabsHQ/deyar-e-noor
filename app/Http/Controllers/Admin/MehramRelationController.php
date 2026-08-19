@@ -11,7 +11,7 @@ class MehramRelationController extends Controller
 {
     public function index()
     {
-        $mehramRelations = MehramRelation::query()->orderBy('name')->paginate(15);
+        $mehramRelations = MehramRelation::query()->orderBy('name')->get();
 
         return view('admin.mehram-relations.index', compact('mehramRelations'));
     }

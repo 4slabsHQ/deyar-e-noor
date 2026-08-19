@@ -11,7 +11,7 @@ class WarisRelationController extends Controller
 {
     public function index()
     {
-        $warisRelations = WarisRelation::query()->orderBy('name')->paginate(15);
+        $warisRelations = WarisRelation::query()->orderBy('name')->get();
 
         return view('admin.waris-relations.index', compact('warisRelations'));
     }

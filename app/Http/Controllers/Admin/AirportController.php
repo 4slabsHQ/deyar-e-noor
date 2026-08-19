@@ -14,7 +14,7 @@ class AirportController extends Controller
     {
         $airports = Airport::with('city')
             ->orderBy('name')
-            ->paginate(15);
+            ->get();
 
         return view('admin.airports.index', compact('airports'));
     }

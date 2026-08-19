@@ -13,7 +13,7 @@ class AirlineController extends Controller
 {
     public function index()
     {
-        $airlines = Airline::with('country')->orderBy('name')->paginate(15);
+        $airlines = Airline::with('country')->orderBy('name')->get();
 
         return view('admin.airlines.index', compact('airlines'));
     }

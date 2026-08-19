@@ -219,6 +219,28 @@ test('pilgrim index page loads', function () {
         ->assertSee('Hajj Registration');
 });
 
+test('pilgrim index lists all registrations for datatables', function () {
+    $pilgrims = Pilgrim::factory()->count(20)->create([
+        'form_owner_id' => $this->formOwner->id,
+        'company_id' => $this->company->id,
+        'maktab_category_id' => $this->maktabCategory->id,
+        'package_id' => $this->package->id,
+        'care_off_id' => $this->careOff->id,
+        'pod_city_id' => $this->city->id,
+        'room_type_id' => $this->roomType->id,
+        'mehram_relation_id' => $this->mehramRelation->id,
+        'waris_relation_id' => $this->warisRelation->id,
+        'hajj_year' => $this->hajjYear,
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('admin.pilgrims.index'))
+        ->assertOk();
+
+    foreach ($pilgrims as $pilgrim) {
+        $response->assertSee($pilgrim->passport_no, false);
+    }
+});
+
 test('pilgrim family code preview returns single code', function () {
     $this->actingAs($this->user)->get(route('admin.pilgrims.preview-family-code', [
         'company_id' => $this->company->id,

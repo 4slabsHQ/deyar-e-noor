@@ -16,7 +16,7 @@ class CityController extends Controller
         $cities = City::query()
             ->with('country')
             ->orderBy('name')
-            ->paginate(15);
+            ->get();
 
         return view('admin.cities.index', compact('cities'));
     }

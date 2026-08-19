@@ -25,7 +25,7 @@ class FlightController extends Controller
             ])
             ->withCount('pilgrims')
             ->latest()
-            ->paginate(15);
+            ->get();
 
         return view('admin.flights.index', compact('flights'));
     }

@@ -11,7 +11,7 @@ class MaktabCategoryController extends Controller
 {
     public function index()
     {
-        $maktabCategories = MaktabCategory::query()->orderBy('name')->orderBy('zone')->paginate(15);
+        $maktabCategories = MaktabCategory::query()->orderBy('name')->orderBy('zone')->get();
 
         return view('admin.maktab-categories.index', compact('maktabCategories'));
     }

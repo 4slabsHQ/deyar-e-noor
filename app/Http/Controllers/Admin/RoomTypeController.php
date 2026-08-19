@@ -11,7 +11,7 @@ class RoomTypeController extends Controller
 {
     public function index()
     {
-        $roomTypes = RoomType::query()->orderBy('name')->paginate(15);
+        $roomTypes = RoomType::query()->orderBy('name')->get();
 
         return view('admin.room-types.index', compact('roomTypes'));
     }

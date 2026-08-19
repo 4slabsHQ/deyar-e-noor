@@ -11,7 +11,7 @@ class FormOwnerController extends Controller
 {
     public function index()
     {
-        $formOwners = FormOwner::query()->orderBy('name')->paginate(15);
+        $formOwners = FormOwner::query()->orderBy('name')->get();
 
         return view('admin.form-owners.index', compact('formOwners'));
     }

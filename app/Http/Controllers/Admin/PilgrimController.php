@@ -29,7 +29,7 @@ class PilgrimController extends Controller
         $pilgrims = Pilgrim::query()
             ->with(['company', 'package', 'podCity'])
             ->latest()
-            ->paginate(15);
+            ->get();
 
         return view('admin.pilgrims.index', compact('pilgrims'));
     }

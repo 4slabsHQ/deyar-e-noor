@@ -11,7 +11,7 @@ class CareOffController extends Controller
 {
     public function index()
     {
-        $careOffs = CareOff::query()->orderBy('name')->paginate(15);
+        $careOffs = CareOff::query()->orderBy('name')->get();
 
         return view('admin.care-offs.index', compact('careOffs'));
     }
