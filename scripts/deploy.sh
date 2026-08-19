@@ -12,7 +12,14 @@ git fetch origin main
 git pull origin main
 
 echo "==> Installing PHP dependencies..."
-composer install --no-dev --optimize-autoloader --no-interaction
+if command -v composer >/dev/null 2>&1; then
+    composer install --no-dev --optimize-autoloader --no-interaction
+elif [ -f "${HOME}/composer.phar" ]; then
+    php "${HOME}/composer.phar" install --no-dev --optimize-autoloader --no-interaction
+else
+    echo "Composer not found. Install it or place composer.phar at ~/composer.phar"
+    exit 1
+fi
 
 echo "==> Running database migrations..."
 php artisan migrate --force
