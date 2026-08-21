@@ -36,10 +36,16 @@
 
         tomSelect.refreshOptions(false);
 
-        if (selectedValue && visibleOptions.some(function (option) {
+        var matchingOption = visibleOptions.find(function (option) {
             return option.value === selectedValue;
-        })) {
+        });
+
+        if (matchingOption) {
             tomSelect.setValue(selectedValue, true);
+        } else if (visibleOptions.some(function (option) {
+            return option.value === '';
+        })) {
+            tomSelect.setValue('', true);
         } else {
             tomSelect.clear(true);
         }
@@ -86,32 +92,36 @@
             return;
         }
 
-        root.querySelectorAll('select.js-searchable-select').forEach(function (select) {
-            if (select.tomselect) {
-                return;
-            }
-
-            prepareSearchableSelect(select);
-
-            new TomSelect(select, {
-                plugins: ['dropdown_input'],
-                allowEmptyOption: true,
-                create: false,
-                maxOptions: null,
-                placeholder: select.dataset.placeholder || 'Select',
-                onInitialize: function () {
-                    this.wrapper.classList.remove('form-control', 'js-searchable-select');
-                },
-                onDropdownOpen: function () {
-                    this.setTextboxValue('');
-                },
-                onChange: function () {
-                    syncSelectPlaceholder(select);
-                },
-            });
-
-            syncSelectPlaceholder(select);
+        root.querySelectorAll('select.js-searchable-select:not([data-defer-tom-select])').forEach(function (select) {
+            initSingleSearchableSelect(select);
         });
+    }
+
+    function initSingleSearchableSelect(select) {
+        if (!select || select.tomselect || typeof TomSelect === 'undefined') {
+            return;
+        }
+
+        prepareSearchableSelect(select);
+
+        new TomSelect(select, {
+            plugins: ['dropdown_input'],
+            allowEmptyOption: true,
+            create: false,
+            maxOptions: null,
+            placeholder: select.dataset.placeholder || 'Select',
+            onInitialize: function () {
+                this.wrapper.classList.remove('form-control', 'js-searchable-select');
+            },
+            onDropdownOpen: function () {
+                this.setTextboxValue('');
+            },
+            onChange: function () {
+                syncSelectPlaceholder(select);
+            },
+        });
+
+        syncSelectPlaceholder(select);
     }
 
     function initCountryCityCascade(root) {
@@ -170,8 +180,22 @@
             var emptyState = field.querySelector('.js-image-empty');
             var previewState = field.querySelector('.js-image-preview');
             var image = field.querySelector('.js-image-preview-img');
+            var filePreview = field.querySelector('.js-file-preview');
+            var fileLink = field.querySelector('.js-file-preview-link');
+            var fileName = field.querySelector('.js-file-preview-name');
             var existingUrl = field.dataset.existingUrl || '';
+            var existingFilename = field.dataset.existingFilename || '';
             var objectUrl = null;
+
+            function isImageSource(source, filename) {
+                if (source && typeof source.type === 'string') {
+                    return source.type.indexOf('image/') === 0;
+                }
+
+                var name = filename || (typeof source === 'string' ? source : '');
+
+                return /\.(jpe?g|png|gif|webp|bmp|svg)(\?|$)/i.test(name);
+            }
 
             function revokeObjectUrl() {
                 if (objectUrl) {
@@ -180,16 +204,61 @@
                 }
             }
 
+            function hidePreviewMedia() {
+                image.hidden = true;
+                image.removeAttribute('src');
+                filePreview.hidden = true;
+
+                if (fileLink) {
+                    fileLink.setAttribute('href', '#');
+                }
+
+                if (fileName) {
+                    fileName.textContent = '';
+                }
+            }
+
             function showEmpty() {
                 emptyState.hidden = false;
                 previewState.hidden = true;
-                image.removeAttribute('src');
+                hidePreviewMedia();
             }
 
-            function showPreview(url) {
+            function showImagePreview(url) {
+                image.hidden = false;
+                filePreview.hidden = true;
                 image.src = url;
                 emptyState.hidden = true;
                 previewState.hidden = false;
+            }
+
+            function showFilePreview(url, name) {
+                image.hidden = true;
+                image.removeAttribute('src');
+                filePreview.hidden = false;
+
+                if (fileLink) {
+                    fileLink.href = url;
+                }
+
+                if (fileName) {
+                    fileName.textContent = name;
+                }
+
+                emptyState.hidden = true;
+                previewState.hidden = false;
+            }
+
+            function showPreview(url, file) {
+                var name = file ? file.name : existingFilename || url.split('/').pop() || 'Uploaded file';
+
+                if (file ? isImageSource(file) : isImageSource(url, name)) {
+                    showImagePreview(url);
+
+                    return;
+                }
+
+                showFilePreview(url, name);
             }
 
             function openFilePicker() {
@@ -226,7 +295,7 @@
                 }
                 revokeObjectUrl();
                 objectUrl = URL.createObjectURL(file);
-                showPreview(objectUrl);
+                showPreview(objectUrl, file);
             });
 
             if (existingUrl) {
@@ -360,6 +429,7 @@
         syncTomSelect: syncTomSelect,
         syncSelectPlaceholder: syncSelectPlaceholder,
         setSelectEnabled: setSelectEnabled,
+        initSearchableSelect: initSingleSearchableSelect,
         refreshVisibleOptions: function (select) {
             refreshTomSelectOptions(select, visibleSelectOptions(select), select.value);
             syncSelectPlaceholder(select);

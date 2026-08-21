@@ -2,10 +2,6 @@
 
 @section('page-title', 'Dashboard')
 
-@push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-@endpush
-
 @section('content')
 <div class="deyar-dashboard">
 
@@ -21,16 +17,20 @@
 
                         <div class="deyar-quota-overview__stats">
                             <div class="deyar-quota-stat-card deyar-quota-stat-card--total">
-                                <span class="deyar-quota-stat-card__label">Total</span>
+                                <span class="deyar-quota-stat-card__label">Total Quota</span>
                                 <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['total_quota']) }}</span>
                             </div>
-                            <div class="deyar-quota-stat-card deyar-quota-stat-card--utilised">
-                                <span class="deyar-quota-stat-card__label">Utilised</span>
-                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['utilised']) }}</span>
+                            <div class="deyar-quota-stat-card deyar-quota-stat-card--entered">
+                                <span class="deyar-quota-stat-card__label">Entered</span>
+                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['entered']) }}</span>
                             </div>
                             <div class="deyar-quota-stat-card deyar-quota-stat-card--remaining">
                                 <span class="deyar-quota-stat-card__label">Remaining</span>
                                 <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['remaining']) }}</span>
+                            </div>
+                            <div class="deyar-quota-stat-card deyar-quota-stat-card--refund">
+                                <span class="deyar-quota-stat-card__label">Refund</span>
+                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['refund']) }}</span>
                             </div>
                         </div>
 
@@ -46,9 +46,9 @@
                                      style="width: {{ $quotaStats['utilisation_percentage'] }}%"></div>
                             </div>
 
-                            @if ($quotaStats['unlimited_companies'] > 0)
+                            @if ($quotaStats['unlimited_count'] > 0)
                                 <p class="deyar-dashboard-note deyar-quota-overview__note mb-0">
-                                    {{ $quotaStats['unlimited_companies'] }} {{ str('company')->plural($quotaStats['unlimited_companies']) }} with unlimited quota excluded from totals.
+                                    {{ $quotaStats['unlimited_count'] }} {{ str($quotaStats['unlimited_label'])->plural($quotaStats['unlimited_count']) }} with unlimited quota excluded from totals.
                                 </p>
                             @endif
                         </div>
@@ -74,56 +74,35 @@
         @endif
     </div>
 
-    @if ($pilgrimStats || $quotaStats)
+    @if ($quotaStats || $packageStats || $formOwnerStats)
         <div class="row g-3 mb-3">
-            @if ($pilgrimStats)
-                <div class="{{ $quotaStats ? 'col-xl-8' : 'col-xl-12' }}">
-                    <div class="card h-100 deyar-panel-card">
-                        <div class="card-header">
-                            <h6 class="deyar-panel-card__title">Registrations (Last 6 Months)</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="deyar-chart-wrap" id="trendChartWrap">
-                                <canvas id="trendChart" height="100"></canvas>
-                                <div class="deyar-empty-state d-none" id="trendChartEmpty">No registration data for the last 6 months.</div>
-                            </div>
-                        </div>
-                    </div>
+            @if ($quotaStats)
+                <div class="col-12 {{ ($packageStats || $formOwnerStats) ? 'col-xl-4' : 'col-xl-12' }}">
+                    @include('partials.dashboard-utilisation-panel', [
+                        'title' => 'Company Quota Utilisation',
+                        'stats' => $quotaStats,
+                        'emptyMessage' => 'No company quotas configured yet.',
+                    ])
                 </div>
             @endif
 
-            @if ($quotaStats)
-                <div class="{{ $pilgrimStats ? 'col-xl-4' : 'col-xl-12' }}">
-                    <div class="card h-100 deyar-panel-card">
-                        <div class="card-header">
-                            <h6 class="deyar-panel-card__title mb-0">Company Quota Utilisation</h6>
-                        </div>
-                        <div class="card-body">
-                            @forelse ($quotaStats['companies'] as $company)
-                                <div class="deyar-quota-item">
-                                    <div class="deyar-quota-item__header">
-                                        <span class="deyar-quota-item__name">
-                                            {{ $company['name'] }}
-                                            @if ($company['code'])
-                                                <span class="text-muted">({{ $company['code'] }})</span>
-                                            @endif
-                                        </span>
-                                        <span class="deyar-quota-item__meta">
-                                            {{ number_format($company['used']) }}/{{ number_format($company['quota']) }}
-                                        </span>
-                                    </div>
-                                    <div class="deyar-quota-progress" role="progressbar"
-                                         aria-valuenow="{{ $company['percentage'] }}" aria-valuemin="0" aria-valuemax="100"
-                                         aria-label="{{ $company['name'] }} quota utilisation">
-                                        <div class="deyar-quota-progress__fill {{ $company['percentage'] >= 100 ? 'deyar-quota-progress__fill--danger' : ($company['percentage'] >= 80 ? 'deyar-quota-progress__fill--warning' : '') }}"
-                                             style="width: {{ $company['percentage'] }}%"></div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="deyar-empty-state border-0">No company quotas configured yet.</div>
-                            @endforelse
-                        </div>
-                    </div>
+            @if ($packageStats)
+                <div class="col-12 {{ ($quotaStats && $formOwnerStats) ? 'col-xl-4' : (($quotaStats || $formOwnerStats) ? 'col-xl-6' : 'col-xl-12') }}">
+                    @include('partials.dashboard-utilisation-panel', [
+                        'title' => 'Package Limit Utilisation',
+                        'stats' => $packageStats,
+                        'emptyMessage' => 'No package limits configured yet.',
+                    ])
+                </div>
+            @endif
+
+            @if ($formOwnerStats)
+                <div class="col-12 {{ ($quotaStats && $packageStats) ? 'col-xl-4' : (($quotaStats || $packageStats) ? 'col-xl-6' : 'col-xl-12') }}">
+                    @include('partials.dashboard-utilisation-panel', [
+                        'title' => 'Form Owner Limit Utilisation',
+                        'stats' => $formOwnerStats,
+                        'emptyMessage' => 'No form owner limits configured yet.',
+                    ])
                 </div>
             @endif
         </div>
@@ -195,74 +174,3 @@
 
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    (function () {
-        const root = document.documentElement;
-        const cssVar = (name) => getComputedStyle(root).getPropertyValue(name).trim();
-        const chartPrimary = cssVar('--deyar-chart-1') || '#B8956A';
-
-        function showEmptyState(canvasId, emptyId) {
-            const canvas = document.getElementById(canvasId);
-            const empty = document.getElementById(emptyId);
-
-            if (canvas) {
-                canvas.classList.add('d-none');
-            }
-
-            if (empty) {
-                empty.classList.remove('d-none');
-            }
-        }
-
-        function makeTrendChart(id, emptyId, dataset) {
-            const canvas = document.getElementById(id);
-
-            if (!canvas) {
-                return;
-            }
-
-            if (!dataset.length || dataset.every((row) => !row.total)) {
-                showEmptyState(id, emptyId);
-
-                return;
-            }
-
-            new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: dataset.map((d) => d.label ?? 'Unknown'),
-                    datasets: [{
-                        data: dataset.map((d) => d.total),
-                        backgroundColor: 'rgba(184, 149, 106, 0.12)',
-                        borderColor: chartPrimary,
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: chartPrimary,
-                        pointRadius: 3,
-                    }],
-                },
-                options: {
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { size: 11 }, color: '#6b7280' },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0, font: { size: 11 }, color: '#6b7280' },
-                            grid: { color: '#f3f4f6' },
-                        },
-                    },
-                },
-            });
-        }
-
-        makeTrendChart('trendChart', 'trendChartEmpty', @json(data_get($pilgrimStats, 'monthly_trend', [])));
-    })();
-</script>
-@endpush

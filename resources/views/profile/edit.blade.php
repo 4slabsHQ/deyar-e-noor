@@ -1,68 +1,95 @@
 @extends('layouts.app')
 
-@section('page-title', 'Profile')
+@section('title', 'Profile Settings')
+@section('page-title', 'Profile Settings')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-xl-12">
-                <div class="card">
-                    <div class="card-header border-0">
-                        <h4 class="fs-20 font-w700">My Profile</h4>
-                    </div>
-                    <div class="card-body">
+    <div class="mb-3">
+        <x-admin.form-page
+            title="Account"
+            :action="route('admin.profile.update')"
+            method="PATCH"
+            :cancel-url="route('dashboard')"
+            submit-label="Save"
+            enctype="multipart/form-data"
+        >
+            @if (session('status') === 'profile-updated')
+                <div class="alert alert-success py-2 mb-3">Profile updated successfully.</div>
+            @endif
 
-                        {{-- Status Message --}}
-                        @if (session('status') === 'profile-updated')
-                            <div class="alert alert-success">
-                                Profile updated successfully.
-                            </div>
-                        @endif
+            @include('profile._form', ['user' => $user])
+        </x-admin.form-page>
+    </div>
 
-                        <form method="POST" action="{{ route('profile.update') }}">
-                            @csrf
-                            @method('PATCH')
+    <div class="card admin-form-page">
+        <div class="card-header">
+            <h4 class="card-title">Password</h4>
+        </div>
+        <div class="card-body">
+            @if (session('status') === 'password-updated')
+                <div class="alert alert-success py-2 mb-3">Password updated successfully.</div>
+            @endif
 
-                            {{-- Name --}}
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input 
-                                    type="text" 
-                                    id="name"
-                                    name="name" 
-                                    class="form-control @error('name') is-invalid @enderror" 
-                                    value="{{ old('name', $user->name) }}" 
-                                    required
-                                />
-                                @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            {{-- Email --}}
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input 
-                                    type="email" 
-                                    id="email"
-                                    name="email" 
-                                    class="form-control @error('email') is-invalid @enderror" 
-                                    value="{{ old('email', $user->email) }}" 
-                                    required
-                                />
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <button type="submit" class="btn btn-primary btn-rounded">
-                                Save Changes
-                            </button>
-                        </form>
-
-                    </div>
+            @if ($errors->updatePassword->any())
+                <div class="alert alert-danger py-2 mb-3">
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->updatePassword->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-            </div>
+            @endif
+
+            <form method="POST" action="{{ route('user-password.update') }}" class="admin-form">
+                @csrf
+                @method('PUT')
+
+                <x-admin.form-grid>
+                    <x-admin.form-field label="Current Password" for="current_password" class="col-lg-4 col-md-6" :required="true">
+                        <input
+                            type="password"
+                            id="current_password"
+                            name="current_password"
+                            class="form-control @error('current_password', 'updatePassword') is-invalid @enderror"
+                            autocomplete="current-password"
+                            required
+                        />
+                        @error('current_password', 'updatePassword')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </x-admin.form-field>
+
+                    <x-admin.form-field label="New Password" for="password" class="col-lg-4 col-md-6" :required="true">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-control @error('password', 'updatePassword') is-invalid @enderror"
+                            autocomplete="new-password"
+                            required
+                        />
+                        @error('password', 'updatePassword')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </x-admin.form-field>
+
+                    <x-admin.form-field label="Confirm Password" for="password_confirmation" class="col-lg-4 col-md-6" :required="true">
+                        <input
+                            type="password"
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            class="form-control @error('password_confirmation', 'updatePassword') is-invalid @enderror"
+                            autocomplete="new-password"
+                            required
+                        />
+                        @error('password_confirmation', 'updatePassword')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </x-admin.form-field>
+                </x-admin.form-grid>
+
+                <x-admin.form-actions submit="Update Password" :cancel-url="route('dashboard')" />
+            </form>
         </div>
     </div>
 @endsection

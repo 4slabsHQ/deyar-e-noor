@@ -179,6 +179,127 @@ class PilgrimService
         }
     }
 
+    public function rebalanceFamilyAfterRemovingMember(
+        Company $company,
+        int $hajjYear,
+        int $familyNumber,
+        int $excludingPilgrimId,
+    ): void {
+        $members = $this->familyMembers($company->id, $hajjYear, $familyNumber)
+            ->where('id', '!=', $excludingPilgrimId)
+            ->values();
+
+        if ($members->isEmpty()) {
+            return;
+        }
+
+        if ($members->count() === 1) {
+            $member = $members->first();
+            $member->update([
+                'family_member_suffix' => 'S',
+                'family_code' => $this->formatFamilyCode($company, $familyNumber, 'S'),
+                'updated_by' => auth()->id(),
+            ]);
+
+            return;
+        }
+
+        foreach ($members->values() as $index => $member) {
+            $suffix = $this->suffixForMemberIndex($index);
+
+            if ($suffix === null) {
+                throw new RuntimeException('Unable to rebalance family suffixes.');
+            }
+
+            $member->update([
+                'family_member_suffix' => $suffix,
+                'family_code' => $this->formatFamilyCode($company, $familyNumber, $suffix),
+                'updated_by' => auth()->id(),
+            ]);
+        }
+    }
+
+    /**
+     * @return array{family_code: string|null, family_number: int|null, family_member_suffix: string|null}
+     */
+    public function transferPilgrimCompany(
+        Pilgrim $pilgrim,
+        Company $newCompany,
+        int $hajjYear,
+        ?int $existingFamilyNumber = null,
+    ): array {
+        $oldCompanyId = $pilgrim->company_id !== null ? (int) $pilgrim->company_id : null;
+        $oldHajjYear = $pilgrim->hajj_year !== null ? (int) $pilgrim->hajj_year : null;
+        $oldFamilyNumber = $pilgrim->family_number !== null ? (int) $pilgrim->family_number : null;
+        $oldCompany = $oldCompanyId !== null ? Company::query()->find($oldCompanyId) : null;
+
+        $releaseFromOldFamily = function () use ($pilgrim, $oldCompany, $oldCompanyId, $oldHajjYear, $oldFamilyNumber): void {
+            if ($oldCompany === null || $oldCompanyId === null || $oldHajjYear === null || $oldFamilyNumber === null) {
+                return;
+            }
+
+            $this->withFamilyLock($oldCompanyId, $oldHajjYear, $oldFamilyNumber, function () use ($pilgrim, $oldCompany, $oldHajjYear, $oldFamilyNumber): void {
+                $this->rebalanceFamilyAfterRemovingMember($oldCompany, $oldHajjYear, $oldFamilyNumber, $pilgrim->id);
+            });
+        };
+
+        if (! $newCompany->code) {
+            $releaseFromOldFamily();
+
+            return [
+                'family_code' => null,
+                'family_number' => null,
+                'family_member_suffix' => null,
+            ];
+        }
+
+        $assignNewFamily = function () use ($newCompany, $hajjYear, $existingFamilyNumber): array {
+            if ($existingFamilyNumber !== null) {
+                $familyData = $this->prepareAddToFamily($newCompany, $hajjYear, $existingFamilyNumber);
+
+                if ($familyData['promote_single'] ?? false) {
+                    $existingPilgrim = Pilgrim::query()->findOrFail($familyData['existing_pilgrim_id']);
+                    $this->promoteSingleToA($existingPilgrim, $newCompany);
+                }
+
+                unset($familyData['promote_single'], $familyData['existing_pilgrim_id']);
+
+                return $familyData;
+            }
+
+            return $this->prepareNewSingleFamily($newCompany, $hajjYear);
+        };
+
+        if ($oldCompany !== null && $oldCompanyId !== null && $oldHajjYear !== null && $oldFamilyNumber !== null) {
+            return $this->withFamilyLock($oldCompanyId, $oldHajjYear, $oldFamilyNumber, function () use (
+                $pilgrim,
+                $newCompany,
+                $hajjYear,
+                $existingFamilyNumber,
+                $oldCompany,
+                $oldHajjYear,
+                $oldFamilyNumber,
+                $assignNewFamily,
+            ): array {
+                $this->rebalanceFamilyAfterRemovingMember($oldCompany, $oldHajjYear, $oldFamilyNumber, $pilgrim->id);
+
+                return $this->withFamilyLock(
+                    $newCompany->id,
+                    $hajjYear,
+                    $existingFamilyNumber,
+                    fn (): array => $assignNewFamily(),
+                );
+            });
+        }
+
+        return $this->withFamilyLock(
+            $newCompany->id,
+            $hajjYear,
+            $existingFamilyNumber,
+            fn (): array => $assignNewFamily(),
+        );
+    }
+
     public function deletePilgrim(Pilgrim $pilgrim): void
     {
         if ($pilgrim->company_id === null || $pilgrim->hajj_year === null || $pilgrim->family_number === null) {
@@ -228,8 +349,9 @@ class PilgrimService
                 ->values()
                 ->all();
 
-            $memberNames = $members->pluck('full_name')->take(3)->implode(', ');
-            $suffixList = implode(', ', $usedSuffixes);
+            $memberNames = $members
+                ->map(fn (Pilgrim $pilgrim) => strtoupper($pilgrim->family_member_suffix).': '.($pilgrim->full_name ?: 'Unnamed'))
+                ->implode(', ');
 
             return [
                 'family_number' => $familyNumber,
@@ -242,11 +364,10 @@ class PilgrimService
                 ])->all(),
                 'used_suffixes' => $usedSuffixes,
                 'label' => sprintf(
-                    '%s%s — %s (%s)',
+                    '%s%s — %s',
                     $baseCode,
                     $isSingle ? ' [Single]' : '',
                     $memberNames,
-                    $suffixList
                 ),
             ];
         })->values()->all();
@@ -290,8 +411,16 @@ class PilgrimService
         int $hajjYear,
         ?Pilgrim $pilgrim = null,
         ?int $familyNumber = null,
+        ?string $familyMoveTo = null,
     ): array {
-        if ($pilgrim !== null && $familyNumber === null) {
+        if ($familyMoveTo === 'new') {
+            $familyNumber = null;
+            $pilgrim = null;
+        } elseif ($familyMoveTo !== null && $familyMoveTo !== 'keep' && ctype_digit($familyMoveTo)) {
+            $familyNumber = (int) $familyMoveTo;
+        }
+
+        if ($pilgrim !== null && $familyNumber === null && (int) $pilgrim->company_id === (int) $company->id) {
             return [
                 'family_code' => $pilgrim->family_code,
                 'family_number' => $pilgrim->family_number,

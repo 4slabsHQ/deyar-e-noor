@@ -2,12 +2,14 @@
 
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
+use App\Enums\HajjSeasonStatus;
 use App\Enums\PackageDuration;
 use App\Models\CareOff;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
 use App\Models\FormOwner;
+use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
 use App\Models\MehramRelation;
 use App\Models\Package;
@@ -53,9 +55,13 @@ beforeEach(function () {
 
 function validPilgrimPayload(array $overrides = []): array
 {
+    $passportNo = $overrides['passport_no'] ?? 'AB1234567';
+    $passportDigits = preg_replace('/\D/', '', $passportNo) ?: '1234567';
+    $cnicSerial = str_pad((string) ((int) substr($passportDigits, -7) % 10000000), 7, '0', STR_PAD_LEFT);
+
     return array_merge([
         'hajj_year' => (string) test()->hajjYear,
-        'booking_date' => now()->toDateString(),
+        'entry_date' => now()->toDateString(),
         'form_owner_id' => test()->formOwner->id,
         'company_id' => test()->company->id,
         'maktab_category_id' => test()->maktabCategory->id,
@@ -73,7 +79,7 @@ function validPilgrimPayload(array $overrides = []): array
         'passport_expiry' => now()->addYears(2)->toDateString(),
         'address' => 'House 12, Model Town, Lahore',
         'mobile' => '0300-1234567',
-        'cnic' => '35201-1234567-1',
+        'cnic' => '35201-'.$cnicSerial.'-1',
         'blood_group' => BloodGroup::OPositive->value,
         'mehram_name' => 'Fatima Khan',
         'mehram_relation_id' => test()->mehramRelation->id,
@@ -100,7 +106,18 @@ test('admin can register a pilgrim as single with S', function () {
     expect($pilgrim)->not->toBeNull()
         ->and($pilgrim->full_name)->toBe('Ahmed Khan')
         ->and($pilgrim->family_code)->toBe('DYN-01-S')
-        ->and($pilgrim->age)->toBe($this->hajjYear - 1975);
+        ->and($pilgrim->age)->toBe($this->hajjYear - 1975)
+        ->and($pilgrim->created_by)->toBe($this->user->id);
+});
+
+test('pilgrim index shows who entered the registration', function () {
+    $pilgrim = registerPilgrim(['passport_no' => 'AB9999999']);
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.index'))
+        ->assertOk()
+        ->assertSee('Entered By', false)
+        ->assertSee($this->user->name, false)
+        ->assertSee($pilgrim->passport_no, false);
 });
 
 test('admin can save optional comments on pilgrim registration', function () {
@@ -135,7 +152,7 @@ test('admin can update a pilgrim', function () {
 test('admin can register a pilgrim with all fields left empty', function () {
     $this->actingAs($this->user)->post(route('admin.pilgrims.store'), [
         'hajj_year' => '',
-        'booking_date' => '',
+        'entry_date' => '',
     ])->assertRedirect(route('admin.pilgrims.index'));
 
     expect(Pilgrim::count())->toBe(1);
@@ -144,7 +161,7 @@ test('admin can register a pilgrim with all fields left empty', function () {
 test('admin can delete an incomplete pilgrim registration', function () {
     $pilgrim = Pilgrim::query()->create([
         'hajj_year' => null,
-        'booking_date' => null,
+        'entry_date' => null,
         'full_name' => null,
         'family_code' => null,
         'family_number' => null,
@@ -213,6 +230,137 @@ test('admin can remove pilgrim photo on update', function () {
     Storage::disk('public')->assertMissing($path);
 });
 
+test('create registration form shows active hajj year and entry date as read-only', function () {
+    $this->actingAs($this->user)->get(route('admin.pilgrims.create'))
+        ->assertOk()
+        ->assertSee('Entry Date')
+        ->assertSee('Family & Association', false)
+        ->assertSee('Documents', false)
+        ->assertSee((string) $this->hajjYear)
+        ->assertSee(now()->format('d/m/Y'))
+        ->assertSee('Upload passport', false)
+        ->assertSee('Upload visa', false)
+        ->assertSee('Upload ticket', false);
+});
+
+test('registration uses active hajj season year regardless of submitted value', function () {
+    $activeYear = $this->hajjYear + 2;
+
+    HajjSeason::query()
+        ->where('status', HajjSeasonStatus::Active)
+        ->update(['status' => HajjSeasonStatus::Archived]);
+
+    HajjSeason::query()->updateOrCreate(
+        ['year' => $activeYear],
+        ['status' => HajjSeasonStatus::Active, 'activated_at' => now()],
+    );
+
+    $pilgrim = registerPilgrim(['hajj_year' => (string) ($this->hajjYear + 5)]);
+
+    expect($pilgrim->hajj_year)->toBe($activeYear);
+});
+
+test('registration sets entry date to today on create', function () {
+    Carbon::setTestNow('2026-08-21 10:00:00');
+
+    $pilgrim = registerPilgrim(['entry_date' => '2020-01-01']);
+
+    expect($pilgrim->entry_date->toDateString())->toBe('2026-08-21');
+
+    Carbon::setTestNow();
+});
+
+test('admin can upload passport visa and ticket on create', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), array_merge(validPilgrimPayload(), [
+        'passport' => UploadedFile::fake()->image('passport.jpg'),
+        'visa' => UploadedFile::fake()->create('visa.pdf', 100, 'application/pdf'),
+        'ticket' => UploadedFile::fake()->image('ticket.jpg'),
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    expect($pilgrim->passport_path)->not->toBeNull()
+        ->and($pilgrim->visa_path)->not->toBeNull()
+        ->and($pilgrim->ticket_path)->not->toBeNull()
+        ->and($pilgrim->passport_url)->not->toBeNull()
+        ->and($pilgrim->visa_url)->not->toBeNull()
+        ->and($pilgrim->ticket_url)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($pilgrim->passport_path);
+    Storage::disk('public')->assertExists($pilgrim->visa_path);
+    Storage::disk('public')->assertExists($pilgrim->ticket_path);
+});
+
+test('qurbani defaults from package and can be overridden per pilgrim', function () {
+    expect($this->package->qurbani_included)->toBeTrue();
+
+    $pilgrim = registerPilgrim(['qurbani_included' => '1']);
+
+    expect($pilgrim->qurbani_included)->toBeTrue();
+
+    $pilgrimWithoutQurbani = registerPilgrim([
+        'passport_no' => 'PQ7654321',
+        'cnic' => '35201-5555555-5',
+        'qurbani_included' => '0',
+    ]);
+
+    expect($pilgrimWithoutQurbani->qurbani_included)->toBeFalse()
+        ->and($this->package->fresh()->qurbani_included)->toBeTrue();
+
+    $packageWithoutQurbani = Package::create([
+        'number' => 'PKG-002',
+        'name' => 'Standard',
+        'price' => 750000,
+        'days' => 18,
+        'qurbani_included' => false,
+        'duration' => PackageDuration::Long,
+        'is_active' => true,
+    ]);
+
+    $pilgrimOnNoQurbaniPackage = registerPilgrim([
+        'passport_no' => 'RS1122334',
+        'cnic' => '35201-6666666-6',
+        'package_id' => $packageWithoutQurbani->id,
+        'qurbani_included' => '0',
+    ]);
+
+    expect($pilgrimOnNoQurbaniPackage->qurbani_included)->toBeFalse()
+        ->and($packageWithoutQurbani->fresh()->qurbani_included)->toBeFalse();
+});
+
+test('admin can update pilgrim qurbani without changing package settings', function () {
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => $pilgrim->passport_no,
+        'qurbani_included' => '0',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->qurbani_included)->toBeFalse()
+        ->and($this->package->fresh()->qurbani_included)->toBeTrue();
+});
+
+test('admin can remove pilgrim passport on update', function () {
+    Storage::fake('public');
+
+    $pilgrim = registerPilgrim();
+    $path = 'pilgrims/test-passport.jpg';
+    Storage::disk('public')->put($path, 'fake-image');
+    $pilgrim->update(['passport_path' => $path]);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => $pilgrim->passport_no,
+        'remove_passport' => '1',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->passport_path)->toBeNull();
+    Storage::disk('public')->assertMissing($path);
+});
+
 test('pilgrim index page loads', function () {
     $this->actingAs($this->user)->get(route('admin.pilgrims.index'))
         ->assertOk()
@@ -273,19 +421,38 @@ test('adding member to single promotes existing to A and assigns B', function ()
 });
 
 test('admin can list existing families for a company and hajj year', function () {
-    registerPilgrim(['passport_no' => 'AB1111111']);
+    registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Member One']);
     registerPilgrim([
         'passport_no' => 'AB2222222',
         'existing_family_number' => 1,
+        'given_name' => 'Member Two',
+    ]);
+    registerPilgrim([
+        'passport_no' => 'AB3333333',
+        'existing_family_number' => 1,
+        'given_name' => 'Member Three',
+    ]);
+    registerPilgrim([
+        'passport_no' => 'AB4444444',
+        'existing_family_number' => 1,
+        'given_name' => 'Member Four',
     ]);
 
-    $this->actingAs($this->user)->get(route('admin.pilgrims.families', [
+    $response = $this->actingAs($this->user)->get(route('admin.pilgrims.families', [
         'company_id' => $this->company->id,
         'hajj_year' => $this->hajjYear,
     ]))->assertOk()
         ->assertJsonPath('families.0.family_number', 1)
         ->assertJsonPath('families.0.is_single', false)
-        ->assertJsonPath('families.0.used_suffixes', ['A', 'B']);
+        ->assertJsonPath('families.0.used_suffixes', ['A', 'B', 'C', 'D']);
+
+    $label = $response->json('families.0.label');
+
+    expect($label)
+        ->toContain('A: Member One Khan')
+        ->toContain('B: Member Two Khan')
+        ->toContain('C: Member Three Khan')
+        ->toContain('D: Member Four Khan');
 });
 
 test('admin can add a third member to an existing family', function () {
@@ -350,18 +517,89 @@ test('deleting the only member frees the family number for reuse', function () {
 });
 
 test('family numbers reset per hajj year', function () {
-    registerPilgrim(['passport_no' => 'AB1111111', 'hajj_year' => (string) $this->hajjYear]);
-    registerPilgrim(['passport_no' => 'AB2222222', 'hajj_year' => (string) ($this->hajjYear + 1)]);
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $otherYearPilgrim = Pilgrim::factory()->create([
+        'passport_no' => 'AB2222222',
+        'hajj_year' => $this->hajjYear + 1,
+        'company_id' => $this->company->id,
+        'form_owner_id' => $this->formOwner->id,
+        'maktab_category_id' => $this->maktabCategory->id,
+        'package_id' => $this->package->id,
+        'care_off_id' => $this->careOff->id,
+        'pod_city_id' => $this->city->id,
+        'room_type_id' => $this->roomType->id,
+        'mehram_relation_id' => $this->mehramRelation->id,
+        'waris_relation_id' => $this->warisRelation->id,
+        'family_code' => 'DYN-01-S',
+        'family_number' => 1,
+        'family_member_suffix' => 'S',
+    ]);
 
     expect(Pilgrim::query()->where('passport_no', 'AB1111111')->first()->family_code)->toBe('DYN-01-S')
-        ->and(Pilgrim::query()->where('passport_no', 'AB2222222')->first()->family_code)->toBe('DYN-01-S');
+        ->and($otherYearPilgrim->family_code)->toBe('DYN-01-S');
 });
 
-test('same passport can register in a different hajj year', function () {
-    registerPilgrim(['passport_no' => 'AB1111111', 'hajj_year' => (string) $this->hajjYear]);
-    registerPilgrim(['passport_no' => 'AB1111111', 'hajj_year' => (string) ($this->hajjYear + 1), 'cnic' => '35201-9999999-9']);
+test('same passport can exist in a different hajj year', function () {
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    Pilgrim::factory()->create([
+        'passport_no' => 'AB1111111',
+        'hajj_year' => $this->hajjYear + 1,
+        'company_id' => $this->company->id,
+        'form_owner_id' => $this->formOwner->id,
+        'maktab_category_id' => $this->maktabCategory->id,
+        'package_id' => $this->package->id,
+        'care_off_id' => $this->careOff->id,
+        'pod_city_id' => $this->city->id,
+        'room_type_id' => $this->roomType->id,
+        'mehram_relation_id' => $this->mehramRelation->id,
+        'waris_relation_id' => $this->warisRelation->id,
+        'cnic' => '35201-9999999-9',
+    ]);
 
     expect(Pilgrim::query()->where('passport_no', 'AB1111111')->count())->toBe(2);
+});
+
+test('duplicate passport is blocked within the same hajj year', function () {
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'cnic' => '35201-8888888-8',
+    ]))
+        ->assertSessionHasErrors('passport_no');
+});
+
+test('duplicate cnic is blocked within the same hajj year', function () {
+    registerPilgrim(['passport_no' => 'AB1111111', 'cnic' => '35201-1234567-1']);
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
+        'passport_no' => 'AB2222222',
+        'cnic' => '35201-1234567-1',
+    ]))
+        ->assertSessionHasErrors('cnic');
+});
+
+test('same cnic can exist in a different hajj year', function () {
+    registerPilgrim(['passport_no' => 'AB1111111', 'cnic' => '35201-1234567-1']);
+
+    Pilgrim::factory()->create([
+        'passport_no' => 'AB9999999',
+        'cnic' => '35201-1234567-1',
+        'hajj_year' => $this->hajjYear + 1,
+        'company_id' => $this->company->id,
+        'form_owner_id' => $this->formOwner->id,
+        'maktab_category_id' => $this->maktabCategory->id,
+        'package_id' => $this->package->id,
+        'care_off_id' => $this->careOff->id,
+        'pod_city_id' => $this->city->id,
+        'room_type_id' => $this->roomType->id,
+        'mehram_relation_id' => $this->mehramRelation->id,
+        'waris_relation_id' => $this->warisRelation->id,
+    ]);
+
+    expect(Pilgrim::query()->where('cnic', '35201-1234567-1')->count())->toBe(2);
 });
 
 test('admin can view pilgrim registration document', function () {
@@ -438,7 +676,58 @@ test('pilgrim registration is blocked when company quota is reached', function (
             'passport_no' => 'AB2222222',
         ]))
         ->assertRedirect(route('admin.pilgrims.create'))
-        ->assertSessionHasErrors('company_id');
+        ->assertSessionHasErrors('company_id')
+        ->assertSessionHasErrors(['company_id' => 'Company quota reached for Deyar-e-Noor (Hajj '.$this->hajjYear.': 1/1).']);
+
+    expect(Pilgrim::query()->count())->toBe(1);
+});
+
+test('pilgrim registration shows validation alert when quota or limit is reached', function () {
+    $this->company->update(['quota' => 1]);
+    $this->package->update(['limit' => 1]);
+
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->from(route('admin.pilgrims.create'))
+        ->post(route('admin.pilgrims.store'), validPilgrimPayload([
+            'passport_no' => 'AB2222222',
+        ]))
+        ->assertRedirect(route('admin.pilgrims.create'));
+
+    $response = $this->actingAs($this->user)->get(route('admin.pilgrims.create'));
+
+    $response->assertOk()
+        ->assertSee('Could not save')
+        ->assertSee('Company quota reached for Deyar-e-Noor')
+        ->assertSee('Package limit reached for Economy');
+});
+
+test('pilgrim registration is blocked when package limit is reached', function () {
+    $this->package->update(['limit' => 1]);
+
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->from(route('admin.pilgrims.create'))
+        ->post(route('admin.pilgrims.store'), validPilgrimPayload([
+            'passport_no' => 'AB2222222',
+        ]))
+        ->assertRedirect(route('admin.pilgrims.create'))
+        ->assertSessionHasErrors('package_id');
+
+    expect(Pilgrim::query()->count())->toBe(1);
+});
+
+test('pilgrim registration is blocked when form owner limit is reached', function () {
+    $this->formOwner->update(['limit' => 1]);
+
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->from(route('admin.pilgrims.create'))
+        ->post(route('admin.pilgrims.store'), validPilgrimPayload([
+            'passport_no' => 'AB2222222',
+        ]))
+        ->assertRedirect(route('admin.pilgrims.create'))
+        ->assertSessionHasErrors('form_owner_id');
 
     expect(Pilgrim::query()->count())->toBe(1);
 });
@@ -463,4 +752,131 @@ test('pilgrim update keeps registration when company quota is already full', fun
     ]))->assertRedirect(route('admin.pilgrims.index'));
 
     expect($pilgrim->fresh()->given_name)->toBe('Ali');
+});
+
+test('pilgrim update keeps registration when package limit is already full', function () {
+    $this->package->update(['limit' => 1]);
+
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Ahmed']);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'given_name' => 'Ali',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->given_name)->toBe('Ali');
+});
+
+test('admin can transfer a pilgrim to another company as a new single family', function () {
+    $otherCompany = Company::factory()->create(['code' => 'ABC', 'name' => 'Other Company', 'is_active' => true]);
+
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Ahmed']);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'company_id' => $otherCompany->id,
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    $pilgrim->refresh();
+
+    expect($pilgrim->company_id)->toBe($otherCompany->id)
+        ->and($pilgrim->family_code)->toBe('ABC-01-S')
+        ->and($pilgrim->family_member_suffix)->toBe('S');
+});
+
+test('transferring a pilgrim rebalances the previous company family', function () {
+    registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Member A']);
+    registerPilgrim(['passport_no' => 'AB2222222', 'given_name' => 'Member B', 'existing_family_number' => 1]);
+
+    $transfer = Pilgrim::query()->where('passport_no', 'AB2222222')->firstOrFail();
+    $survivor = Pilgrim::query()->where('passport_no', 'AB1111111')->firstOrFail();
+    $otherCompany = Company::factory()->create(['code' => 'ABC', 'name' => 'Other Company', 'is_active' => true]);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $transfer), validPilgrimPayload([
+        'passport_no' => 'AB2222222',
+        'company_id' => $otherCompany->id,
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($survivor->fresh()->family_code)->toBe('DYN-01-S')
+        ->and($transfer->fresh()->family_code)->toBe('ABC-01-S');
+});
+
+test('admin can transfer a pilgrim into an existing family in another company', function () {
+    $otherCompany = Company::factory()->create(['code' => 'ABC', 'name' => 'Other Company', 'is_active' => true]);
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
+        'passport_no' => 'AB9999999',
+        'company_id' => $otherCompany->id,
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Transfer Me']);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'company_id' => $otherCompany->id,
+        'existing_family_number' => 1,
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->family_code)->toBe('ABC-01-B')
+        ->and(Pilgrim::query()->where('passport_no', 'AB9999999')->first()->family_code)->toBe('ABC-01-A');
+});
+
+test('family code preview returns a new code when company is changed on edit', function () {
+    $otherCompany = Company::factory()->create(['code' => 'ABC', 'name' => 'Other Company', 'is_active' => true]);
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.preview-family-code', [
+        'company_id' => $otherCompany->id,
+        'hajj_year' => $this->hajjYear,
+        'pilgrim_id' => $pilgrim->id,
+    ]))
+        ->assertOk()
+        ->assertJson([
+            'family_code' => 'ABC-01-S',
+            'suffix' => 'S',
+            'promote_single' => false,
+        ]);
+});
+
+test('admin can move a pilgrim to another family within the same company', function () {
+    registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Member A']);
+    registerPilgrim(['passport_no' => 'AB2222222', 'given_name' => 'Member B', 'existing_family_number' => 1]);
+    registerPilgrim(['passport_no' => 'AB3333333', 'given_name' => 'Member C']);
+
+    $memberB = Pilgrim::query()->where('passport_no', 'AB2222222')->firstOrFail();
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $memberB), validPilgrimPayload([
+        'passport_no' => 'AB2222222',
+        'family_move_to' => '2',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($memberB->fresh()->family_code)->toBe('DYN-02-B')
+        ->and(Pilgrim::query()->where('passport_no', 'AB1111111')->first()->family_code)->toBe('DYN-01-S')
+        ->and(Pilgrim::query()->where('passport_no', 'AB3333333')->first()->family_code)->toBe('DYN-02-A');
+});
+
+test('admin can move a pilgrim to a new single family within the same company', function () {
+    registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Member A']);
+    $memberB = registerPilgrim(['passport_no' => 'AB2222222', 'given_name' => 'Member B', 'existing_family_number' => 1]);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $memberB), validPilgrimPayload([
+        'passport_no' => 'AB2222222',
+        'family_move_to' => 'new',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($memberB->fresh()->family_member_suffix)->toBe('S')
+        ->and(Pilgrim::query()->where('passport_no', 'AB1111111')->first()->family_code)->toBe('DYN-01-S');
+});
+
+test('keeping family assignment preserves the current family on edit', function () {
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => 'AB1111111',
+        'given_name' => 'Updated',
+        'family_move_to' => 'keep',
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->given_name)->toBe('Updated')
+        ->and($pilgrim->fresh()->family_code)->toBe('DYN-01-S');
 });

@@ -20,6 +20,7 @@
                     <th>Days</th>
                     <th>Qurbani</th>
                     <th>Duration</th>
+                    <th>Limit</th>
                     <th>Status</th>
                     <th class="no-sort">Action</th>
                 </tr>
@@ -39,6 +40,7 @@
                             @endif
                         </td>
                         <td>{{ $package->duration->label() }}</td>
+                        <td>{{ $package->limit ?? 'Unlimited' }}</td>
                         <td>
                             <x-admin.status-badge :active="$package->is_active" />
                         </td>

@@ -53,10 +53,16 @@ class PermissionCatalog
                     'pilgrims.view', 'pilgrims.create', 'pilgrims.update', 'pilgrims.delete',
                 ],
             ],
+            'reports' => [
+                'label' => 'Reports',
+                'permissions' => [
+                    'reports.view', 'reports.export',
+                ],
+            ],
             'flights' => [
                 'label' => 'Flights',
                 'permissions' => [
-                    'flights.view', 'flights.create', 'flights.update', 'flights.delete',
+                    'flights.view', 'flights.create', 'flights.update', 'flights.delete', 'flights.assign',
                 ],
             ],
             'system' => [

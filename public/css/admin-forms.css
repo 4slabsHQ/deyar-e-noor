@@ -87,6 +87,15 @@
     padding-bottom: 0.35rem;
 }
 
+.admin-form .form-control[readonly],
+.hajj-form .form-control[readonly],
+.pilgrim-form .form-control[readonly] {
+    background-color: #fff;
+    color: #111827;
+    cursor: default;
+    opacity: 1;
+}
+
 .admin-form .form-control:not(.ts-wrapper):focus,
 .admin-form select.form-control:not(.tomselected):focus,
 .admin-form textarea.form-control:focus {
@@ -141,6 +150,18 @@
 
 .admin-form .invalid-feedback {
     font-size: 0.6875rem;
+}
+
+.admin-validation-alert__title {
+    display: block;
+}
+
+.admin-validation-alert__list {
+    padding-left: 1.15rem;
+}
+
+.admin-validation-alert__list li + li {
+    margin-top: 0.25rem;
 }
 
 /* ── Select chevron (all admin forms) ── */
@@ -283,6 +304,32 @@
     border-color: var(--admin-input-border);
     border-radius: var(--admin-field-radius);
     font-size: var(--admin-field-font-size);
+    background-color: #fff;
+}
+
+.admin-form .ts-dropdown .option,
+.hajj-form .ts-dropdown .option,
+.pilgrim-form .ts-dropdown .option {
+    color: #111827;
+    background-color: #fff;
+}
+
+.admin-form .ts-dropdown .option:hover,
+.hajj-form .ts-dropdown .option:hover,
+.pilgrim-form .ts-dropdown .option:hover,
+.admin-form .ts-dropdown .option.active,
+.hajj-form .ts-dropdown .option.active,
+.pilgrim-form .ts-dropdown .option.active {
+    background-color: rgba(184, 149, 106, 0.14);
+    color: #111827;
+}
+
+.admin-form .ts-dropdown .option.selected,
+.hajj-form .ts-dropdown .option.selected,
+.pilgrim-form .ts-dropdown .option.selected {
+    background-color: rgba(184, 149, 106, 0.22);
+    color: #111827;
+    font-weight: 500;
 }
 
 .admin-form .ts-dropdown .dropdown-input-wrap,
@@ -314,7 +361,8 @@
 .admin-form .ts-dropdown .active,
 .hajj-form .ts-dropdown .active,
 .pilgrim-form .ts-dropdown .active {
-    background-color: #b8956a;
+    background-color: rgba(184, 149, 106, 0.14);
+    color: #111827;
 }
 
 .hajj-form .ts-wrapper.single.has-items .ts-control > .item,
@@ -325,6 +373,12 @@
 /* Index pages */
 .admin-index-page {
     margin-bottom: 0.5rem;
+}
+
+.users-table-avatar {
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .admin-index-header {
@@ -394,12 +448,30 @@
 }
 
 /* Index tables */
+.admin-index-card .card-body {
+    min-width: 0;
+}
+
+.admin-index-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.admin-index-card .dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
 table.dataTable.admin-index-table,
 .admin-index-card table.dataTable {
     width: 100% !important;
+    max-width: 100%;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 table.dataTable.admin-index-table thead th,
@@ -413,6 +485,9 @@ table.dataTable.admin-index-table thead th,
     border-bottom: 1px solid var(--deyar-border);
     padding: 0.625rem 0.75rem;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 table.dataTable.admin-index-table tbody td,
@@ -422,6 +497,9 @@ table.dataTable.admin-index-table tbody td,
     padding: 0.5rem 0.75rem;
     vertical-align: middle;
     border-bottom: 1px solid #f3f4f6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 table.dataTable.admin-index-table tbody tr:hover td,
@@ -429,11 +507,24 @@ table.dataTable.admin-index-table tbody tr:hover td,
     background: #fafafa;
 }
 
-table.dataTable.admin-index-table tbody td:last-child,
-.admin-index-card table.dataTable tbody td:last-child {
+table.dataTable.admin-index-table:not(.flight-assignment-hujaj-table) tbody td:last-child,
+.admin-index-card table.dataTable:not(.flight-assignment-hujaj-table) tbody td:last-child {
     width: 1%;
     white-space: nowrap;
     text-align: right;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+table.dataTable.admin-index-table thead th.assignment-check-col,
+table.dataTable.admin-index-table tbody td.assignment-check-col {
+    width: 2.75rem;
+    max-width: 2.75rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
 }
 
 table.dataTable.admin-index-table .dataTables_empty,
@@ -523,7 +614,254 @@ table.dataTable.admin-index-table .dataTables_empty,
     padding-top: 0.15rem;
 }
 
+.admin-image-upload__file {
+    display: flex;
+    align-items: center;
+    min-height: 72px;
+    padding: 0.65rem;
+    border: 1px solid var(--admin-input-border);
+    border-radius: var(--deyar-radius-control, 0.125rem);
+    background: #f9fafb;
+    flex-shrink: 0;
+}
+
+.admin-image-upload__file-link {
+    color: var(--bs-primary, #0d6efd);
+    font-size: 0.8125rem;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.admin-image-upload__file-link:hover {
+    text-decoration: underline;
+}
+
 .admin-image-upload.is-invalid .admin-image-upload__empty,
-.admin-image-upload.is-invalid .admin-image-upload__image {
+.admin-image-upload.is-invalid .admin-image-upload__image,
+.admin-image-upload.is-invalid .admin-image-upload__file {
     border-color: #dc3545;
+}
+
+/* Flight assignment workspace */
+
+.flight-assignment-page {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.flight-assignment-page .admin-index-card,
+.flight-assignment-page .card-body,
+#flight-assignment-workspace,
+.flight-assignment-workspace {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.flight-assignment-context {
+    word-break: break-word;
+}
+
+.flight-assignment-hujaj-table {
+    min-width: 52rem;
+}
+
+.flight-assignment-flights-table {
+    min-width: 58rem;
+}
+
+.flight-assignment-hujaj-table-wrap,
+.flight-assignment-flights-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.flight-assignment-hujaj-table-wrap .dataTables_wrapper,
+.flight-assignment-flights-table-wrap .dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.flight-assignment-hujaj-table-wrap .dataTables_scroll,
+.flight-assignment-flights-table-wrap .dataTables_scroll {
+    width: 100% !important;
+    max-width: 100%;
+}
+
+.flight-assignment-table-wrap {
+    max-height: 32rem;
+    overflow: auto;
+}
+
+.flight-assignment-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.flight-assignment-panel .assignment-check-col {
+    width: 2.5rem;
+}
+
+.flight-assignment-panel .card-header {
+    background: #f8fafc;
+}
+
+.flight-assignment-page .deyar-empty-state {
+    text-align: center;
+    color: #64748b;
+}
+
+.flight-assignment-hujaj-table thead th.assignment-check-col,
+.flight-assignment-hujaj-table tbody td.assignment-check-col {
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
+    text-align: center !important;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.flight-assignment-hujaj-table thead th.assignment-status-col,
+.flight-assignment-hujaj-table tbody td.assignment-status-col {
+    width: 10.5rem;
+    min-width: 9.5rem;
+    max-width: 12rem;
+    text-align: center !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    vertical-align: middle !important;
+}
+
+.flight-assignment-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.flight-assignment-status .badge {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.flight-assignment-status-note {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    color: #64748b;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    text-align: center;
+}
+
+.flight-assignment-hujaj-table tbody td.assignment-status-col {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+}
+
+.flight-assignment-row-blocked td.assignment-status-col {
+    vertical-align: middle !important;
+}
+
+.flight-assignment-bulk-bar {
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--admin-field-radius, 0.125rem);
+}
+
+.flight-assignment-row.is-selected td {
+    background: var(--rgba-primary-1) !important;
+    border-bottom-color: var(--rgba-primary-2);
+}
+
+.flight-assignment-row.is-selected td:first-child {
+    box-shadow: inset 3px 0 0 var(--deyar-gold);
+}
+
+.flight-assignment-row.is-selected:hover td {
+    background: var(--rgba-primary-2) !important;
+}
+
+.flight-assignment-row-blocked td {
+    background: var(--deyar-warning-bg);
+}
+
+/* Reports */
+
+.reports-page {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.report-columns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.35rem 0.75rem;
+    max-height: 12rem;
+    overflow-y: auto;
+}
+
+.report-column-check {
+    margin-bottom: 0;
+    min-height: 0;
+    padding-left: 1.35rem;
+}
+
+.report-column-check .form-check-input {
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-top: 0.2rem;
+    margin-left: -1.35rem;
+}
+
+.report-column-check .form-check-label {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.report-results-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.report-results-table-wrap .dataTables_wrapper,
+.report-results-table-wrap .dataTables_scroll {
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+}
+
+table.dataTable.report-results-table {
+    table-layout: auto !important;
+    width: max-content !important;
+    min-width: 100%;
+}
+
+table.dataTable.report-results-table thead th,
+table.dataTable.report-results-table tbody td {
+    white-space: nowrap;
+}
+
+.report-results-table {
+    min-width: 100%;
 }

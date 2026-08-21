@@ -9,6 +9,7 @@
         :action="route('admin.users.store')"
         :cancel-url="route('admin.users.index')"
         submit-label="Create User"
+        enctype="multipart/form-data"
     >
         @include('admin.users._form')
     </x-admin.form-page>

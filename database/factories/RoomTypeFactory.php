@@ -10,15 +10,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class RoomTypeFactory extends Factory
 {
+    protected $model = RoomType::class;
+
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->randomElement(['Sharing', 'Double', 'Triple', 'Quad']),
+            'is_active' => true,
         ];
     }
 }

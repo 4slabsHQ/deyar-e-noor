@@ -23,12 +23,17 @@ class StorePackageRequest extends FormRequest
             'days' => ['required', 'integer', 'min:0'],
             'qurbani_included' => ['boolean'],
             'duration' => ['required', Rule::enum(PackageDuration::class)],
+            'limit' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        if ($this->has('limit') && $this->input('limit') === '') {
+            $this->merge(['limit' => null]);
+        }
+
         $this->merge([
             'is_active' => $this->boolean('is_active'),
             'qurbani_included' => $this->boolean('qurbani_included'),

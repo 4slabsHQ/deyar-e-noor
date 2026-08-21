@@ -15,6 +15,7 @@ use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\RoomType;
 use App\Models\WarisRelation;
+use App\Services\HajjSeasonService;
 use App\Services\PilgrimService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -24,10 +25,18 @@ use Illuminate\Validation\Rule;
 
 class PilgrimController extends Controller
 {
+    /** @var array<string, string> */
+    private const DOCUMENT_FIELDS = [
+        'photo' => 'photo_path',
+        'passport' => 'passport_path',
+        'visa' => 'visa_path',
+        'ticket' => 'ticket_path',
+    ];
+
     public function index()
     {
         $pilgrims = Pilgrim::query()
-            ->with(['company', 'package', 'podCity'])
+            ->with(['company', 'package', 'podCity', 'creator'])
             ->latest()
             ->get();
 
@@ -64,6 +73,7 @@ class PilgrimController extends Controller
             'hajj_year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'pilgrim_id' => ['nullable', 'integer', Rule::exists('pilgrims', 'id')],
             'family_number' => ['nullable', 'integer', 'min:1'],
+            'family_move_to' => ['nullable', 'string', 'max:20'],
         ]);
 
         $company = Company::query()->findOrFail($validated['company_id']);
@@ -85,6 +95,7 @@ class PilgrimController extends Controller
                 (int) $validated['hajj_year'],
                 $pilgrim,
                 isset($validated['family_number']) ? (int) $validated['family_number'] : null,
+                $validated['family_move_to'] ?? null,
             )
         );
     }
@@ -117,13 +128,9 @@ class PilgrimController extends Controller
 
         $data = $this->applyDerivedPilgrimFields($data, $pilgrimService, $hajjYear);
 
-        if ($request->hasFile('photo')) {
-            $data['photo_path'] = $request->file('photo')->store('pilgrims', 'public');
-        }
+        $this->applyDocumentUploads($request, $data);
 
         unset(
-            $data['photo'],
-            $data['remove_photo'],
             $data['family_member_suffix'],
             $data['existing_family_number'],
             $data['promote_single'],
@@ -176,43 +183,83 @@ class PilgrimController extends Controller
     public function update(UpdatePilgrimRequest $request, Pilgrim $pilgrim, PilgrimService $pilgrimService)
     {
         $data = $request->validated();
+        $hajjYear = isset($data['hajj_year']) ? (int) $data['hajj_year'] : (int) $pilgrim->hajj_year;
+        $newCompanyId = isset($data['company_id']) ? (int) $data['company_id'] : null;
+        $oldCompanyId = $pilgrim->company_id !== null ? (int) $pilgrim->company_id : null;
+        $companyChanged = $newCompanyId !== null && $newCompanyId !== $oldCompanyId;
+        $existingFamilyNumber = isset($data['existing_family_number'])
+            ? (int) $data['existing_family_number']
+            : null;
+        $familyMoveTo = $data['family_move_to'] ?? 'keep';
 
-        $data['family_code'] = $pilgrim->family_code;
-        $data['family_number'] = $pilgrim->family_number;
-        $data['family_member_suffix'] = $pilgrim->family_member_suffix;
-
-        $data = $this->applyDerivedPilgrimFields(
-            $data,
-            $pilgrimService,
-            isset($data['hajj_year']) ? (int) $data['hajj_year'] : null,
-        );
+        $data = $this->applyDerivedPilgrimFields($data, $pilgrimService, $hajjYear);
         $data['updated_by'] = auth()->id();
 
-        if ($request->boolean('remove_photo')) {
-            if ($pilgrim->photo_path) {
-                Storage::disk('public')->delete($pilgrim->photo_path);
-            }
-            $data['photo_path'] = null;
-        }
+        $this->applyDocumentUploads($request, $data, $pilgrim);
 
-        if ($request->hasFile('photo')) {
-            if ($pilgrim->photo_path) {
-                Storage::disk('public')->delete($pilgrim->photo_path);
-            }
-            $data['photo_path'] = $request->file('photo')->store('pilgrims', 'public');
-        }
+        unset(
+            $data['family_member_suffix'],
+            $data['existing_family_number'],
+            $data['family_move_to'],
+            $data['promote_single'],
+            $data['existing_pilgrim_id'],
+        );
 
-        unset($data['photo'], $data['remove_photo'], $data['family_member_suffix']);
+        if ($companyChanged && $newCompanyId !== null) {
+            $newCompany = Company::query()->findOrFail($newCompanyId);
+            $familyData = $pilgrimService->transferPilgrimCompany(
+                $pilgrim,
+                $newCompany,
+                $hajjYear,
+                $existingFamilyNumber,
+            );
+
+            $data = array_merge($data, $familyData);
+        } elseif ($this->shouldMoveFamilyWithinCompany($pilgrim, $familyMoveTo, $oldCompanyId)) {
+            $company = Company::query()->findOrFail($oldCompanyId);
+            $targetFamilyNumber = $familyMoveTo === 'new' ? null : (int) $familyMoveTo;
+            $familyData = $pilgrimService->transferPilgrimCompany(
+                $pilgrim,
+                $company,
+                $hajjYear,
+                $targetFamilyNumber,
+            );
+
+            $data = array_merge($data, $familyData);
+        } else {
+            $data['family_code'] = $pilgrim->family_code;
+            $data['family_number'] = $pilgrim->family_number;
+            $data['family_member_suffix'] = $pilgrim->family_member_suffix;
+        }
 
         $pilgrim->update($data);
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration updated successfully.');
     }
 
+    private function shouldMoveFamilyWithinCompany(Pilgrim $pilgrim, string $familyMoveTo, ?int $companyId): bool
+    {
+        if ($companyId === null || $familyMoveTo === 'keep') {
+            return false;
+        }
+
+        if ($familyMoveTo === 'new') {
+            return true;
+        }
+
+        if (! ctype_digit($familyMoveTo)) {
+            return false;
+        }
+
+        return (int) $familyMoveTo !== (int) $pilgrim->family_number;
+    }
+
     public function destroy(Pilgrim $pilgrim, PilgrimService $pilgrimService)
     {
-        if ($pilgrim->photo_path) {
-            Storage::disk('public')->delete($pilgrim->photo_path);
+        foreach (array_values(self::DOCUMENT_FIELDS) as $column) {
+            if ($pilgrim->{$column}) {
+                Storage::disk('public')->delete($pilgrim->{$column});
+            }
         }
 
         $pilgrimService->deletePilgrim($pilgrim);
@@ -242,10 +289,37 @@ class PilgrimController extends Controller
         return $data;
     }
 
+    /** @param array<string, mixed> $data */
+    private function applyDocumentUploads(Request $request, array &$data, ?Pilgrim $pilgrim = null): void
+    {
+        foreach (self::DOCUMENT_FIELDS as $input => $column) {
+            $removeKey = 'remove_'.$input;
+
+            if ($request->boolean($removeKey)) {
+                if ($pilgrim?->{$column}) {
+                    Storage::disk('public')->delete($pilgrim->{$column});
+                }
+
+                $data[$column] = null;
+            }
+
+            if ($request->hasFile($input)) {
+                if ($pilgrim?->{$column}) {
+                    Storage::disk('public')->delete($pilgrim->{$column});
+                }
+
+                $data[$column] = $request->file($input)->store('pilgrims', 'public');
+            }
+
+            unset($data[$input], $data[$removeKey]);
+        }
+    }
+
     /** @return array<string, mixed> */
     private function formOptions(): array
     {
         return [
+            'activeHajjYear' => app(HajjSeasonService::class)->activeYear(),
             'formOwners' => FormOwner::query()->where('is_active', true)->orderBy('name')->get(),
             'companies' => Company::query()->where('is_active', true)->orderBy('name')->get(),
             'maktabCategories' => MaktabCategory::query()->where('is_active', true)->orderBy('name')->get(),

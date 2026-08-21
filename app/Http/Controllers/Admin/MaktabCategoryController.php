@@ -42,8 +42,10 @@ class MaktabCategoryController extends Controller
 
     public function destroy(MaktabCategory $maktabCategory)
     {
-        $maktabCategory->delete();
-
-        return redirect()->route('admin.maktab-categories.index')->with('success', 'Maktab category deleted successfully.');
+        return $this->deleteOrBack(
+            $maktabCategory,
+            'admin.maktab-categories.index',
+            'Maktab category deleted successfully.',
+        );
     }
 }

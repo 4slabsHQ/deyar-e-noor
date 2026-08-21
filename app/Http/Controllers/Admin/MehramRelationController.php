@@ -42,8 +42,10 @@ class MehramRelationController extends Controller
 
     public function destroy(MehramRelation $mehramRelation)
     {
-        $mehramRelation->delete();
-
-        return redirect()->route('admin.mehram-relations.index')->with('success', 'Mehram relation deleted successfully.');
+        return $this->deleteOrBack(
+            $mehramRelation,
+            'admin.mehram-relations.index',
+            'Mehram relation deleted successfully.',
+        );
     }
 }

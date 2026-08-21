@@ -1,5 +1,5 @@
 /**
- * Deyar-e-Noor — minimal admin shell
+ * Hajj Database — minimal admin shell
  * Light sidebar · light workspace · gold accent used sparingly
  */
 :root {
@@ -312,7 +312,8 @@
     font-size: 0.75rem !important;
 }
 
-.header-profile img {
+.header-profile img,
+.header-profile .user-avatar {
     width: 32px !important;
     height: 32px;
     border-radius: 50%;
@@ -497,7 +498,7 @@
 
 .deyar-quota-overview__stats {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
     flex: 1;
     align-content: center;
@@ -522,7 +523,8 @@
     border-color: rgba(184, 149, 106, 0.25);
 }
 
-.deyar-quota-stat-card--utilised {
+.deyar-quota-stat-card--utilised,
+.deyar-quota-stat-card--entered {
     background: var(--deyar-warning-bg);
     border-color: var(--deyar-warning-border);
 }
@@ -530,6 +532,11 @@
 .deyar-quota-stat-card--remaining {
     background: var(--deyar-success-bg);
     border-color: var(--deyar-success-border);
+}
+
+.deyar-quota-stat-card--refund {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
 }
 
 .deyar-quota-stat-card__label {
@@ -553,12 +560,17 @@
     color: var(--primary-hover);
 }
 
-.deyar-quota-stat-card--utilised .deyar-quota-stat-card__value {
+.deyar-quota-stat-card--utilised .deyar-quota-stat-card__value,
+.deyar-quota-stat-card--entered .deyar-quota-stat-card__value {
     color: var(--deyar-warning);
 }
 
 .deyar-quota-stat-card--remaining .deyar-quota-stat-card__value {
     color: var(--deyar-success);
+}
+
+.deyar-quota-stat-card--refund .deyar-quota-stat-card__value {
+    color: #6b7280;
 }
 
 .deyar-quota-overview__footer {
@@ -590,6 +602,12 @@
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--deyar-border);
+}
+
+@media (max-width: 991.98px) {
+    .deyar-quota-overview__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 575.98px) {

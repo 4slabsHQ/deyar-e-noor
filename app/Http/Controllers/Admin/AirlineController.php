@@ -76,8 +76,10 @@ class AirlineController extends Controller
 
     public function destroy(Airline $airline)
     {
-        $airline->delete();
-
-        return redirect()->route('admin.airlines.index')->with('success', 'Airline deleted successfully.');
+        return $this->deleteOrBack(
+            $airline,
+            'admin.airlines.index',
+            'Airline deleted successfully.',
+        );
     }
 }

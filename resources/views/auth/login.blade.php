@@ -9,6 +9,10 @@
             <div class="login-status">{{ session('status') }}</div>
         @endif
 
+        @if (session('error'))
+            <div class="login-error mb-3">{{ session('error') }}</div>
+        @endif
+
         <form method="POST" action="{{ route('login') }}">
             @csrf
 

@@ -42,8 +42,10 @@ class FormOwnerController extends Controller
 
     public function destroy(FormOwner $formOwner)
     {
-        $formOwner->delete();
-
-        return redirect()->route('admin.form-owners.index')->with('success', 'Form owner deleted successfully.');
+        return $this->deleteOrBack(
+            $formOwner,
+            'admin.form-owners.index',
+            'Form owner deleted successfully.',
+        );
     }
 }

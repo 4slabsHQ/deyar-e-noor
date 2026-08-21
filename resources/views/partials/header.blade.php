@@ -1,6 +1,6 @@
 <div class="nav-header">
     <a href="{{ route('dashboard') }}" class="brand-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="logo-abbr">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('branding.title') }}" class="logo-abbr">
         <div class="brand-title">
             <h2>{{ config('branding.title') }}</h2>
             <span class="brand-sub-title">{{ config('branding.subtitle') }}</span>
@@ -25,7 +25,7 @@
                 <ul class="navbar-nav header-right">
                     <li class="nav-item dropdown header-profile">
                         <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
-                            <img src="{{ asset('images/user.jpg') }}" width="20" alt=""/>
+                            <x-user-avatar :user="auth()->user()" />
                             <div class="header-info ms-3">
                                 <span>{{ auth()->user()->name ?? 'Guest' }}</span>
                                 <small>{{ auth()->user()->email ?? '' }}</small>

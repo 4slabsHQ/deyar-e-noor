@@ -10,15 +10,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class WarisRelationFactory extends Factory
 {
+    protected $model = WarisRelation::class;
+
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->randomElement(['Son', 'Daughter', 'Brother', 'Nephew']),
+            'is_active' => true,
         ];
     }
 }

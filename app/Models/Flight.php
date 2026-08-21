@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Concerns\GuardsDeletionWhenReferenced;
 use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Services\FlightService;
 use Database\Factories\FlightFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Flight extends Model
 {
     /** @use HasFactory<FlightFactory> */
-    use HasFactory, SoftDeletes;
+    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'flight_type',
@@ -108,7 +110,51 @@ class Flight extends Model
 
     public function pilgrims(): BelongsToMany
     {
-        return $this->belongsToMany(Pilgrim::class)->withTimestamps();
+        return $this->belongsToMany(Pilgrim::class)
+            ->withPivot('assigned_by')
+            ->withTimestamps();
+    }
+
+    /** @return array<string, string> */
+    public function referencedByRelations(): array
+    {
+        return [
+            'pilgrims' => 'Hajj registrations',
+        ];
+    }
+
+    public function deletionResourceLabel(): string
+    {
+        return 'flight';
+    }
+
+    /** @param  Builder<Flight>  $query */
+    public function scopeUsingCity(Builder $query, int $cityId): Builder
+    {
+        return $query->where(function (Builder $query) use ($cityId): void {
+            $query->where('departure_city_id', $cityId)
+                ->orWhere('via_city_id', $cityId)
+                ->orWhere('arrival_city_id', $cityId);
+        });
+    }
+
+    /** @param  Builder<Flight>  $query */
+    public function scopeUsingAirport(Builder $query, int $airportId): Builder
+    {
+        return $query->where(function (Builder $query) use ($airportId): void {
+            $query->where('departure_airport_id', $airportId)
+                ->orWhere('via_airport_id', $airportId)
+                ->orWhere('arrival_airport_id', $airportId);
+        });
+    }
+
+    /** @param  Builder<Flight>  $query */
+    public function scopeUsingAirline(Builder $query, int $airlineId): Builder
+    {
+        return $query->where(function (Builder $query) use ($airlineId): void {
+            $query->where('departure_airline_id', $airlineId)
+                ->orWhere('via_airline_id', $airlineId);
+        });
     }
 
     public function getViaTotalStayLabelAttribute(): ?string

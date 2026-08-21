@@ -23,6 +23,8 @@
                 @method($method)
             @endif
 
+            <x-admin.validation-alert />
+
             {{ $slot }}
 
             <x-admin.form-actions :submit="$submitLabel" :cancel-url="$cancelUrl" />

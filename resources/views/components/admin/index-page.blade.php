@@ -4,6 +4,7 @@
     'createRoute' => null,
     'createLabel' => null,
     'createPermission' => null,
+    'wrapTable' => true,
 ])
 
 <div class="admin-index-page">
@@ -33,9 +34,13 @@
             </div>
         @endif
         <div class="card-body">
-            <div class="table-responsive">
+            @if ($wrapTable)
+                <div class="table-responsive">
+                    {{ $slot }}
+                </div>
+            @else
                 {{ $slot }}
-            </div>
+            @endif
         </div>
     </div>
 </div>

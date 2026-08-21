@@ -10,15 +10,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MehramRelationFactory extends Factory
 {
+    protected $model = MehramRelation::class;
+
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->randomElement(['Husband', 'Father', 'Brother', 'Son']),
+            'is_active' => true,
         ];
     }
 }

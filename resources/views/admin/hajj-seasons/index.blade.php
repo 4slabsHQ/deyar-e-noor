@@ -12,7 +12,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-3">
-                        Only one season can be active at a time. The dashboard uses the active season for registration counts, quota utilisation, recent registrations, and trends.
+                        Only one season can be active at a time. The dashboard uses the active season for registration counts, quota utilisation, and recent registrations.
                     </p>
 
                     <table data-datatable data-empty-message="No Hajj seasons yet." class="display" style="width:100%">

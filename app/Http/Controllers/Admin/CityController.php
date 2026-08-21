@@ -7,7 +7,6 @@ use App\Http\Requests\StoreCityRequest;
 use App\Http\Requests\UpdateCityRequest;
 use App\Models\City;
 use App\Models\Country;
-use App\Models\Flight;
 
 class CityController extends Controller
 {
@@ -51,24 +50,10 @@ class CityController extends Controller
 
     public function destroy(City $city)
     {
-        if ($city->airports()->exists()) {
-            return back()->with('error', 'Cannot delete a city that has airports linked to it.');
-        }
-
-        if ($city->pilgrims()->exists()) {
-            return back()->with('error', 'Cannot delete a city used in pilgrim registrations.');
-        }
-
-        if (Flight::query()
-            ->where('departure_city_id', $city->id)
-            ->orWhere('via_city_id', $city->id)
-            ->orWhere('arrival_city_id', $city->id)
-            ->exists()) {
-            return back()->with('error', 'Cannot delete a city that is linked to flights.');
-        }
-
-        $city->delete();
-
-        return redirect()->route('admin.cities.index')->with('success', 'City deleted successfully.');
+        return $this->deleteOrBack(
+            $city,
+            'admin.cities.index',
+            'City deleted successfully.',
+        );
     }
 }

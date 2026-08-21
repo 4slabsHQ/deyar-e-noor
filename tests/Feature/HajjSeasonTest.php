@@ -69,13 +69,13 @@ test('dashboard uses the active hajj season year', function () {
     Pilgrim::query()->create([
         'company_id' => $company->id,
         'hajj_year' => $activeYear,
-        'booking_date' => now(),
+        'entry_date' => now(),
     ]);
 
     Pilgrim::query()->create([
         'company_id' => $company->id,
         'hajj_year' => now()->year,
-        'booking_date' => now()->subYear(),
+        'entry_date' => now()->subYear(),
     ]);
 
     $this->actingAs($this->admin)
@@ -93,7 +93,7 @@ test('hajj season service falls back to configured default year', function () {
     expect(app(HajjSeasonService::class)->activeYear())->toBe(2027);
 });
 
-test('super admin can remove an archived hajj season without deleting registrations', function () {
+test('super admin cannot remove an archived hajj season linked to registrations', function () {
     $archivedYear = now()->year;
     $activeYear = now()->year + 1;
 
@@ -112,11 +112,35 @@ test('super admin can remove an archived hajj season without deleting registrati
     ]);
 
     $this->actingAs($this->admin)
+        ->from(route('admin.hajj-seasons.index'))
         ->delete(route('admin.hajj-seasons.destroy', $archivedSeason))
+        ->assertRedirect(route('admin.hajj-seasons.index'))
+        ->assertSessionHas('error');
+
+    expect(HajjSeason::query()->where('year', $archivedYear)->exists())->toBeTrue()
+        ->and(Pilgrim::query()->where('hajj_year', $archivedYear)->count())->toBe(1);
+});
+
+test('super admin can remove an archived hajj season with no registrations', function () {
+    $archivedYear = now()->year - 1;
+    $activeYear = now()->year + 1;
+
+    $archivedSeason = HajjSeason::factory()->create([
+        'year' => $archivedYear,
+        'status' => HajjSeasonStatus::Archived,
+    ]);
+    $activeSeason = HajjSeason::factory()->create(['year' => $activeYear]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.hajj-seasons.activate', $activeSeason))
         ->assertRedirect(route('admin.hajj-seasons.index'));
 
-    expect(HajjSeason::query()->where('year', $archivedYear)->exists())->toBeFalse()
-        ->and(Pilgrim::query()->where('hajj_year', $archivedYear)->count())->toBe(1);
+    $this->actingAs($this->admin)
+        ->delete(route('admin.hajj-seasons.destroy', $archivedSeason))
+        ->assertRedirect(route('admin.hajj-seasons.index'))
+        ->assertSessionHas('success');
+
+    expect(HajjSeason::query()->where('year', $archivedYear)->exists())->toBeFalse();
 });
 
 test('active hajj season cannot be removed', function () {

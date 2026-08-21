@@ -42,8 +42,10 @@ class CareOffController extends Controller
 
     public function destroy(CareOff $careOff)
     {
-        $careOff->delete();
-
-        return redirect()->route('admin.care-offs.index')->with('success', 'Care off deleted successfully.');
+        return $this->deleteOrBack(
+            $careOff,
+            'admin.care-offs.index',
+            'Care off deleted successfully.',
+        );
     }
 }

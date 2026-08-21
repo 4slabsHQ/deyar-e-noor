@@ -3,6 +3,11 @@
     use App\Enums\Gender;
 
     $pilgrim = $pilgrim ?? null;
+    $activeHajjYear = $activeHajjYear ?? (int) now()->year;
+    $entryDate = old('entry_date', optional($pilgrim?->entry_date)->format('Y-m-d') ?? now()->format('Y-m-d'));
+    $selectedPackageId = old('package_id', $pilgrim->package_id ?? '');
+    $selectedPackage = $packages->firstWhere('id', (int) $selectedPackageId);
+    $qurbaniIncluded = (bool) old('qurbani_included', $pilgrim->qurbani_included ?? $selectedPackage?->qurbani_included ?? false);
 @endphp
 
 @push('styles')
@@ -14,18 +19,20 @@
         <h5 class="pilgrim-form-section-title">Registration</h5>
         <div class="row compact g-2">
             <div class="col-lg-2 col-md-3 col-6">
-                <label class="form-label" for="hajj_year">Hajj Year</label>
-                <input type="number" name="hajj_year" id="hajj_year" min="2000" max="2100"
-                       value="{{ old('hajj_year', $pilgrim->hajj_year ?? now()->year) }}"
-                       class="form-control @error('hajj_year') is-invalid @enderror">
-                @error('hajj_year') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <label class="form-label" for="hajj_year_display">Hajj Year</label>
+                <input type="text" id="hajj_year_display" readonly
+                       value="{{ $activeHajjYear }}"
+                       class="form-control">
+                <input type="hidden" name="hajj_year" id="hajj_year" value="{{ $activeHajjYear }}">
+                @error('hajj_year') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-lg-2 col-md-3 col-6">
-                <label class="form-label" for="booking_date">Booking Date</label>
-                <input type="date" name="booking_date" id="booking_date"
-                       value="{{ old('booking_date', optional($pilgrim?->booking_date)->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
-                       class="form-control @error('booking_date') is-invalid @enderror">
-                @error('booking_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <label class="form-label" for="entry_date_display">Entry Date</label>
+                <input type="text" id="entry_date_display" readonly
+                       value="{{ \Carbon\Carbon::parse($entryDate)->format('d/m/Y') }}"
+                       class="form-control">
+                <input type="hidden" name="entry_date" id="entry_date" value="{{ $entryDate }}">
+                @error('entry_date') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="form_owner_id">Form Owner</label>
@@ -37,7 +44,7 @@
                         </option>
                     @endforeach
                 </select>
-                @error('form_owner_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('form_owner_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="company_id">Company</label>
@@ -49,7 +56,7 @@
                         </option>
                     @endforeach
                 </select>
-                @error('company_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('company_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="maktab_category_id">Maktab</label>
@@ -68,12 +75,28 @@
                 <select name="package_id" id="package_id" class="form-control js-searchable-select @error('package_id') is-invalid @enderror" data-placeholder="Select package">
                     <option value="" {{ old('package_id', $pilgrim->package_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($packages as $package)
-                        <option value="{{ $package->id }}" {{ old('package_id', $pilgrim->package_id ?? '') == $package->id ? 'selected' : '' }}>
+                        <option value="{{ $package->id }}"
+                                data-qurbani="{{ $package->qurbani_included ? '1' : '0' }}"
+                                {{ old('package_id', $pilgrim->package_id ?? '') == $package->id ? 'selected' : '' }}>
                             {{ $package->registrationOptionLabel() }}
                         </option>
                     @endforeach
                 </select>
-                @error('package_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('package_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <label class="form-label" for="qurbani_included">Qurbani</label>
+                <div class="pilgrim-form-switch @error('qurbani_included') is-invalid @enderror">
+                    <input type="hidden" name="qurbani_included" value="0">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" name="qurbani_included" id="qurbani_included" value="1"
+                               @checked($qurbaniIncluded)>
+                        <label class="form-check-label" for="qurbani_included">
+                            <span class="js-qurbani-label">{{ $qurbaniIncluded ? 'Yes' : 'No' }}</span>
+                        </label>
+                    </div>
+                </div>
+                @error('qurbani_included') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-lg-4 col-md-4">
                 <label class="form-label" for="care_off_id">Care Off</label>
@@ -292,10 +315,22 @@
     </section>
 
     <section class="pilgrim-form-section">
-        <h5 class="pilgrim-form-section-title">Family & Photo</h5>
+        <h5 class="pilgrim-form-section-title">Family & Association</h5>
         <div class="row compact g-2">
-            @if (! $pilgrim)
-                <div class="col-lg-5 col-md-6">
+            @if ($pilgrim)
+                <div class="col-lg-6 col-md-8 js-within-company-family-field">
+                    <label class="form-label" for="family_move_to">Family Assignment</label>
+                    <select name="family_move_to" id="family_move_to" class="form-control js-searchable-select js-family-move-select @error('family_move_to') is-invalid @enderror" data-placeholder="Select family assignment">
+                        <option value="keep" @selected(old('family_move_to', 'keep') === 'keep')>
+                            Keep current{{ $pilgrim->family_code ? ' — '.$pilgrim->family_code : '' }}
+                        </option>
+                        <option value="new" @selected(old('family_move_to') === 'new')>New — single (S)</option>
+                    </select>
+                    <span class="form-hint js-family-move-hint"></span>
+                    @error('family_move_to') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            @else
+                <div class="col-lg-6 col-md-8">
                     <label class="form-label" for="existing_family_number">Link to Family <span class="text-muted">(optional)</span></label>
                     <select name="existing_family_number" id="existing_family_number" class="form-control js-searchable-select js-family-select @error('existing_family_number') is-invalid @enderror" data-placeholder="Search family">
                         <option value="">New — single (S)</option>
@@ -304,43 +339,79 @@
                     @error('existing_family_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             @endif
-            <div class="col-lg-2 col-md-3 col-6">
+            <div class="col-lg-6 col-md-8 js-transfer-family-field" hidden>
+                <label class="form-label" for="existing_family_number">Link to Family <span class="text-muted">(optional)</span></label>
+                <select name="" id="existing_family_number_transfer" class="form-control js-searchable-select js-family-select-transfer @error('existing_family_number') is-invalid @enderror" data-placeholder="Search family" data-defer-tom-select>
+                    <option value="">New — single (S)</option>
+                </select>
+                <span class="form-hint js-family-transfer-hint">Shown when company is changed. Leave as new single unless joining an existing family.</span>
+                @error('existing_family_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
                 <label class="form-label" for="family_code">Family Code</label>
                 <input type="text" id="family_code" readonly
                        value="{{ old('family_code', $pilgrim->family_code ?? '') }}"
                        class="form-control js-family-code @error('family_code') is-invalid @enderror"
                        data-preview-url="{{ route('admin.pilgrims.preview-family-code') }}"
                        data-families-url="{{ route('admin.pilgrims.families') }}"
-                       data-pilgrim-id="{{ $pilgrim->id ?? '' }}">
+                       data-pilgrim-id="{{ $pilgrim->id ?? '' }}"
+                       data-original-company-id="{{ $pilgrim->company_id ?? '' }}"
+                       data-original-family-number="{{ $pilgrim->family_number ?? '' }}"
+                       data-original-family-code="{{ $pilgrim->family_code ?? '' }}">
                 @error('family_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
-            <div class="col-lg-{{ $pilgrim ? '5' : '5' }} col-md-{{ $pilgrim ? '6' : '6' }}">
-                <label class="form-label">Photo (JPEG)</label>
-                <div class="pilgrim-photo-field @error('photo') is-invalid @enderror"
-                     @if ($pilgrim?->photo_url) data-existing-url="{{ $pilgrim->photo_url }}" @endif>
-                    <input type="file" name="photo" id="photo" accept="image/jpeg,.jpg"
-                           class="pilgrim-photo-field__input @error('photo') is-invalid @enderror">
-                    <input type="hidden" name="remove_photo" value="0" class="js-remove-photo">
-
-                    <div class="pilgrim-photo-field__empty js-photo-empty">
-                        <button type="button" class="btn btn-sm btn-outline-secondary js-photo-upload">
-                            Upload photo
-                        </button>
-                        <span class="pilgrim-photo-field__hint">JPEG only, max 2MB</span>
-                    </div>
-
-                    <div class="pilgrim-photo-field__preview js-photo-preview" hidden>
-                        <img src="" alt="Photo preview" class="pilgrim-photo-field__image js-photo-image">
-                        <div class="pilgrim-photo-field__actions">
-                            <button type="button" class="btn btn-sm btn-outline-primary js-photo-change">Change</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger js-photo-remove">Remove</button>
-                        </div>
-                    </div>
-                </div>
-                @error('photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-12 js-family-notice-wrap" hidden>
                 <div class="family-notice js-family-notice"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pilgrim-form-section">
+        <h5 class="pilgrim-form-section-title">Documents</h5>
+        <div class="row compact g-2">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Photo</label>
+                <x-admin.image-upload
+                    name="photo"
+                    remove-name="remove_photo"
+                    :existing-url="$pilgrim?->photo_url"
+                    :existing-filename="$pilgrim?->photo_path ? basename($pilgrim->photo_path) : null"
+                    upload-label="Upload photo"
+                    preview-alt="Photo preview"
+                />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Passport</label>
+                <x-admin.image-upload
+                    name="passport"
+                    remove-name="remove_passport"
+                    :existing-url="$pilgrim?->passport_url"
+                    :existing-filename="$pilgrim?->passport_path ? basename($pilgrim->passport_path) : null"
+                    upload-label="Upload passport"
+                    preview-alt="Passport preview"
+                />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Visa</label>
+                <x-admin.image-upload
+                    name="visa"
+                    remove-name="remove_visa"
+                    :existing-url="$pilgrim?->visa_url"
+                    :existing-filename="$pilgrim?->visa_path ? basename($pilgrim->visa_path) : null"
+                    upload-label="Upload visa"
+                    preview-alt="Visa preview"
+                />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Ticket</label>
+                <x-admin.image-upload
+                    name="ticket"
+                    remove-name="remove_ticket"
+                    :existing-url="$pilgrim?->ticket_url"
+                    :existing-filename="$pilgrim?->ticket_path ? basename($pilgrim->ticket_path) : null"
+                    upload-label="Upload ticket"
+                    preview-alt="Ticket preview"
+                />
             </div>
         </div>
     </section>
@@ -350,7 +421,7 @@
         <div class="row compact g-2">
             <div class="col-12">
                 <label class="form-label" for="comments">Comments <span class="text-muted">(optional)</span></label>
-                <textarea name="comments" id="comments" rows="3"
+                <textarea name="comments" id="comments" rows="5"
                           placeholder="Any notes or remarks about this registration"
                           class="form-control @error('comments') is-invalid @enderror">{{ old('comments', $pilgrim->comments ?? '') }}</textarea>
                 @error('comments') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -455,22 +526,200 @@
         updateFullNameDisplay();
         updateAgeDisplay();
 
-        const familyCodeInput = document.getElementById('family_code');
-        const companySelect = document.getElementById('company_id');
-        const existingFamilySelect = document.getElementById('existing_family_number');
-        const familyMembersHint = document.querySelector('.js-family-members-hint');
-        const familyNoticeWrap = document.querySelector('.js-family-notice-wrap');
-        const familyNotice = document.querySelector('.js-family-notice');
-        const isEditForm = Boolean(familyCodeInput?.dataset.pilgrimId);
-        let loadedFamilies = [];
+        const packageSelect = document.getElementById('package_id');
+        const qurbaniToggle = document.getElementById('qurbani_included');
+        const qurbaniLabel = document.querySelector('.js-qurbani-label');
 
-        async function loadFamilies() {
-            if (!existingFamilySelect || !companySelect?.value || !familyCodeInput?.dataset.familiesUrl) {
+        function updateQurbaniLabel() {
+            if (qurbaniLabel && qurbaniToggle) {
+                qurbaniLabel.textContent = qurbaniToggle.checked ? 'Yes' : 'No';
+            }
+        }
+
+        function syncQurbaniFromPackage() {
+            if (!qurbaniToggle || !packageSelect) {
                 return;
             }
 
-            const currentValue = existingFamilySelect.value;
-            existingFamilySelect.innerHTML = '<option value="">New — single (S)</option>';
+            const option = packageSelect.selectedOptions[0];
+
+            if (!option || !option.value) {
+                qurbaniToggle.checked = false;
+                updateQurbaniLabel();
+
+                return;
+            }
+
+            qurbaniToggle.checked = option.dataset.qurbani === '1';
+            updateQurbaniLabel();
+        }
+
+        packageSelect?.addEventListener('change', syncQurbaniFromPackage);
+        qurbaniToggle?.addEventListener('change', updateQurbaniLabel);
+        updateQurbaniLabel();
+
+        const familyCodeInput = document.getElementById('family_code');
+        const companySelect = document.getElementById('company_id');
+        const createFamilySelect = document.getElementById('existing_family_number');
+        const transferFamilySelect = document.getElementById('existing_family_number_transfer');
+        const familyMoveSelect = document.getElementById('family_move_to');
+        const familyMembersHint = document.querySelector('.js-family-members-hint');
+        const familyMoveHint = document.querySelector('.js-family-move-hint');
+        const familyNoticeWrap = document.querySelector('.js-family-notice-wrap');
+        const familyNotice = document.querySelector('.js-family-notice');
+        const transferFamilyField = document.querySelector('.js-transfer-family-field');
+        const withinCompanyFamilyField = document.querySelector('.js-within-company-family-field');
+        const originalCompanyId = familyCodeInput?.dataset.originalCompanyId || '';
+        const originalFamilyNumber = familyCodeInput?.dataset.originalFamilyNumber || '';
+        let loadedFamilies = [];
+
+        function getSelectValue(select) {
+            if (!select) {
+                return '';
+            }
+
+            if (select.tomselect) {
+                return select.tomselect.getValue() || '';
+            }
+
+            return select.value || '';
+        }
+
+        function setSelectValue(select, value) {
+            if (!select) {
+                return;
+            }
+
+            if (select.tomselect) {
+                select.tomselect.setValue(value, true);
+            } else {
+                select.value = value;
+            }
+        }
+
+        function activeFamilySelect() {
+            return isCompanyTransfer() ? transferFamilySelect : (familyMoveSelect || createFamilySelect);
+        }
+
+        function isCompanyTransfer() {
+            return Boolean(originalCompanyId && companySelect?.value && companySelect.value !== originalCompanyId);
+        }
+
+        function syncActiveFamilySelect() {
+            const select = activeFamilySelect();
+
+            if (select && window.AdminForm) {
+                window.AdminForm.syncTomSelect(select);
+            }
+        }
+
+        function setSelectEnabled(select, enabled) {
+            if (!select || !window.AdminForm) {
+                return;
+            }
+
+            window.AdminForm.setSelectEnabled(select, enabled);
+        }
+
+        function destroyTomSelect(select) {
+            if (select?.tomselect) {
+                select.tomselect.destroy();
+                select.tomselect = null;
+            }
+        }
+
+        function reinitFamilySelect(select, defaultValue) {
+            if (!select) {
+                return;
+            }
+
+            if (select === transferFamilySelect && isCompanyTransfer()) {
+                ensureTransferSelectReady();
+            } else if (select.classList.contains('js-searchable-select')) {
+                window.AdminForm?.initSearchableSelect(select);
+            }
+
+            setSelectValue(select, defaultValue);
+
+            if (window.AdminForm) {
+                window.AdminForm.syncTomSelect(select);
+            }
+        }
+
+        function ensureTransferSelectReady() {
+            if (!transferFamilySelect || !isCompanyTransfer()) {
+                return;
+            }
+
+            const wasUninitialized = !transferFamilySelect.tomselect;
+
+            if (window.AdminForm?.initSearchableSelect && wasUninitialized) {
+                window.AdminForm.initSearchableSelect(transferFamilySelect);
+            }
+
+            if (transferFamilySelect.tomselect && wasUninitialized) {
+                transferFamilySelect.tomselect.on('change', refreshFamilyCode);
+            }
+
+            setSelectEnabled(transferFamilySelect, true);
+        }
+
+        function toggleFamilyFields() {
+            const transferring = isCompanyTransfer();
+
+            if (transferFamilyField) {
+                transferFamilyField.hidden = !transferring;
+            }
+
+            if (withinCompanyFamilyField) {
+                withinCompanyFamilyField.hidden = transferring;
+            }
+
+            if (transferFamilySelect) {
+                transferFamilySelect.name = transferring ? 'existing_family_number' : '';
+            }
+
+            if (familyMoveSelect) {
+                familyMoveSelect.name = transferring ? '' : 'family_move_to';
+            }
+
+            setSelectEnabled(familyMoveSelect, !transferring);
+
+            if (!transferring) {
+                setSelectEnabled(transferFamilySelect, false);
+                setSelectValue(transferFamilySelect, '');
+            }
+        }
+
+        async function loadFamilies() {
+            const select = activeFamilySelect();
+
+            if (!select || !companySelect?.value || !familyCodeInput?.dataset.familiesUrl) {
+                return;
+            }
+
+            const currentValue = getSelectValue(select);
+            const isMoveSelect = select === familyMoveSelect;
+            const originalFamilyCode = familyCodeInput.dataset.originalFamilyCode || familyCodeInput.value;
+            const baseOptions = isMoveSelect
+                ? [
+                    {
+                        value: 'keep',
+                        label: 'Keep current' + (originalFamilyCode ? ' — ' + originalFamilyCode : ''),
+                    },
+                    { value: 'new', label: 'New — single (S)' },
+                ]
+                : [{ value: '', label: 'New — single (S)' }];
+
+            destroyTomSelect(select);
+
+            select.innerHTML = '';
+            baseOptions.forEach(function (optionData) {
+                const option = document.createElement('option');
+                option.value = optionData.value;
+                option.textContent = optionData.label;
+                select.appendChild(option);
+            });
             loadedFamilies = [];
 
             try {
@@ -490,36 +739,47 @@
                 loadedFamilies = data.families ?? [];
 
                 loadedFamilies.forEach(function (family) {
+                    if (isMoveSelect && String(family.family_number) === originalFamilyNumber) {
+                        return;
+                    }
+
                     const option = document.createElement('option');
                     option.value = family.family_number;
                     option.textContent = family.label;
-                    existingFamilySelect.appendChild(option);
+                    select.appendChild(option);
                 });
 
-                const oldValue = @json(old('existing_family_number'));
-                existingFamilySelect.value = oldValue || currentValue || '';
-                updateFamilyHint();
-
-                if (window.AdminForm) {
-                    window.AdminForm.syncTomSelect(existingFamilySelect);
+                if (isMoveSelect) {
+                    const oldMove = @json(old('family_move_to', 'keep'));
+                    reinitFamilySelect(select, oldMove || currentValue || 'keep');
+                    updateFamilyMoveHint();
+                } else {
+                    const oldValue = @json(old('existing_family_number'));
+                    const defaultValue = (select === transferFamilySelect && isCompanyTransfer())
+                        ? ''
+                        : (oldValue || currentValue || '');
+                    reinitFamilySelect(select, defaultValue);
+                    updateFamilyHint();
                 }
             } catch (error) {
                 loadedFamilies = [];
             }
         }
 
-        function selectedFamily() {
-            if (!existingFamilySelect?.value) {
+        function selectedFamilyFrom(select) {
+            const value = getSelectValue(select);
+
+            if (!value || value === 'keep' || value === 'new') {
                 return null;
             }
 
             return loadedFamilies.find(function (item) {
-                return String(item.family_number) === existingFamilySelect.value;
+                return String(item.family_number) === value;
             }) ?? null;
         }
 
         function updateFamilyHint() {
-            const family = selectedFamily();
+            const family = selectedFamilyFrom(activeFamilySelect());
 
             if (familyMembersHint) {
                 if (!family) {
@@ -529,6 +789,25 @@
                         return m.suffix + ' ' + m.name;
                     }).join(', ');
                 }
+            }
+        }
+
+        function updateFamilyMoveHint() {
+            if (!familyMoveHint || !familyMoveSelect) {
+                return;
+            }
+
+            const moveTo = getSelectValue(familyMoveSelect);
+            const family = selectedFamilyFrom(familyMoveSelect);
+
+            if (moveTo === 'new') {
+                familyMoveHint.textContent = 'A new single family code will be assigned.';
+            } else if (family) {
+                familyMoveHint.textContent = 'Members: ' + family.members.map(function (m) {
+                    return m.suffix + ' ' + m.name;
+                }).join(', ');
+            } else {
+                familyMoveHint.textContent = '';
             }
         }
 
@@ -542,10 +821,27 @@
                 hajj_year: hajjYearInput?.value || '',
             });
 
-            if (familyCodeInput.dataset.pilgrimId) {
+            if (isCompanyTransfer()) {
+                const transferFamilyNumber = getSelectValue(transferFamilySelect);
+
+                if (transferFamilyNumber) {
+                    params.append('family_number', transferFamilyNumber);
+                } else {
+                    params.append('family_move_to', 'new');
+                }
+            } else if (familyMoveSelect) {
+                const moveTo = getSelectValue(familyMoveSelect) || 'keep';
+                params.append('family_move_to', moveTo);
+
+                if (moveTo === 'keep' && familyCodeInput.dataset.pilgrimId) {
+                    params.append('pilgrim_id', familyCodeInput.dataset.pilgrimId);
+                } else if (moveTo !== 'keep' && moveTo !== 'new') {
+                    params.append('family_number', moveTo);
+                }
+            } else if (getSelectValue(createFamilySelect)) {
+                params.append('family_number', getSelectValue(createFamilySelect));
+            } else if (familyCodeInput.dataset.pilgrimId) {
                 params.append('pilgrim_id', familyCodeInput.dataset.pilgrimId);
-            } else if (existingFamilySelect?.value) {
-                params.append('family_number', existingFamilySelect.value);
             }
 
             try {
@@ -575,92 +871,49 @@
             }
         }
 
-        companySelect?.addEventListener('change', function () {
-            loadFamilies().then(refreshFamilyCode);
-        });
-
-        hajjYearInput?.addEventListener('change', function () {
-            updateAgeDisplay();
-            loadFamilies().then(refreshFamilyCode);
-        });
-
-        existingFamilySelect?.addEventListener('change', function () {
-            updateFamilyHint();
-            refreshFamilyCode();
-        });
-
-        if (!isEditForm) {
-            loadFamilies().then(refreshFamilyCode);
-        } else {
-            refreshFamilyCode();
+        async function handleCompanyChange() {
+            toggleFamilyFields();
+            await loadFamilies();
+            await refreshFamilyCode();
         }
 
-        document.querySelectorAll('.pilgrim-photo-field').forEach(function (field) {
-            const input = field.querySelector('.pilgrim-photo-field__input');
-            const removeInput = field.querySelector('.js-remove-photo');
-            const emptyState = field.querySelector('.js-photo-empty');
-            const previewState = field.querySelector('.js-photo-preview');
-            const image = field.querySelector('.js-photo-image');
-            const existingUrl = field.dataset.existingUrl || '';
-            let objectUrl = null;
-
-            function revokeObjectUrl() {
-                if (objectUrl) {
-                    URL.revokeObjectURL(objectUrl);
-                    objectUrl = null;
-                }
+        function bindSelectChange(select, handler) {
+            if (!select) {
+                return;
             }
 
-            function showEmpty() {
-                emptyState.hidden = false;
-                previewState.hidden = true;
-                image.removeAttribute('src');
+            select.addEventListener('change', handler);
+
+            if (select.tomselect) {
+                select.tomselect.on('change', handler);
             }
+        }
 
-            function showPreview(url) {
-                image.src = url;
-                emptyState.hidden = true;
-                previewState.hidden = false;
-            }
-
-            function openFilePicker() {
-                input.click();
-            }
-
-            field.querySelector('.js-photo-upload')?.addEventListener('click', openFilePicker);
-            field.querySelector('.js-photo-change')?.addEventListener('click', openFilePicker);
-
-            field.querySelector('.js-photo-remove')?.addEventListener('click', function () {
-                input.value = '';
-                removeInput.value = '1';
-                revokeObjectUrl();
-                showEmpty();
+        function initFamilyControls() {
+            bindSelectChange(companySelect, handleCompanyChange);
+            bindSelectChange(hajjYearInput, function () {
+                updateAgeDisplay();
+                handleCompanyChange();
+            });
+            bindSelectChange(createFamilySelect, function () {
+                updateFamilyHint();
+                refreshFamilyCode();
+            });
+            bindSelectChange(transferFamilySelect, refreshFamilyCode);
+            bindSelectChange(familyMoveSelect, function () {
+                updateFamilyMoveHint();
+                refreshFamilyCode();
             });
 
-            input.addEventListener('change', function () {
-                const file = input.files?.[0];
+            toggleFamilyFields();
+            loadFamilies().then(refreshFamilyCode);
+        }
 
-                if (!file) {
-                    if (existingUrl && removeInput.value !== '1') {
-                        showPreview(existingUrl);
-                    } else {
-                        showEmpty();
-                    }
-
-                    return;
-                }
-
-                removeInput.value = '0';
-                revokeObjectUrl();
-                objectUrl = URL.createObjectURL(file);
-                showPreview(objectUrl);
-            });
-
-            if (existingUrl) {
-                removeInput.value = '0';
-                showPreview(existingUrl);
-            }
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFamilyControls);
+        } else {
+            setTimeout(initFamilyControls, 0);
+        }
     })();
 </script>
 @endpush

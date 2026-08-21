@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\GuardsDeletionWhenReferenced;
 use Database\Factories\CityFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class City extends Model
 {
     /** @use HasFactory<CityFactory> */
-    use HasFactory;
+    use GuardsDeletionWhenReferenced, HasFactory;
 
     protected $fillable = [
         'country_id', 'name', 'code', 'is_active',
@@ -34,5 +35,38 @@ class City extends Model
     public function pilgrims(): HasMany
     {
         return $this->hasMany(Pilgrim::class, 'pod_city_id');
+    }
+
+    /** @return array<string, string> */
+    public function referencedByRelations(): array
+    {
+        return [
+            'airports' => 'airports',
+            'pilgrims' => 'Hajj registrations',
+        ];
+    }
+
+    /** @return array<int, callable(City): ?string> */
+    public function referencedByChecks(): array
+    {
+        return [
+            function (City $city): ?string {
+                $count = Flight::query()->usingCity($city->id)->count();
+
+                if ($count === 0) {
+                    return null;
+                }
+
+                return sprintf(
+                    'Cannot delete this city because it is linked to %d flight(s).',
+                    $count,
+                );
+            },
+        ];
+    }
+
+    public function deletionResourceLabel(): string
+    {
+        return 'city';
     }
 }

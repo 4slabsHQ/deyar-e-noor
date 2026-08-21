@@ -42,8 +42,10 @@ class WarisRelationController extends Controller
 
     public function destroy(WarisRelation $warisRelation)
     {
-        $warisRelation->delete();
-
-        return redirect()->route('admin.waris-relations.index')->with('success', 'Waris relation deleted successfully.');
+        return $this->deleteOrBack(
+            $warisRelation,
+            'admin.waris-relations.index',
+            'Waris relation deleted successfully.',
+        );
     }
 }

@@ -2,11 +2,14 @@
     'viewRoute' => null,
     'editRoute' => null,
     'deleteRoute' => null,
+    'assignRoute' => null,
     'viewTitle' => 'View',
+    'assignTitle' => 'Assign hujaj',
     'deleteConfirm' => 'Delete this record?',
     'viewPermission' => null,
     'editPermission' => null,
     'deletePermission' => null,
+    'assignPermission' => null,
 ])
 
 <div {{ $attributes->merge(['class' => 'admin-table-actions d-flex']) }}>
@@ -34,6 +37,20 @@
         @else
             <a href="{{ $editRoute }}" class="btn btn-warning shadow btn-xs sharp me-1" title="Edit">
                 <i class="fas fa-pencil-alt"></i>
+            </a>
+        @endif
+    @endif
+
+    @if($assignRoute)
+        @if($assignPermission)
+            @can($assignPermission)
+                <a href="{{ $assignRoute }}" class="btn btn-primary shadow btn-xs sharp me-1" title="{{ $assignTitle }}">
+                    <i class="fas fa-user-check"></i>
+                </a>
+            @endcan
+        @else
+            <a href="{{ $assignRoute }}" class="btn btn-primary shadow btn-xs sharp me-1" title="{{ $assignTitle }}">
+                <i class="fas fa-user-check"></i>
             </a>
         @endif
     @endif

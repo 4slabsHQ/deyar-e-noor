@@ -42,12 +42,10 @@ class CountryController extends Controller
 
     public function destroy(Country $country)
     {
-        if ($country->cities()->exists() || $country->branches()->exists()) {
-            return back()->with('error', 'Cannot delete a country that has cities or branches linked to it.');
-        }
-
-        $country->delete();
-
-        return redirect()->route('admin.countries.index')->with('success', 'Country deleted successfully.');
+        return $this->deleteOrBack(
+            $country,
+            'admin.countries.index',
+            'Country deleted successfully.',
+        );
     }
 }

@@ -5,7 +5,10 @@ namespace App\Http\Requests;
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
 use App\Models\Company;
+use App\Models\FormOwner;
+use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Services\HajjSeasonService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -15,7 +18,7 @@ class StorePilgrimRequest extends FormRequest
     /** @var list<string> */
     private const NULLABLE_FIELDS = [
         'hajj_year',
-        'booking_date',
+        'entry_date',
         'form_owner_id',
         'company_id',
         'maktab_category_id',
@@ -81,6 +84,28 @@ class StorePilgrimRequest extends FormRequest
                 $this->merge([$field => null]);
             }
         }
+
+        $seasonService = app(HajjSeasonService::class);
+        /** @var Pilgrim|null $pilgrim */
+        $pilgrim = $this->route('pilgrim');
+
+        if ($pilgrim) {
+            $this->merge([
+                'hajj_year' => $pilgrim->hajj_year ?? $seasonService->activeYear(),
+                'entry_date' => $pilgrim->entry_date?->toDateString() ?? now()->toDateString(),
+            ]);
+        } else {
+            $this->merge([
+                'hajj_year' => $seasonService->activeYear(),
+                'entry_date' => now()->toDateString(),
+            ]);
+        }
+
+        $this->merge([
+            'qurbani_included' => $this->has('qurbani_included')
+                ? $this->boolean('qurbani_included')
+                : (bool) Package::query()->find($this->input('package_id'))?->qurbani_included,
+        ]);
     }
 
     /** @return array<string, string> */
@@ -88,7 +113,9 @@ class StorePilgrimRequest extends FormRequest
     {
         return [
             'passport_no.regex' => 'Passport must start with 2 letters followed by 7 numbers (e.g. AB1234567).',
+            'passport_no.unique' => 'This passport is already registered for the selected Hajj year.',
             'cnic.regex' => 'CNIC must be in the format 12345-1234567-1.',
+            'cnic.unique' => 'This CNIC is already registered for the selected Hajj year.',
             'waris_cnic.regex' => 'Waris CNIC must be in the format 12345-1234567-1.',
             'family_member_suffix.regex' => 'Family member suffix must be a single letter (A–Z).',
         ];
@@ -99,15 +126,14 @@ class StorePilgrimRequest extends FormRequest
         $validator->after(function (Validator $validator): void {
             $this->validateUniqueFamilyMember($validator);
             $this->validateCompanyQuota($validator);
+            $this->validateCompanyCodeForAssignment($validator);
+            $this->validatePackageLimit($validator);
+            $this->validateFormOwnerLimit($validator);
         });
     }
 
     protected function validateCompanyQuota(Validator $validator): void
     {
-        if ($validator->errors()->isNotEmpty()) {
-            return;
-        }
-
         $companyId = $this->input('company_id');
         $hajjYear = $this->input('hajj_year');
 
@@ -131,7 +157,108 @@ class StorePilgrimRequest extends FormRequest
 
         $validator->errors()->add(
             'company_id',
-            "Company quota reached for Hajj {$hajjYear} ({$registered}/{$company->quota})."
+            "Company quota reached for {$company->name} (Hajj {$hajjYear}: {$registered}/{$company->quota})."
+        );
+    }
+
+    protected function validateCompanyCodeForAssignment(Validator $validator): void
+    {
+        if ($validator->errors()->isNotEmpty()) {
+            return;
+        }
+
+        $companyId = $this->input('company_id');
+
+        if (! $companyId) {
+            return;
+        }
+
+        /** @var Pilgrim|null $pilgrim */
+        $pilgrim = $this->route('pilgrim');
+        $company = Company::query()->find($companyId);
+
+        if (! $company || filled($company->code)) {
+            return;
+        }
+
+        if ($pilgrim !== null && (int) $pilgrim->company_id === (int) $companyId) {
+            return;
+        }
+
+        if ($this->filled('existing_family_number')) {
+            $validator->errors()->add(
+                'company_id',
+                'Selected company has no code configured. Family linking requires a company code.'
+            );
+
+            return;
+        }
+
+        if ($pilgrim === null) {
+            return;
+        }
+
+        $validator->errors()->add(
+            'company_id',
+            'Selected company has no code configured.'
+        );
+    }
+
+    protected function validatePackageLimit(Validator $validator): void
+    {
+        $packageId = $this->input('package_id');
+        $hajjYear = $this->input('hajj_year');
+
+        if (! $packageId || ! $hajjYear) {
+            return;
+        }
+
+        $package = Package::query()->find($packageId);
+
+        if (! $package || $package->limit === null) {
+            return;
+        }
+
+        $excludingPilgrimId = $this->route('pilgrim')?->id;
+
+        if ($package->hasLimitForYear((int) $hajjYear, $excludingPilgrimId)) {
+            return;
+        }
+
+        $registered = $package->registeredPilgrimCountForYear((int) $hajjYear, $excludingPilgrimId);
+
+        $validator->errors()->add(
+            'package_id',
+            "Package limit reached for {$package->name} (Hajj {$hajjYear}: {$registered}/{$package->limit})."
+        );
+    }
+
+    protected function validateFormOwnerLimit(Validator $validator): void
+    {
+        $formOwnerId = $this->input('form_owner_id');
+        $hajjYear = $this->input('hajj_year');
+
+        if (! $formOwnerId || ! $hajjYear) {
+            return;
+        }
+
+        $formOwner = FormOwner::query()->find($formOwnerId);
+
+        if (! $formOwner || $formOwner->limit === null) {
+            return;
+        }
+
+        $excludingPilgrimId = $this->route('pilgrim')?->id;
+
+        if ($formOwner->hasLimitForYear((int) $hajjYear, $excludingPilgrimId)) {
+            return;
+        }
+
+        $registered = $formOwner->registeredPilgrimCountForYear((int) $hajjYear, $excludingPilgrimId);
+
+        $validator->errors()->add(
+            'form_owner_id',
+            "Form owner limit reached for {$formOwner->name} (Hajj {$hajjYear}: {$registered}/{$formOwner->limit})."
         );
     }
 
@@ -196,11 +323,12 @@ class StorePilgrimRequest extends FormRequest
     {
         return [
             'hajj_year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'booking_date' => ['nullable', 'date'],
+            'entry_date' => ['nullable', 'date'],
             'form_owner_id' => ['nullable', Rule::exists('form_owners', 'id')],
             'company_id' => ['nullable', Rule::exists('companies', 'id')],
             'maktab_category_id' => ['nullable', Rule::exists('maktab_categories', 'id')],
             'package_id' => ['nullable', Rule::exists('packages', 'id')],
+            'qurbani_included' => ['boolean'],
             'care_off_id' => ['nullable', Rule::exists('care_offs', 'id')],
             'pod_city_id' => ['nullable', Rule::exists('cities', 'id')],
             'room_type_id' => ['nullable', Rule::exists('room_types', 'id')],
@@ -221,7 +349,14 @@ class StorePilgrimRequest extends FormRequest
             'passport_expiry' => ['nullable', 'date', 'after:today'],
             'address' => ['nullable', 'string', 'max:500'],
             'mobile' => ['nullable', 'string', 'max:20'],
-            'cnic' => ['nullable', 'string', 'regex:/^\d{5}-\d{7}-\d$/'],
+            'cnic' => [
+                'nullable',
+                'string',
+                'regex:/^\d{5}-\d{7}-\d$/',
+                Rule::unique('pilgrims', 'cnic')
+                    ->where(fn ($query) => $query->where('hajj_year', $this->input('hajj_year')))
+                    ->ignore($pilgrimId),
+            ],
             'blood_group' => ['nullable', Rule::enum(BloodGroup::class)],
             'mehram_name' => ['nullable', 'string', 'max:150'],
             'mehram_relation_id' => ['nullable', Rule::exists('mehram_relations', 'id')],
@@ -238,10 +373,17 @@ class StorePilgrimRequest extends FormRequest
                         ->where('company_id', $this->input('company_id'))
                         ->where('hajj_year', $this->input('hajj_year'))),
             ],
+            'family_move_to' => ['nullable', 'string', 'max:20'],
             'family_code' => ['nullable', 'string', 'max:50'],
             'family_member_suffix' => ['nullable', 'string', 'max:2', 'regex:/^[A-Z]$/i'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,jpg', 'max:2048'],
+            'photo' => ['nullable', 'file', 'max:5120'],
             'remove_photo' => ['nullable', 'boolean'],
+            'passport' => ['nullable', 'file', 'max:5120'],
+            'remove_passport' => ['nullable', 'boolean'],
+            'visa' => ['nullable', 'file', 'max:5120'],
+            'remove_visa' => ['nullable', 'boolean'],
+            'ticket' => ['nullable', 'file', 'max:5120'],
+            'remove_ticket' => ['nullable', 'boolean'],
             'comments' => ['nullable', 'string', 'max:2000'],
         ];
     }

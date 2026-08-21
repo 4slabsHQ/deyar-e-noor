@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleService
 {
@@ -15,7 +15,7 @@ class RoleService
     public function create(array $data): Role
     {
         $role = Role::create(['name' => $data['name'], 'guard_name' => 'web']);
-        
+
         $permissions = Permission::whereIn('id', $data['permissions'] ?? [])->get();
         $role->syncPermissions($permissions);
 
@@ -32,12 +32,21 @@ class RoleService
         return $role;
     }
 
-    public function delete(Role $role): void
+    public function delete(Role $role): ?string
     {
         if ($role->name === 'Super Admin') {
-            abort(403, 'Super Admin role cannot be deleted.');
+            return 'Super Admin role cannot be deleted.';
+        }
+
+        if ($role->users()->exists()) {
+            return sprintf(
+                'Cannot delete this role because it is assigned to %d user(s).',
+                $role->users()->count(),
+            );
         }
 
         $role->delete();
+
+        return null;
     }
 }

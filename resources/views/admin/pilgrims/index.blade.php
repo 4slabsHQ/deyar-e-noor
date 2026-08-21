@@ -22,6 +22,7 @@
                     <th>Package</th>
                     <th>POD</th>
                     <th>Hajj Year</th>
+                    <th>Entered By</th>
                     <th class="no-sort">Action</th>
                 </tr>
             </thead>
@@ -49,6 +50,7 @@
                         <td>{{ $pilgrim->package?->name }}</td>
                         <td>{{ $pilgrim->podCity?->name }}</td>
                         <td>{{ $pilgrim->hajj_year }}</td>
+                        <td>{{ $pilgrim->creator?->name ?? '—' }}</td>
                         <td>
                             <x-admin.table-actions
                                 :view-route="route('admin.pilgrims.show', $pilgrim)"

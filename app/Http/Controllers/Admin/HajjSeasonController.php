@@ -44,6 +44,12 @@ class HajjSeasonController extends Controller
                 ->with('error', 'The active Hajj season cannot be removed.');
         }
 
+        if ($message = $hajjSeason->deletionBlockedMessage()) {
+            return redirect()
+                ->route('admin.hajj-seasons.index')
+                ->with('error', $message);
+        }
+
         $year = $hajjSeason->year;
         $hajjSeason->delete();
 

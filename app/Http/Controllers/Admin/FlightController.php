@@ -61,9 +61,11 @@ class FlightController extends Controller
 
     public function destroy(Flight $flight)
     {
-        $flight->delete();
-
-        return redirect()->route('admin.flights.index')->with('success', 'Flight deleted successfully.');
+        return $this->deleteOrBack(
+            $flight,
+            'admin.flights.index',
+            'Flight deleted successfully.',
+        );
     }
 
     /** @return array<string, mixed> */

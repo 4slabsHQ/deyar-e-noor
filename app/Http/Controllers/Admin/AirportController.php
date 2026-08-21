@@ -61,10 +61,10 @@ class AirportController extends Controller
 
     public function destroy(Airport $airport)
     {
-        $airport->delete();
-
-        return redirect()
-            ->route('admin.airports.index')
-            ->with('success', 'Airport deleted successfully.');
+        return $this->deleteOrBack(
+            $airport,
+            'admin.airports.index',
+            'Airport deleted successfully.',
+        );
     }
 }

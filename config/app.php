@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Deyar-e-Noor'),
+    'name' => env('APP_NAME', 'Hajj Database'),
 
     /*
     |--------------------------------------------------------------------------

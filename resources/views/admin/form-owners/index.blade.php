@@ -15,6 +15,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Limit</th>
                     <th>Status</th>
                     <th class="no-sort">Action</th>
                 </tr>
@@ -23,6 +24,7 @@
                 @foreach ($formOwners as $formOwner)
                     <tr>
                         <td class="fw-medium">{{ $formOwner->name }}</td>
+                        <td>{{ $formOwner->limit ?? 'Unlimited' }}</td>
                         <td>
                             <x-admin.status-badge :active="$formOwner->is_active" />
                         </td>

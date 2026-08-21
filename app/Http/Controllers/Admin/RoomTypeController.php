@@ -42,8 +42,10 @@ class RoomTypeController extends Controller
 
     public function destroy(RoomType $roomType)
     {
-        $roomType->delete();
-
-        return redirect()->route('admin.room-types.index')->with('success', 'Room type deleted successfully.');
+        return $this->deleteOrBack(
+            $roomType,
+            'admin.room-types.index',
+            'Room type deleted successfully.',
+        );
     }
 }

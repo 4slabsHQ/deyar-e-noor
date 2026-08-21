@@ -36,7 +36,7 @@ class PilgrimFactory extends Factory
 
         return [
             'hajj_year' => $hajjYear,
-            'booking_date' => now()->toDateString(),
+            'entry_date' => now()->toDateString(),
             'form_owner_id' => FormOwner::factory(),
             'company_id' => Company::factory(),
             'maktab_category_id' => MaktabCategory::factory(),

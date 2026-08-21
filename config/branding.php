@@ -2,13 +2,13 @@
 
 return [
 
-    'title' => 'DEYAR-E-NOOR',
+    'title' => 'HAJJ DATABASE',
 
-    'subtitle' => 'Hajj Umrah & Services (Pvt) Ltd.',
+    'subtitle' => 'Hajj Management System',
 
-    'tagline' => 'Hajj Umrah & Services',
+    'tagline' => 'Hajj Management System',
 
-    'legal_name' => 'Deyar-e-Noor Hajj Umrah & Services (Pvt.) Ltd.',
+    'legal_name' => 'Hajj Database',
 
     'colors' => [
         'gold' => '#B8956A',

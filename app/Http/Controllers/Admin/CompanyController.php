@@ -53,6 +53,10 @@ class CompanyController extends Controller
 
     public function destroy(Company $company)
     {
+        if ($message = $company->deletionBlockedMessage()) {
+            return back()->with('error', $message);
+        }
+
         $this->service->delete($company);
 
         return redirect()->route('admin.companies.index')

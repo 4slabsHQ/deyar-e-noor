@@ -20,11 +20,12 @@ class Pilgrim extends Model
 
     protected $fillable = [
         'hajj_year',
-        'booking_date',
+        'entry_date',
         'form_owner_id',
         'company_id',
         'maktab_category_id',
         'package_id',
+        'qurbani_included',
         'care_off_id',
         'pod_city_id',
         'room_type_id',
@@ -52,6 +53,9 @@ class Pilgrim extends Model
         'family_member_suffix',
         'age',
         'photo_path',
+        'passport_path',
+        'visa_path',
+        'ticket_path',
         'comments',
         'created_by',
         'updated_by',
@@ -61,13 +65,14 @@ class Pilgrim extends Model
     {
         return [
             'hajj_year' => 'integer',
-            'booking_date' => 'date',
+            'entry_date' => 'date',
             'date_of_birth' => 'date',
             'passport_expiry' => 'date',
             'gender' => Gender::class,
             'blood_group' => BloodGroup::class,
             'family_number' => 'integer',
             'age' => 'integer',
+            'qurbani_included' => 'boolean',
         ];
     }
 
@@ -128,18 +133,41 @@ class Pilgrim extends Model
 
     public function flights(): BelongsToMany
     {
-        return $this->belongsToMany(Flight::class)->withTimestamps();
+        return $this->belongsToMany(Flight::class)
+            ->withPivot('assigned_by')
+            ->withTimestamps();
     }
 
     /** @return Attribute<?string, never> */
     protected function photoUrl(): Attribute
     {
-        return Attribute::get(function (): ?string {
-            if (! $this->photo_path || ! Storage::disk('public')->exists($this->photo_path)) {
-                return null;
-            }
+        return Attribute::get(fn (): ?string => $this->publicStorageUrl($this->photo_path));
+    }
 
-            return asset('storage/'.$this->photo_path);
-        });
+    /** @return Attribute<?string, never> */
+    protected function passportUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->publicStorageUrl($this->passport_path));
+    }
+
+    /** @return Attribute<?string, never> */
+    protected function visaUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->publicStorageUrl($this->visa_path));
+    }
+
+    /** @return Attribute<?string, never> */
+    protected function ticketUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->publicStorageUrl($this->ticket_path));
+    }
+
+    protected function publicStorageUrl(?string $path): ?string
+    {
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return asset('storage/'.$path);
     }
 }

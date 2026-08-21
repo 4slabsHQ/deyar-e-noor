@@ -155,7 +155,7 @@ class HajjDemoDataSeeder extends Seeder
 
         $sharedMasters = [
             'hajj_year' => $hajjYear,
-            'booking_date' => now()->toDateString(),
+            'entry_date' => now()->toDateString(),
             'form_owner_id' => $formOwnerSelf->id,
             'maktab_category_id' => $maktabCategory->id,
             'care_off_id' => $careOff->id,
@@ -295,7 +295,7 @@ class HajjDemoDataSeeder extends Seeder
                 'passport_no' => 'DRAFT0001',
             ],
             [
-                'booking_date' => null,
+                'entry_date' => null,
                 'form_owner_id' => null,
                 'company_id' => null,
                 'maktab_category_id' => null,

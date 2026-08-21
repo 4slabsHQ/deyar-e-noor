@@ -49,8 +49,8 @@
             <h2 class="pilgrim-doc-section-title">Registration Details</h2>
             <div class="pilgrim-doc-grid">
                 <div class="pilgrim-doc-field">
-                    <span class="field-label">Booking Date</span>
-                    <span class="field-value">{{ $pilgrim->booking_date?->format('d M Y') ?? '—' }}</span>
+                    <span class="field-label">Entry Date</span>
+                    <span class="field-value">{{ $pilgrim->entry_date?->format('d/m/Y') ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Form Owner</span>
@@ -85,6 +85,10 @@
                             —
                         @endif
                     </span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Qurbani</span>
+                    <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Care Off</span>

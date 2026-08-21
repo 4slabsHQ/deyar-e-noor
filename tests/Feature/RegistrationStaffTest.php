@@ -32,7 +32,7 @@ test('dashboard shows pilgrim stats for users with pilgrims permission', functio
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Total Registrations')
+        ->assertSee('Hajj '.now()->year.' Registrations')
         ->assertSee('Recent Registrations')
         ->assertSee('Ahmed Khan');
 });

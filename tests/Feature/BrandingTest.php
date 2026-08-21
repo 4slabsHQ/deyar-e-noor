@@ -17,21 +17,21 @@ test('admin table actions use semantic hci button classes', function () {
         ->not->toContain('btn-primary shadow btn-xs');
 });
 
-test('login page shows deyar-e-noor branding', function () {
+test('login page shows hajj database branding', function () {
     $response = $this->get(route('login'));
 
     $response->assertOk();
     $response->assertSee('images/logo.png', false);
     $response->assertSee('Welcome back', false);
-    $response->assertSee('DEYAR-E-NOOR', false);
-    $response->assertSee('Hajj Umrah &amp; Services (Pvt) Ltd.', false);
+    $response->assertSee('HAJJ DATABASE', false);
+    $response->assertSee('Hajj Management System', false);
     $response->assertSee('login-brand-panel', false);
     $response->assertSee('deyar-brand.css', false);
     $response->assertSee('login.css', false);
     $response->assertDontSee('login-logo-wrap', false);
 });
 
-test('authenticated dashboard shows deyar-e-noor branding', function () {
+test('authenticated dashboard shows hajj database branding', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
     $user = User::factory()->create();
     $user->assignRole('Super Admin');
@@ -39,8 +39,9 @@ test('authenticated dashboard shows deyar-e-noor branding', function () {
     $response = $this->actingAs($user)->get(route('dashboard'));
 
     $response->assertOk();
-    $response->assertSee('Deyar-e-Noor', false);
+    $response->assertSee('HAJJ DATABASE', false);
+    $response->assertSee('Hajj Management System', false);
     $response->assertSee('deyar-brand.css', false);
-    $response->assertSee('deyar-metric__label', false);
+    $response->assertSee('deyar-dashboard', false);
     $response->assertSee('deyar-panel-card', false);
 });

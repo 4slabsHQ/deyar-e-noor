@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CareOffController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\FlightAssignmentController;
 use App\Http\Controllers\Admin\FlightController;
 use App\Http\Controllers\Admin\FormOwnerController;
 use App\Http\Controllers\Admin\HajjSeasonController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Admin\MehramRelationController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PilgrimController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\UserController;
@@ -21,7 +23,7 @@ use App\Http\Controllers\Admin\WarisRelationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -122,12 +124,63 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         ->middlewareFor(['edit', 'update'], 'permission:flights.update')
         ->middlewareFor('destroy', 'permission:flights.delete');
 
+    Route::get('flight-assignments', [FlightAssignmentController::class, 'index'])
+        ->name('flight-assignments.index')
+        ->middleware('permission:flights.assign');
+
+    Route::get('flight-assignments/{flight}/workspace', [FlightAssignmentController::class, 'workspace'])
+        ->name('flight-assignments.workspace')
+        ->middleware('permission:flights.assign');
+
+    Route::get('flight-assignments/{flight}', [FlightAssignmentController::class, 'show'])
+        ->name('flight-assignments.show')
+        ->middleware('permission:flights.assign');
+
+    Route::post('flight-assignments/{flight}', [FlightAssignmentController::class, 'store'])
+        ->name('flight-assignments.store')
+        ->middleware('permission:flights.assign');
+
+    Route::get('reports', [ReportController::class, 'index'])
+        ->name('reports.index')
+        ->middleware('permission:reports.view');
+
+    Route::get('reports/export/excel', [ReportController::class, 'exportExcel'])
+        ->name('reports.export.excel')
+        ->middleware('permission:reports.export');
+
+    Route::get('reports/export/pdf', [ReportController::class, 'exportPdf'])
+        ->name('reports.export.pdf')
+        ->middleware('permission:reports.export');
+
+    Route::get('reports/export/csv', [ReportController::class, 'exportCsv'])
+        ->name('reports.export.csv')
+        ->middleware('permission:reports.export');
+
+    Route::get('reports/{report}/results', [ReportController::class, 'results'])
+        ->name('reports.results')
+        ->where('report', '[a-z_]+')
+        ->middleware('permission:reports.view');
+
+    Route::get('reports/{report}', [ReportController::class, 'show'])
+        ->name('reports.show')
+        ->where('report', '[a-z_]+')
+        ->middleware('permission:reports.view');
+
+    Route::post('reports/{report}/columns', [ReportController::class, 'saveColumns'])
+        ->name('reports.columns.save')
+        ->where('report', '[a-z_]+')
+        ->middleware('permission:reports.view');
+
     Route::resource('users', UserController::class)
         ->except(['show'])
         ->middlewareFor('index', 'permission:users.view')
         ->middlewareFor(['create', 'store'], 'permission:users.create')
         ->middlewareFor(['edit', 'update'], 'permission:users.update')
         ->middlewareFor('destroy', 'permission:users.delete');
+
+    Route::put('users/{user}/password', [UserController::class, 'updatePassword'])
+        ->name('users.password.update')
+        ->middleware('permission:users.update');
 
     Route::resource('roles', RoleController::class)
         ->middlewareFor(['index', 'show'], 'permission:roles.view')

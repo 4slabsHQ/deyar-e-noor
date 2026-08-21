@@ -67,6 +67,25 @@
     min-height: 2.125rem;
 }
 
+.pilgrim-form textarea#comments {
+    height: auto;
+    min-height: 6.5rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    resize: vertical;
+}
+
+.pilgrim-form-switch {
+    display: flex;
+    align-items: center;
+    min-height: var(--pilgrim-field-height);
+}
+
+.pilgrim-form-switch .form-check-label {
+    font-size: var(--pilgrim-field-font-size);
+    color: #111827;
+}
+
 .hajj-form .form-control:not([type="file"]):not(.ts-wrapper):not(.flight-number-input):focus,
 .hajj-form select.form-control:not(.tomselected):focus,
 .hajj-form textarea.form-control:focus,
@@ -87,9 +106,10 @@
 
 .hajj-form .form-control[readonly],
 .pilgrim-form .form-control[readonly] {
-    background-color: #f9fafb;
+    background-color: #fff;
     color: #111827;
     cursor: default;
+    opacity: 1;
 }
 
 /* Photo upload with preview */
