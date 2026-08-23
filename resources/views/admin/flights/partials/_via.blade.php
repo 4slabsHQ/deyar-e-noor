@@ -21,14 +21,11 @@
 
         <div class="col-lg-2 col-md-3 col-6">
             <label class="form-label" for="via_arrival_date">Arrival Date</label>
-            <input type="date"
-                   name="via_arrival_date"
-                   id="via_arrival_date"
-                   value="{{ old('via_arrival_date', $flightModel?->via_arrival_date?->format('Y-m-d')) }}"
-                   class="form-control @error('via_arrival_date') is-invalid @enderror">
-            @error('via_arrival_date')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
+            <x-admin.date-input
+                name="via_arrival_date"
+                id="via_arrival_date"
+                :value="old('via_arrival_date', $flightModel?->via_arrival_date?->format('Y-m-d'))"
+            />
         </div>
 
         <div class="col-lg-2 col-md-3 col-6">
@@ -73,14 +70,11 @@
 
         <div class="col-lg-2 col-md-3 col-6">
             <label class="form-label" for="via_departure_date">Departure Date</label>
-            <input type="date"
-                   name="via_departure_date"
-                   id="via_departure_date"
-                   value="{{ old('via_departure_date', $flightModel?->via_departure_date?->format('Y-m-d')) }}"
-                   class="form-control @error('via_departure_date') is-invalid @enderror">
-            @error('via_departure_date')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
+            <x-admin.date-input
+                name="via_departure_date"
+                id="via_departure_date"
+                :value="old('via_departure_date', $flightModel?->via_departure_date?->format('Y-m-d'))"
+            />
         </div>
 
         <div class="col-lg-2 col-md-3 col-6">

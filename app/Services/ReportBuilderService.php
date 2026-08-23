@@ -34,6 +34,34 @@ class ReportBuilderService
     }
 
     /**
+     * @param  array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }  $result
+     * @return array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }
+     */
+    public function appendSerialNumbers(array $result): array
+    {
+        $result['headings'] = array_merge(['S.No.'], $result['headings']);
+        $result['rows'] = array_map(
+            fn (array $row, int $index): array => array_merge([(string) ($index + 1)], $row),
+            $result['rows'],
+            array_keys($result['rows']),
+        );
+
+        return $result;
+    }
+
+    /**
      * @param  array<string, array{label: string, group: string}>  $catalog
      * @return array<string, list<array{key: string, label: string}>>
      */
@@ -49,5 +77,29 @@ class ReportBuilderService
         }
 
         return $grouped;
+    }
+
+    /**
+     * @param  array<string, array{label: string, group: string}>  $catalog
+     * @param  list<string>  $groupOrder
+     * @return array<string, list<array{key: string, label: string}>>
+     */
+    public function orderedColumnGroups(array $catalog, array $groupOrder): array
+    {
+        $grouped = $this->groupedColumns($catalog);
+        $ordered = [];
+
+        foreach ($groupOrder as $group) {
+            if (isset($grouped[$group])) {
+                $ordered[$group] = $grouped[$group];
+                unset($grouped[$group]);
+            }
+        }
+
+        foreach ($grouped as $group => $columns) {
+            $ordered[$group] = $columns;
+        }
+
+        return $ordered;
     }
 }

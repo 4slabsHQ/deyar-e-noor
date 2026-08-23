@@ -37,20 +37,46 @@
         });
     }
 
-    function destroyDataTable($table) {
-        if ($table.length && $.fn.DataTable.isDataTable($table)) {
-            $table.DataTable().destroy();
-        }
-    }
+    function destroyResultsTable() {
+        var resultsContainer = getResultsContainer();
 
-    function initWorkspaceTables() {
-        if (!workspaceContainer) {
+        if (!resultsContainer || !$) {
             return;
         }
 
-        $(workspaceContainer).find('table[data-datatable]').each(function () {
+        $(resultsContainer).find('table[data-datatable]').each(function () {
+            if ($.fn.DataTable.isDataTable(this)) {
+                $(this).DataTable().destroy();
+            }
+        });
+    }
+
+    function initResultsTable() {
+        var resultsContainer = getResultsContainer();
+
+        if (!resultsContainer) {
+            return;
+        }
+
+        $(resultsContainer).find('table[data-datatable]').each(function () {
             initDataTable($(this));
         });
+    }
+
+    function getResultsContainer() {
+        if (!workspaceContainer) {
+            return null;
+        }
+
+        return workspaceContainer.querySelector('#flight-assignment-results');
+    }
+
+    function getActiveWorkspace() {
+        if (!workspaceContainer) {
+            return null;
+        }
+
+        return workspaceContainer.querySelector('.flight-assignment-workspace');
     }
 
     function updateSelectedFlightRow(flightId) {
@@ -59,10 +85,150 @@
         });
     }
 
-    function updateUrl(flightId) {
+    function updateBrowserUrl(flightId, filterParams) {
         var url = new URL(window.location.href);
+
         url.searchParams.set('flight', flightId);
+
+        [
+            'company_id',
+            'pod_city_id',
+            'package_id',
+            'form_owner_id',
+            'family_code',
+            'search',
+            'assignment_status',
+        ].forEach(function (key) {
+            url.searchParams.delete(key);
+        });
+
+        if (filterParams) {
+            filterParams.forEach(function (value, key) {
+                if (value !== '') {
+                    url.searchParams.set(key, value);
+                }
+            });
+        }
+
         window.history.replaceState({}, '', url.toString());
+    }
+
+    function buildFilterParams(filterForm) {
+        var params = new URLSearchParams();
+
+        new FormData(filterForm).forEach(function (value, key) {
+            if (value !== '' && !(key === 'assignment_status' && value === 'all')) {
+                params.append(key, value);
+            }
+        });
+
+        return params;
+    }
+
+    function setApplyingFilters(isApplying) {
+        var workspace = getActiveWorkspace();
+
+        if (!workspace) {
+            return;
+        }
+
+        workspace.querySelectorAll('[data-workspace-apply-filters]').forEach(function (button) {
+            button.disabled = isApplying;
+            button.textContent = isApplying ? 'Applying…' : 'Apply';
+        });
+    }
+
+    function resetFilterForm(filterForm) {
+        filterForm.querySelectorAll('input[type="text"]').forEach(function (input) {
+            input.value = '';
+        });
+
+        filterForm.querySelectorAll('select').forEach(function (select) {
+            select.value = select.name === 'assignment_status' ? 'all' : '';
+
+            if (window.AdminForm) {
+                window.AdminForm.syncTomSelect(select);
+            }
+        });
+    }
+
+    function parseJsonResponse(response) {
+        var contentType = response.headers.get('content-type') || '';
+
+        if (contentType.indexOf('application/json') === -1) {
+            throw new Error('Could not refresh hujaj results. Please refresh the page and try again.');
+        }
+
+        return response.json();
+    }
+
+    function updateResultsCount(count) {
+        var workspace = getActiveWorkspace();
+
+        if (!workspace) {
+            return;
+        }
+
+        workspace.querySelectorAll('[data-flight-results-count]').forEach(function (label) {
+            label.textContent = Number(count).toLocaleString() + ' rows';
+        });
+    }
+
+    function loadResults(filterForm) {
+        var workspace = filterForm.closest('.flight-assignment-workspace');
+        var resultsContainer = getResultsContainer();
+        var resultsUrl = workspace ? workspace.getAttribute('data-results-url') : null;
+        var flightId = workspace ? workspace.getAttribute('data-flight-id') : null;
+
+        if (!workspace || !resultsContainer || !resultsUrl || !flightId) {
+            return;
+        }
+
+        setApplyingFilters(true);
+        destroyResultsTable();
+        resultsContainer.innerHTML = '<div class="text-muted py-4 text-center">Loading hujaj…</div>';
+
+        var params = buildFilterParams(filterForm);
+        var requestUrl = resultsUrl + (params.toString() ? '?' + params.toString() : '');
+
+        fetch(requestUrl, {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                Accept: 'application/json',
+            },
+        })
+            .then(function (response) {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('You do not have permission to manage flight assignments.');
+                }
+
+                if (!response.ok) {
+                    throw new Error('Could not refresh hujaj results.');
+                }
+
+                return parseJsonResponse(response);
+            })
+            .then(function (data) {
+                if (!data || !data.html) {
+                    throw new Error('Could not refresh hujaj results.');
+                }
+
+                resultsContainer.innerHTML = data.html;
+                initResultsTable();
+                initBulkFormHandlers();
+                updateResultsCount(typeof data.count === 'number' ? data.count : 0);
+                updateBrowserUrl(flightId, params);
+            })
+            .catch(function (error) {
+                resultsContainer.innerHTML =
+                    '<div class="alert alert-danger mb-0">' +
+                    (error.message || 'Could not refresh hujaj results. Please try again.') +
+                    '</div>';
+            })
+            .finally(function () {
+                setApplyingFilters(false);
+            });
     }
 
     function loadWorkspace(url, flightId) {
@@ -84,10 +250,11 @@
             .then(function (html) {
                 workspaceContainer.innerHTML = html;
                 updateSelectedFlightRow(flightId);
-                updateUrl(flightId);
+                updateBrowserUrl(flightId, null);
                 initBulkFormHandlers();
-                initWorkspaceTables();
+                initResultsTable();
                 initWorkspaceFilterForms();
+                initWorkspaceSelects();
             })
             .catch(function () {
                 workspaceContainer.innerHTML = '<div class="alert alert-danger mb-0">Could not load assignment workspace. Please try again.</div>';
@@ -262,33 +429,26 @@
         syncSubmitState();
     }
 
+    function initWorkspaceSelects() {
+        if (!workspaceContainer || !window.AdminForm || !window.AdminForm.initFormSelects) {
+            return;
+        }
+
+        window.AdminForm.initFormSelects(workspaceContainer);
+    }
+
     function initWorkspaceFilterForms() {
         workspaceContainer.querySelectorAll('[data-workspace-filter-form]').forEach(function (filterForm) {
             filterForm.addEventListener('submit', function (event) {
                 event.preventDefault();
-
-                var workspace = filterForm.closest('.flight-assignment-workspace');
-                var flightId = workspace ? workspace.getAttribute('data-flight-id') : null;
-                var url = new URL(filterForm.action, window.location.origin);
-                var params = new URLSearchParams(new FormData(filterForm));
-
-                params.forEach(function (value, key) {
-                    url.searchParams.set(key, value);
-                });
-
-                loadWorkspace(url.toString(), flightId);
+                loadResults(filterForm);
             });
 
             var clearButton = filterForm.querySelector('[data-workspace-clear-filters]');
             if (clearButton) {
                 clearButton.addEventListener('click', function () {
-                    var workspace = filterForm.closest('.flight-assignment-workspace');
-                    var flightId = workspace ? workspace.getAttribute('data-flight-id') : null;
-                    var url = workspace ? workspace.getAttribute('data-workspace-url') : null;
-
-                    if (url) {
-                        loadWorkspace(url, flightId);
-                    }
+                    resetFilterForm(filterForm);
+                    loadResults(filterForm);
                 });
             }
         });
@@ -308,6 +468,7 @@
     });
 
     initBulkFormHandlers();
-    initWorkspaceTables();
+    initResultsTable();
     initWorkspaceFilterForms();
+    initWorkspaceSelects();
 })(jQuery);

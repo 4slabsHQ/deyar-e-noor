@@ -7,7 +7,8 @@
 
         <title>{{ config('app.name') }} — Login</title>
 
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="{{ asset(config('branding.logo')) }}" type="image/png">
+        <link rel="apple-touch-icon" href="{{ asset(config('branding.logo')) }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
         <link href="{{ asset('css/deyar-brand.css') }}" rel="stylesheet">
@@ -19,7 +20,7 @@
                 <div class="login-brand-shape"></div>
 
                 <div class="login-brand-inner">
-                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('branding.title') }}" class="login-brand-logo">
+                    <img src="{{ asset(config('branding.logo')) }}" alt="{{ config('branding.title') }}" class="login-brand-logo">
                     <h1 class="login-brand-title">{{ config('branding.title') }}</h1>
                     <p class="login-brand-subtitle">{{ config('branding.subtitle') }}</p>
                 </div>

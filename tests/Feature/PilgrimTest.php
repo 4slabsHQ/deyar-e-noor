@@ -642,6 +642,12 @@ test('pilgrim registration validates passport format', function () {
     ]))->assertSessionHasErrors('passport_no');
 });
 
+test('pilgrim registration rejects date of birth with more than four digit year', function () {
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
+        'date_of_birth' => '202456-03-15',
+    ]))->assertSessionHasErrors('date_of_birth');
+});
+
 test('pilgrim registration normalizes cnic without dashes', function () {
     $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
         'cnic' => '3520112345671',

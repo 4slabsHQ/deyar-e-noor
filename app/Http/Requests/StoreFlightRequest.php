@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\FlightDirection;
 use App\Enums\FlightType;
 use App\Models\Airport;
+use App\Rules\FourDigitYearDate;
 use App\Services\FlightService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -112,21 +113,21 @@ class StoreFlightRequest extends FormRequest
             'departure_airport_id' => ['required', Rule::exists('airports', 'id')],
             'departure_airline_id' => ['required', Rule::exists('airlines', 'id')],
             'departure_flight_number' => ['required', 'string', 'max:10', 'regex:/^[A-Z0-9]+$/'],
-            'departure_date' => ['required', 'date'],
+            'departure_date' => ['required', new FourDigitYearDate],
             'departure_time' => ['required', 'date_format:H:i'],
 
             'via_city_id' => [$isIndirect ? 'required' : 'nullable', Rule::exists('cities', 'id')],
             'via_airport_id' => [$isIndirect ? 'required' : 'nullable', Rule::exists('airports', 'id')],
-            'via_arrival_date' => [$isIndirect ? 'required' : 'nullable', 'date'],
+            'via_arrival_date' => [$isIndirect ? 'required' : 'nullable', new FourDigitYearDate],
             'via_arrival_time' => [$isIndirect ? 'required' : 'nullable', 'date_format:H:i'],
             'via_airline_id' => [$isIndirect ? 'required' : 'nullable', Rule::exists('airlines', 'id')],
             'via_departure_flight_number' => [$isIndirect ? 'required' : 'nullable', 'string', 'max:10', 'regex:/^[A-Z0-9]+$/'],
-            'via_departure_date' => [$isIndirect ? 'required' : 'nullable', 'date', 'after_or_equal:via_arrival_date'],
+            'via_departure_date' => [$isIndirect ? 'required' : 'nullable', new FourDigitYearDate, 'after_or_equal:via_arrival_date'],
             'via_departure_time' => [$isIndirect ? 'required' : 'nullable', 'date_format:H:i'],
 
             'arrival_city_id' => ['required', Rule::exists('cities', 'id')],
             'arrival_airport_id' => ['required', Rule::exists('airports', 'id')],
-            'arrival_date' => ['required', 'date', 'after_or_equal:departure_date'],
+            'arrival_date' => ['required', new FourDigitYearDate, 'after_or_equal:departure_date'],
             'arrival_time' => ['required', 'date_format:H:i'],
         ];
     }

@@ -6,6 +6,8 @@ return [
 
     'subtitle' => 'Hajj Management System',
 
+    'logo' => 'images/logo.png',
+
     'tagline' => 'Hajj Management System',
 
     'legal_name' => 'Hajj Database',

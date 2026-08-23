@@ -1,6 +1,6 @@
 <div class="nav-header">
     <a href="{{ route('dashboard') }}" class="brand-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="{{ config('branding.title') }}" class="logo-abbr">
+        <img src="{{ asset(config('branding.logo')) }}" alt="{{ config('branding.title') }}" class="logo-abbr">
         <div class="brand-title">
             <h2>{{ config('branding.title') }}</h2>
             <span class="brand-sub-title">{{ config('branding.subtitle') }}</span>

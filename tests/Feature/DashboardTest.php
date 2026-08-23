@@ -56,6 +56,69 @@ test('dashboard shows quota metrics for users with company access', function () 
         ->assertDontSee('Registrations (Last 6 Months)');
 });
 
+test('dashboard lists package utilisation in package number order', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Super Admin');
+
+    $company = Company::factory()->create();
+
+    $packageThree = Package::create([
+        'number' => 'PKG-003',
+        'name' => 'Package Three',
+        'price' => 850000,
+        'days' => 21,
+        'qurbani_included' => true,
+        'duration' => PackageDuration::Long,
+        'limit' => 10,
+        'is_active' => true,
+    ]);
+
+    $packageOne = Package::create([
+        'number' => 'PKG-001',
+        'name' => 'Package One',
+        'price' => 850000,
+        'days' => 21,
+        'qurbani_included' => true,
+        'duration' => PackageDuration::Long,
+        'limit' => 10,
+        'is_active' => true,
+    ]);
+
+    $packageTwo = Package::create([
+        'number' => 'PKG-002',
+        'name' => 'Package Two',
+        'price' => 850000,
+        'days' => 21,
+        'qurbani_included' => true,
+        'duration' => PackageDuration::Long,
+        'limit' => 10,
+        'is_active' => true,
+    ]);
+
+    foreach ([$packageThree, $packageOne, $packageTwo] as $package) {
+        Pilgrim::query()->create([
+            'company_id' => $company->id,
+            'package_id' => $package->id,
+            'hajj_year' => now()->year,
+        ]);
+    }
+
+    Pilgrim::query()->create([
+        'company_id' => $company->id,
+        'package_id' => $packageThree->id,
+        'hajj_year' => now()->year,
+    ]);
+
+    $content = $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->getContent();
+
+    expect($content)->toContain('Package Limit Utilisation')
+        ->and(strpos($content, 'Package One'))->toBeLessThan(strpos($content, 'Package Two'))
+        ->and(strpos($content, 'Package Two'))->toBeLessThan(strpos($content, 'Package Three'));
+});
+
 test('dashboard shows package and form owner utilisation when limits are configured', function () {
     $user = User::factory()->create();
     $user->assignRole('Super Admin');

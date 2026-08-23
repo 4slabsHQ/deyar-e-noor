@@ -38,7 +38,7 @@ class ReportController extends Controller
             : $this->resolveInitialColumns($request, $definition);
 
         $result = $request->shouldRun()
-            ? $builder->build($definition, $columns, $filters)
+            ? $builder->appendSerialNumbers($builder->build($definition, $columns, $filters))
             : null;
 
         $columnCatalog = $definition->columnCatalog();
@@ -46,14 +46,10 @@ class ReportController extends Controller
         return view('admin.reports.show', [
             'reportKey' => $definition->key(),
             'reportLabel' => $definition->label(),
-            'columnOptions' => collect($columnCatalog)
-                ->map(fn (array $column, string $key): array => [
-                    'key' => $key,
-                    'label' => $column['label'],
-                ])
-                ->sortBy('label')
-                ->values()
-                ->all(),
+            'columnGroups' => $builder->orderedColumnGroups(
+                $columnCatalog,
+                $definition->columnGroupOrder(),
+            ),
             'selectedColumns' => $columns,
             'filters' => $filters,
             'activeYear' => $hajjSeasonService->activeYear(),
@@ -64,6 +60,9 @@ class ReportController extends Controller
             'exportQuery' => $result
                 ? $this->exportQuery($definition, $columns, $filters)
                 : [],
+            'resultView' => $result
+                ? $this->resultViewData($definition, $columns, $filters, $result)
+                : null,
         ]);
     }
 
@@ -88,7 +87,7 @@ class ReportController extends Controller
         $definition = $this->resolveDefinition($registry, $report);
         $filters = $definition->normalizeFilters($request->filters());
         $columns = $request->selectedColumns();
-        $result = $builder->build($definition, $columns, $filters);
+        $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
         $viewData = $this->resultViewData($definition, $columns, $filters, $result);
 
         return response()->json([
@@ -123,10 +122,12 @@ class ReportController extends Controller
         $definition = $registry->get($request->reportKey());
         $filters = $definition->normalizeFilters($request->filters());
         $columns = $request->selectedColumns();
-        $result = $builder->build($definition, $columns, $filters);
+        $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
+        $defaultTitle = $this->defaultReportTitle($definition, $filters);
+        $title = $request->reportTitle($defaultTitle);
         $filename = sprintf('%s-%s.csv', $definition->key(), $filters['hajj_year']);
 
-        return $exportService->toCsv($result['headings'], $result['rows'], $filename);
+        return $exportService->toCsv($title, $result['headings'], $result['rows'], $filename);
     }
 
     private function export(
@@ -139,8 +140,9 @@ class ReportController extends Controller
         $definition = $registry->get($request->reportKey());
         $filters = $definition->normalizeFilters($request->filters());
         $columns = $request->selectedColumns();
-        $result = $builder->build($definition, $columns, $filters);
-        $title = $definition->label().' — Hajj '.$filters['hajj_year'];
+        $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
+        $defaultTitle = $this->defaultReportTitle($definition, $filters);
+        $title = $request->reportTitle($defaultTitle);
         $filename = sprintf('%s-%s.%s', $definition->key(), $filters['hajj_year'], $format === 'pdf' ? 'pdf' : 'xls');
 
         return $format === 'pdf'
@@ -209,7 +211,14 @@ class ReportController extends Controller
             'result' => $result,
             'exportQuery' => $this->exportQuery($definition, $columns, $filters),
             'reportLabel' => $definition->label(),
+            'defaultReportTitle' => $this->defaultReportTitle($definition, $filters),
         ];
+    }
+
+    /** @param  array<string, mixed>  $filters */
+    private function defaultReportTitle(ReportDefinition $definition, array $filters): string
+    {
+        return $definition->label().' — Hajj '.$filters['hajj_year'];
     }
 
     /** @param  array<string, mixed>  $filters */

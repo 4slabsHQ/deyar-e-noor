@@ -1,7 +1,7 @@
-<div class="card admin-index-card" data-report-title="{{ $reportLabel }}">
+<div class="card admin-index-card" data-default-report-title="{{ $defaultReportTitle }}">
     @php
         $printData = [
-            'title' => $reportLabel,
+            'title' => $defaultReportTitle,
             'meta' => number_format($result['total']).' rows',
             'headings' => $result['headings'],
             'rows' => $result['rows'],
@@ -15,8 +15,8 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             @can('reports.export')
-                <a href="{{ route('admin.reports.export.excel', $exportQuery) }}" class="btn btn-outline-primary btn-sm">Excel</a>
-                <a href="{{ route('admin.reports.export.pdf', $exportQuery) }}" class="btn btn-outline-primary btn-sm">PDF</a>
+                <a href="{{ route('admin.reports.export.excel', $exportQuery) }}" class="btn btn-outline-primary btn-sm" data-report-export>Excel</a>
+                <a href="{{ route('admin.reports.export.pdf', $exportQuery) }}" class="btn btn-outline-primary btn-sm" data-report-export>PDF</a>
             @endcan
             <button type="button" class="btn btn-outline-secondary btn-sm" data-report-print>Print</button>
         </div>
@@ -31,7 +31,7 @@
                 <thead>
                     <tr>
                         @foreach ($result['headings'] as $heading)
-                            <th>{{ $heading }}</th>
+                            <th @class(['no-sort report-serial-column' => $heading === 'S.No.'])>{{ $heading }}</th>
                         @endforeach
                     </tr>
                 </thead>

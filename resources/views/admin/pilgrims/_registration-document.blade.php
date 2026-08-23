@@ -3,7 +3,7 @@
     $companyCode = $pilgrim->company?->code;
     $companyLogoUrl = $pilgrim->company?->logo
         ? Storage::url($pilgrim->company->logo)
-        : asset('images/logo.png');
+        : asset(config('branding.logo'));
     $companyLogoAlt = $pilgrim->company?->name ?? config('branding.title');
 @endphp
 

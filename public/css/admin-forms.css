@@ -27,7 +27,9 @@
 }
 
 .admin-form-label,
-.admin-form .col-form-label {
+.admin-form .col-form-label,
+.admin-form .form-label,
+.pilgrim-form .form-label {
     font-size: var(--admin-label-size);
     font-weight: 500;
     color: var(--admin-label);
@@ -657,6 +659,14 @@ table.dataTable.admin-index-table .dataTables_empty,
     max-width: 100%;
 }
 
+.flight-assignment-filters-card .flight-assignment-context {
+    margin-bottom: 1rem;
+}
+
+.flight-assignment-results-card .card-body {
+    padding-top: 1rem;
+}
+
 .flight-assignment-context {
     word-break: break-word;
 }
@@ -810,12 +820,36 @@ table.dataTable.admin-index-table .dataTables_empty,
     max-width: 100%;
 }
 
+.reports-page .admin-form [class*="col-"] {
+    min-width: 0;
+}
+
+.reports-page .admin-form .ts-wrapper,
+.reports-page .admin-form select.form-control:not(.tomselected),
+.reports-page .admin-form input.form-control {
+    width: 100%;
+    max-width: 100%;
+}
+
+.report-columns-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.report-column-group-title {
+    margin-bottom: 0.2rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
 .report-columns-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
     gap: 0.35rem 0.75rem;
-    max-height: 12rem;
-    overflow-y: auto;
 }
 
 .report-column-check {
@@ -864,4 +898,33 @@ table.dataTable.report-results-table tbody td {
 
 .report-results-table {
     min-width: 100%;
+}
+
+.report-results-table-wrap .report-serial-column,
+table.dataTable.report-results-table .report-serial-column {
+    width: 3.5rem;
+    min-width: 3.5rem;
+    max-width: 3.5rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.report-results-table-wrap .dataTables_paginate,
+.report-results-table-wrap .dataTables_length {
+    display: none !important;
+}
+
+.flight-assignment-hujaj-table-wrap .flight-serial-column,
+table.dataTable.flight-assignment-hujaj-table .flight-serial-column {
+    width: 3.5rem;
+    min-width: 3.5rem;
+    max-width: 3.5rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.flight-assignment-hujaj-table-wrap .dataTables_paginate,
+.flight-assignment-hujaj-table-wrap .dataTables_length,
+.flight-assignment-hujaj-table-wrap .dataTables_info {
+    display: none !important;
 }

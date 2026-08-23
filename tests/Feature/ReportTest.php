@@ -2,9 +2,11 @@
 
 use App\Enums\Gender;
 use App\Enums\HajjSeasonStatus;
+use App\Enums\PackageDuration;
 use App\Models\Company;
 use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
+use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\User;
 use App\Reports\Definitions\HajjRegistrationReportDefinition;
@@ -127,6 +129,7 @@ it('generates a report with selected columns and filters', function () {
         ]))
         ->assertOk()
         ->assertJsonStructure(['html'])
+        ->assertSee('S.No.', false)
         ->assertSee('Selected Column Pilgrim', false);
 });
 
@@ -148,7 +151,30 @@ it('exports generated report to csv', function () {
 
     expect($response->streamedContent())
         ->toContain('CSV Export Pilgrim')
+        ->toContain('Hajj Registration')
+        ->toContain('S.No.')
         ->toContain('Full Name');
+});
+
+it('exports generated report to excel with a custom title', function () {
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Excel Export Pilgrim',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.excel', [
+            'report' => 'hajj_registration',
+            'columns' => ['full_name'],
+            'hajj_year' => $this->activeYear,
+            'report_title' => 'Company Wise Summary',
+        ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
+
+    expect($response->getContent())->toContain('Company Wise Summary')
+        ->toContain('Excel Export Pilgrim');
 });
 
 it('exports generated report to excel', function () {
@@ -167,7 +193,52 @@ it('exports generated report to excel', function () {
     $response->assertOk()
         ->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
 
-    expect($response->getContent())->toContain('Excel Export Pilgrim');
+    $content = $response->getContent();
+
+    expect($content)->toContain('Excel Export Pilgrim')
+        ->toContain('S.No.')
+        ->toStartWith("\xEF\xBB\xBF");
+});
+
+it('exports blank cells for null values in excel', function () {
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'surname' => 'RABIA',
+        'given_name' => null,
+        'full_name' => 'RABIA',
+        'passport_no' => null,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.excel', [
+            'report' => 'hajj_registration',
+            'columns' => ['surname', 'given_name', 'passport_no'],
+            'hajj_year' => $this->activeYear,
+        ]));
+
+    $content = $response->getContent();
+
+    expect($content)->toContain('RABIA')
+        ->not->toContain('—')
+        ->not->toContain('â€');
+});
+
+it('exports generated report to pdf with a custom title', function () {
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'PDF Title Pilgrim',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.pdf', [
+            'report' => 'hajj_registration',
+            'columns' => ['full_name'],
+            'hajj_year' => $this->activeYear,
+            'report_title' => 'Filtered Pilgrim List',
+        ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
 });
 
 it('exports generated report to pdf', function () {
@@ -200,8 +271,56 @@ it('denies exports without export permission', function () {
         ->assertForbidden();
 });
 
+it('groups report columns by registration form sections', function () {
+    $content = $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', HajjRegistrationReportDefinition::KEY))
+        ->assertOk()
+        ->getContent();
+
+    expect($content)->toMatch('/report-column-group-title">Registration<\/div>[\s\S]*report-column-group-title">Personal Details<\/div>[\s\S]*report-column-group-title">Passport &amp; Contact<\/div>[\s\S]*report-column-group-title">Mehram &amp; Waris<\/div>[\s\S]*report-column-group-title">Family &amp; Association<\/div>[\s\S]*report-column-group-title">Comments<\/div>/');
+    expect($content)->toMatch('/id="column-hajj_year"[\s\S]*id="column-form_owner"[\s\S]*id="column-gender"[\s\S]*id="column-passport_no"[\s\S]*id="column-mehram_name"[\s\S]*id="column-family_code"/');
+});
+
+it('shows All as the default option on report filter selects', function () {
+    Company::factory()->create(['name' => 'Filter Company']);
+    Package::factory()->create(['name' => 'Filter Package']);
+
+    $content = $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', HajjRegistrationReportDefinition::KEY))
+        ->assertOk()
+        ->getContent();
+
+    foreach (['company_id', 'package_id', 'maktab_category_id', 'form_owner_id', 'pod_city_id', 'care_off_id', 'gender'] as $field) {
+        expect($content)->toMatch('/id="'.$field.'"[\s\S]*?<option value=""[\s\S]*?selected[\s\S]*?>All<\/option>/');
+    }
+});
+
+it('shows detailed package labels in report filters', function () {
+    $package = Package::factory()->create([
+        'number' => 'PKG-RPT',
+        'name' => 'Report Package',
+        'price' => 500000,
+        'days' => 14,
+        'duration' => PackageDuration::Short,
+        'qurbani_included' => true,
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'package_id' => $package->id,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', HajjRegistrationReportDefinition::KEY))
+        ->assertOk()
+        ->assertSee($package->registrationOptionLabel(), false);
+});
+
 it('includes maktab column when selected', function () {
-    $maktab = MaktabCategory::factory()->create(['name' => 'Mina Zone']);
+    $maktab = MaktabCategory::factory()->create([
+        'name' => 'Category C',
+        'zone' => 'Zone 5',
+    ]);
 
     Pilgrim::factory()->create([
         'hajj_year' => $this->activeYear,
@@ -216,5 +335,5 @@ it('includes maktab column when selected', function () {
         ]))
         ->assertOk()
         ->assertSee('Maktab Column Pilgrim', false)
-        ->assertSee('Mina Zone', false);
+        ->assertSee('Category C (Zone 5)', false);
 });

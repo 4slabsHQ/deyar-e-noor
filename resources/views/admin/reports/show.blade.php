@@ -4,6 +4,10 @@
 @section('page-title', $reportLabel)
 
 @section('content')
+    @push('styles')
+        <link href="{{ asset('css/pilgrim-form.css') }}" rel="stylesheet">
+    @endpush
+
     <div class="admin-index-page reports-page"
          id="reports-page"
          data-results-url="{{ route('admin.reports.results', $reportKey) }}">
@@ -22,7 +26,7 @@
             <h4 class="admin-index-title mb-0">{{ $reportLabel }}</h4>
         </div>
 
-        <form method="GET" action="{{ route('admin.reports.show', $reportKey) }}" id="report-builder-form">
+        <form method="GET" action="{{ route('admin.reports.show', $reportKey) }}" id="report-builder-form" class="admin-form pilgrim-form">
             <input type="hidden" name="run" value="1">
 
             <div class="card admin-index-card mb-4">
@@ -35,16 +39,23 @@
                     </div>
                 </div>
                 <div class="card-body pt-3 pb-3">
-                    <div class="report-columns-grid">
-                        @foreach ($columnOptions as $column)
-                            <div class="form-check report-column-check">
-                                <input type="checkbox"
-                                       class="form-check-input report-column-checkbox"
-                                       name="columns[]"
-                                       value="{{ $column['key'] }}"
-                                       id="column-{{ $column['key'] }}"
-                                       @checked(in_array($column['key'], $selectedColumns, true))>
-                                <label class="form-check-label" for="column-{{ $column['key'] }}">{{ $column['label'] }}</label>
+                    <div class="report-columns-panel">
+                        @foreach ($columnGroups as $group => $columns)
+                            <div class="report-column-group">
+                                <div class="report-column-group-title">{{ $group }}</div>
+                                <div class="report-columns-grid">
+                                    @foreach ($columns as $column)
+                                        <div class="form-check report-column-check">
+                                            <input type="checkbox"
+                                                   class="form-check-input report-column-checkbox"
+                                                   name="columns[]"
+                                                   value="{{ $column['key'] }}"
+                                                   id="column-{{ $column['key'] }}"
+                                                   @checked(in_array($column['key'], $selectedColumns, true))>
+                                            <label class="form-check-label" for="column-{{ $column['key'] }}">{{ $column['label'] }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -67,76 +78,48 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="company_id" class="admin-form-label">Company</label>
-                            <select name="company_id" id="company_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['companies'] as $company)
-                                    <option value="{{ $company->id }}" @selected((string) ($filters['company_id'] ?? '') === (string) $company->id)>{{ $company->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="package_id" class="admin-form-label">Package</label>
-                            <select name="package_id" id="package_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['packages'] as $package)
-                                    <option value="{{ $package->id }}" @selected((string) ($filters['package_id'] ?? '') === (string) $package->id)>{{ $package->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="maktab_category_id" class="admin-form-label">Maktab</label>
-                            <select name="maktab_category_id" id="maktab_category_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['maktabCategories'] as $maktab)
-                                    <option value="{{ $maktab->id }}" @selected((string) ($filters['maktab_category_id'] ?? '') === (string) $maktab->id)>{{ $maktab->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="form_owner_id" class="admin-form-label">Form Owner</label>
-                            <select name="form_owner_id" id="form_owner_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['formOwners'] as $formOwner)
-                                    <option value="{{ $formOwner->id }}" @selected((string) ($filters['form_owner_id'] ?? '') === (string) $formOwner->id)>{{ $formOwner->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="pod_city_id" class="admin-form-label">POD</label>
-                            <select name="pod_city_id" id="pod_city_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['podCities'] as $city)
-                                    <option value="{{ $city->id }}" @selected((string) ($filters['pod_city_id'] ?? '') === (string) $city->id)>{{ $city->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="care_off_id" class="admin-form-label">Care Off</label>
-                            <select name="care_off_id" id="care_off_id" class="form-control">
-                                <option value="">All</option>
-                                @foreach ($filterOptions['careOffs'] as $careOff)
-                                    <option value="{{ $careOff->id }}" @selected((string) ($filters['care_off_id'] ?? '') === (string) $careOff->id)>{{ $careOff->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="gender" class="admin-form-label">Gender</label>
-                            <select name="gender" id="gender" class="form-control">
-                                <option value="">All</option>
-                                @foreach (\App\Enums\Gender::cases() as $gender)
-                                    <option value="{{ $gender->value }}" @selected(($filters['gender'] ?? '') === $gender->value)>{{ $gender->label() }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <x-admin.filter-select name="company_id" label="Company" :selected="$filters['company_id'] ?? ''">
+                            @foreach ($filterOptions['companies'] as $company)
+                                <option value="{{ $company->id }}" @selected((string) ($filters['company_id'] ?? '') === (string) $company->id)>{{ $company->name }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
+                        <x-admin.package-select
+                            :packages="$filterOptions['packages']"
+                            :selected="$filters['package_id'] ?? ''"
+                            filter-mode
+                        />
+                        <x-admin.filter-select name="maktab_category_id" label="Maktab" :selected="$filters['maktab_category_id'] ?? ''">
+                            @foreach ($filterOptions['maktabCategories'] as $maktab)
+                                <option value="{{ $maktab->id }}" @selected((string) ($filters['maktab_category_id'] ?? '') === (string) $maktab->id)>{{ $maktab->name }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
+                        <x-admin.filter-select name="form_owner_id" label="Form Owner" :selected="$filters['form_owner_id'] ?? ''">
+                            @foreach ($filterOptions['formOwners'] as $formOwner)
+                                <option value="{{ $formOwner->id }}" @selected((string) ($filters['form_owner_id'] ?? '') === (string) $formOwner->id)>{{ $formOwner->name }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
+                        <x-admin.filter-select name="pod_city_id" label="POD" :selected="$filters['pod_city_id'] ?? ''">
+                            @foreach ($filterOptions['podCities'] as $city)
+                                <option value="{{ $city->id }}" @selected((string) ($filters['pod_city_id'] ?? '') === (string) $city->id)>{{ $city->name }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
+                        <x-admin.filter-select name="care_off_id" label="Care Off" :selected="$filters['care_off_id'] ?? ''">
+                            @foreach ($filterOptions['careOffs'] as $careOff)
+                                <option value="{{ $careOff->id }}" @selected((string) ($filters['care_off_id'] ?? '') === (string) $careOff->id)>{{ $careOff->name }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
+                        <x-admin.filter-select name="gender" label="Gender" :selected="$filters['gender'] ?? ''" :searchable="false">
+                            @foreach (\App\Enums\Gender::cases() as $gender)
+                                <option value="{{ $gender->value }}" @selected(($filters['gender'] ?? '') === $gender->value)>{{ $gender->label() }}</option>
+                            @endforeach
+                        </x-admin.filter-select>
                         <div class="col-lg-2 col-md-4">
                             <label for="entry_from" class="admin-form-label">Entry From</label>
-                            <input type="date" name="entry_from" id="entry_from" class="form-control" value="{{ $filters['entry_from'] ?? '' }}">
+                            <x-admin.date-input name="entry_from" id="entry_from" :value="$filters['entry_from'] ?? ''" />
                         </div>
                         <div class="col-lg-2 col-md-4">
                             <label for="entry_to" class="admin-form-label">Entry To</label>
-                            <input type="date" name="entry_to" id="entry_to" class="form-control" value="{{ $filters['entry_to'] ?? '' }}">
+                            <x-admin.date-input name="entry_to" id="entry_to" :value="$filters['entry_to'] ?? ''" />
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label for="search" class="admin-form-label">Search</label>
@@ -162,17 +145,32 @@
         </form>
 
         <div id="report-results">
-            @if ($result)
-                @include('admin.reports._results', [
-                    'result' => $result,
-                    'exportQuery' => $exportQuery,
-                    'reportLabel' => $reportLabel,
-                ])
+            @if ($resultView)
+                @include('admin.reports._results', $resultView)
             @endif
+        </div>
+
+        <div class="modal fade" id="report-title-modal" tabindex="-1" aria-labelledby="report-title-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="report-title-modal-label">Report Title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="report-title-input" class="admin-form-label">Title to show on the report</label>
+                        <input type="text" id="report-title-input" class="form-control" maxlength="150" placeholder="Enter report title">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="report-title-confirm">Continue</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/reports.js') }}?v=14"></script>
+    <script src="{{ asset('js/reports.js') }}?v=16"></script>
 @endpush

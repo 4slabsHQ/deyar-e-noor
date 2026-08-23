@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\FormOwner;
 use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Rules\FourDigitYearDate;
 use App\Services\HajjSeasonService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -323,7 +324,7 @@ class StorePilgrimRequest extends FormRequest
     {
         return [
             'hajj_year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'entry_date' => ['nullable', 'date'],
+            'entry_date' => ['nullable', new FourDigitYearDate],
             'form_owner_id' => ['nullable', Rule::exists('form_owners', 'id')],
             'company_id' => ['nullable', Rule::exists('companies', 'id')],
             'maktab_category_id' => ['nullable', Rule::exists('maktab_categories', 'id')],
@@ -344,9 +345,9 @@ class StorePilgrimRequest extends FormRequest
                     ->where(fn ($query) => $query->where('hajj_year', $this->input('hajj_year')))
                     ->ignore($pilgrimId),
             ],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'date_of_birth' => ['nullable', new FourDigitYearDate, 'before:today'],
             'birth_place' => ['nullable', 'string', 'max:150'],
-            'passport_expiry' => ['nullable', 'date', 'after:today'],
+            'passport_expiry' => ['nullable', new FourDigitYearDate, 'after:today'],
             'address' => ['nullable', 'string', 'max:500'],
             'mobile' => ['nullable', 'string', 'max:20'],
             'cnic' => [

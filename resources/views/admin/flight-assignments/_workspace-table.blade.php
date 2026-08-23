@@ -19,9 +19,10 @@
                         <th class="no-sort assignment-check-col">
                             <input type="checkbox"
                                    class="form-check-input select-all-checkbox"
-                                   aria-label="Select all actionable hujaj on this page"
+                                   aria-label="Select all actionable hujaj"
                                    title="Select all hujaj that can be assigned or removed">
                         </th>
+                        <th class="no-sort flight-serial-column">S.No.</th>
                         <th>Name</th>
                         <th>Passport</th>
                         <th>Family</th>
@@ -45,6 +46,7 @@
                                     <span class="text-muted" aria-hidden="true">—</span>
                                 @endif
                             </td>
+                            <td class="flight-serial-column text-muted">{{ $loop->iteration }}</td>
                             <td class="fw-medium">{{ $pilgrim->full_name }}</td>
                             <td>{{ $pilgrim->passport_no }}</td>
                             <td>{{ $pilgrim->family_code }}</td>

@@ -87,6 +87,15 @@ class Company extends Model
         return max(0, $this->quota - $this->registeredPilgrimCountForYear($hajjYear, $excludingPilgrimId));
     }
 
+    public function registrationOptionLabel(): string
+    {
+        if (filled($this->munazzam_code)) {
+            return $this->name.' ('.$this->munazzam_code.')';
+        }
+
+        return $this->name;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Scopes

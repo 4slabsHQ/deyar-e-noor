@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Services\FlightAssignmentService;
 use App\Services\HajjSeasonService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -63,6 +64,16 @@ class FlightAssignmentController extends Controller
     public function workspace(Request $request, Flight $flight, FlightAssignmentService $assignmentService, HajjSeasonService $hajjSeasonService): View
     {
         return view('admin.flight-assignments._workspace', $this->workspaceViewData($request, $flight, $assignmentService, $hajjSeasonService));
+    }
+
+    public function results(Request $request, Flight $flight, FlightAssignmentService $assignmentService, HajjSeasonService $hajjSeasonService): JsonResponse
+    {
+        $viewData = $this->resultsViewData($request, $flight, $assignmentService, $hajjSeasonService);
+
+        return response()->json([
+            'html' => view('admin.flight-assignments._workspace-results', $viewData)->render(),
+            'count' => $viewData['resultsCount'],
+        ]);
     }
 
     public function show(Request $request, Flight $flight): RedirectResponse
@@ -135,6 +146,26 @@ class FlightAssignmentController extends Controller
             'pilgrims' => $assignmentService->pilgrimsForAssignment($flight, $filters),
             'filterOptions' => $this->filterOptions($activeYear),
             'workspaceUrl' => route('admin.flight-assignments.workspace', $flight),
+            'resultsUrl' => route('admin.flight-assignments.results', $flight),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function resultsViewData(
+        Request $request,
+        Flight $flight,
+        FlightAssignmentService $assignmentService,
+        HajjSeasonService $hajjSeasonService,
+    ): array {
+        $filters = $assignmentService->normalizeFilters($request->all());
+
+        $pilgrims = $assignmentService->pilgrimsForAssignment($flight, $filters);
+
+        return [
+            'flight' => $flight,
+            'filters' => $filters,
+            'pilgrims' => $pilgrims,
+            'resultsCount' => $pilgrims->count(),
         ];
     }
 
@@ -145,13 +176,12 @@ class FlightAssignmentController extends Controller
 
         $companyIds = (clone $pilgrimScope)->distinct()->pluck('company_id')->filter();
         $podCityIds = (clone $pilgrimScope)->distinct()->pluck('pod_city_id')->filter();
-        $packageIds = (clone $pilgrimScope)->distinct()->pluck('package_id')->filter();
         $formOwnerIds = (clone $pilgrimScope)->distinct()->pluck('form_owner_id')->filter();
 
         return [
-            'companies' => Company::query()->whereIn('id', $companyIds)->orderBy('name')->get(['id', 'name']),
+            'companies' => Company::query()->whereIn('id', $companyIds)->orderBy('name')->get(['id', 'name', 'munazzam_code']),
             'podCities' => City::query()->whereIn('id', $podCityIds)->orderBy('name')->get(['id', 'name']),
-            'packages' => Package::query()->whereIn('id', $packageIds)->orderBy('name')->get(['id', 'name']),
+            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
             'formOwners' => FormOwner::query()->whereIn('id', $formOwnerIds)->orderBy('name')->get(['id', 'name']),
         ];
     }
