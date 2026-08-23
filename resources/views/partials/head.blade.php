@@ -3,14 +3,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ filled($title ?? null) ? $title.' - '.config('app.name') : config('app.name') }}</title>
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="{{ asset(config('branding.logo')) }}" type="image/png">
+<link rel="apple-touch-icon" href="{{ asset(config('branding.logo')) }}">
 
 <link href="{{ asset('vendor/owl-carousel/owl.carousel.css') }}" rel="stylesheet">
 <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 <link href="{{ asset('css/deyar-brand.css') }}" rel="stylesheet">
-<link href="{{ asset('css/admin-forms.css') }}?v=16" rel="stylesheet">
+<link href="{{ asset('css/admin-forms.css') }}?v=27" rel="stylesheet">
 <link href="{{ asset('vendor/tom-select/css/tom-select.default.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
 

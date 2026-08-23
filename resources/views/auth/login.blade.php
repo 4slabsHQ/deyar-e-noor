@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="login-mobile-logo">
+    <img src="{{ asset(config('branding.logo')) }}" alt="{{ config('app.name') }}" class="login-mobile-logo">
 
     <div class="login-card">
         <h1 class="login-form-title">Welcome back</h1>

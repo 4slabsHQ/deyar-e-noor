@@ -47,40 +47,53 @@ class HajjRegistrationReportDefinition implements ReportDefinition
         return [
             'hajj_year' => ['label' => 'Hajj Year', 'group' => 'Registration'],
             'entry_date' => ['label' => 'Entry Date', 'group' => 'Registration'],
-            'family_code' => ['label' => 'Family Code', 'group' => 'Family'],
-            'family_number' => ['label' => 'Family Number', 'group' => 'Family'],
-            'family_member_suffix' => ['label' => 'Family Suffix', 'group' => 'Family'],
-            'full_name' => ['label' => 'Full Name', 'group' => 'Personal'],
-            'surname' => ['label' => 'Surname', 'group' => 'Personal'],
-            'given_name' => ['label' => 'Given Name', 'group' => 'Personal'],
-            'father_husband_name' => ['label' => 'Father / Husband', 'group' => 'Personal'],
-            'gender' => ['label' => 'Gender', 'group' => 'Personal'],
-            'date_of_birth' => ['label' => 'Date of Birth', 'group' => 'Personal'],
-            'age' => ['label' => 'Age', 'group' => 'Personal'],
-            'birth_place' => ['label' => 'Birth Place', 'group' => 'Personal'],
-            'blood_group' => ['label' => 'Blood Group', 'group' => 'Personal'],
-            'cnic' => ['label' => 'CNIC', 'group' => 'Personal'],
-            'mobile' => ['label' => 'Mobile', 'group' => 'Personal'],
-            'address' => ['label' => 'Address', 'group' => 'Personal'],
-            'passport_no' => ['label' => 'Passport No', 'group' => 'Travel Documents'],
-            'passport_expiry' => ['label' => 'Passport Expiry', 'group' => 'Travel Documents'],
-            'company' => ['label' => 'Company', 'group' => 'Masters'],
-            'package' => ['label' => 'Package', 'group' => 'Masters'],
-            'maktab_category' => ['label' => 'Maktab', 'group' => 'Masters'],
-            'form_owner' => ['label' => 'Form Owner', 'group' => 'Masters'],
-            'care_off' => ['label' => 'Care Off', 'group' => 'Masters'],
-            'pod_city' => ['label' => 'POD', 'group' => 'Masters'],
-            'room_type' => ['label' => 'Room Type', 'group' => 'Masters'],
+            'form_owner' => ['label' => 'Form Owner', 'group' => 'Registration'],
+            'company' => ['label' => 'Company', 'group' => 'Registration'],
+            'maktab_category' => ['label' => 'Maktab', 'group' => 'Registration'],
+            'package' => ['label' => 'Package', 'group' => 'Registration'],
+            'qurbani_included' => ['label' => 'Qurbani', 'group' => 'Registration'],
+            'care_off' => ['label' => 'Care Off', 'group' => 'Registration'],
+            'pod_city' => ['label' => 'POD', 'group' => 'Registration'],
+            'room_type' => ['label' => 'Room Type', 'group' => 'Registration'],
+            'gender' => ['label' => 'Gender', 'group' => 'Personal Details'],
+            'surname' => ['label' => 'Surname', 'group' => 'Personal Details'],
+            'given_name' => ['label' => 'Given Name', 'group' => 'Personal Details'],
+            'full_name' => ['label' => 'Full Name', 'group' => 'Personal Details'],
+            'blood_group' => ['label' => 'Blood Group', 'group' => 'Personal Details'],
+            'father_husband_name' => ['label' => 'Father / Husband', 'group' => 'Personal Details'],
+            'date_of_birth' => ['label' => 'Date of Birth', 'group' => 'Personal Details'],
+            'age' => ['label' => 'Age', 'group' => 'Personal Details'],
+            'birth_place' => ['label' => 'Birth Place', 'group' => 'Personal Details'],
+            'passport_no' => ['label' => 'Passport No', 'group' => 'Passport & Contact'],
+            'passport_expiry' => ['label' => 'Passport Expiry', 'group' => 'Passport & Contact'],
+            'cnic' => ['label' => 'CNIC', 'group' => 'Passport & Contact'],
+            'mobile' => ['label' => 'Mobile', 'group' => 'Passport & Contact'],
+            'address' => ['label' => 'Address', 'group' => 'Passport & Contact'],
             'mehram_name' => ['label' => 'Mehram Name', 'group' => 'Mehram & Waris'],
             'mehram_relation' => ['label' => 'Mehram Relation', 'group' => 'Mehram & Waris'],
             'waris_name' => ['label' => 'Waris Name', 'group' => 'Mehram & Waris'],
-            'waris_cnic' => ['label' => 'Waris CNIC', 'group' => 'Mehram & Waris'],
             'waris_relation' => ['label' => 'Waris Relation', 'group' => 'Mehram & Waris'],
+            'waris_cnic' => ['label' => 'Waris CNIC', 'group' => 'Mehram & Waris'],
             'waris_mobile' => ['label' => 'Waris Mobile', 'group' => 'Mehram & Waris'],
-            'qurbani_included' => ['label' => 'Qurbani', 'group' => 'Other'],
-            'comments' => ['label' => 'Comments', 'group' => 'Other'],
-            'entered_by' => ['label' => 'Entered By', 'group' => 'Other'],
-            'created_at' => ['label' => 'Created At', 'group' => 'Other'],
+            'family_code' => ['label' => 'Family Code', 'group' => 'Family & Association'],
+            'family_number' => ['label' => 'Family Number', 'group' => 'Family & Association'],
+            'family_member_suffix' => ['label' => 'Family Suffix', 'group' => 'Family & Association'],
+            'comments' => ['label' => 'Comments', 'group' => 'Comments'],
+            'entered_by' => ['label' => 'Entered By', 'group' => 'System'],
+            'created_at' => ['label' => 'Created At', 'group' => 'System'],
+        ];
+    }
+
+    public function columnGroupOrder(): array
+    {
+        return [
+            'Registration',
+            'Personal Details',
+            'Passport & Contact',
+            'Mehram & Waris',
+            'Family & Association',
+            'Comments',
+            'System',
         ];
     }
 
@@ -119,7 +132,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             throw new InvalidArgumentException('Invalid report columns selected.');
         }
 
-        return array_values(array_intersect($allowed, $selected));
+        return array_values(array_intersect($selected, $allowed));
     }
 
     public function normalizeFilters(array $input): array
@@ -159,7 +172,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
 
         return [
             'companies' => Company::query()->whereIn('id', $scopedIds('company_id'))->orderBy('name')->get(['id', 'name']),
-            'packages' => Package::query()->whereIn('id', $scopedIds('package_id'))->orderBy('name')->get(['id', 'name']),
+            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
             'maktabCategories' => MaktabCategory::query()->whereIn('id', $scopedIds('maktab_category_id'))->orderBy('name')->get(['id', 'name']),
             'formOwners' => FormOwner::query()->whereIn('id', $scopedIds('form_owner_id'))->orderBy('name')->get(['id', 'name']),
             'podCities' => City::query()->whereIn('id', $scopedIds('pod_city_id'))->orderBy('name')->get(['id', 'name']),
@@ -256,7 +269,9 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'passport_expiry' => $pilgrim->passport_expiry?->format('d M Y'),
             'company' => $pilgrim->company?->name,
             'package' => $pilgrim->package?->name,
-            'maktab_category' => $pilgrim->maktabCategory?->name,
+            'maktab_category' => $pilgrim->maktabCategory
+                ? $pilgrim->maktabCategory->name.' ('.$pilgrim->maktabCategory->zone.')'
+                : null,
             'form_owner' => $pilgrim->formOwner?->name,
             'care_off' => $pilgrim->careOff?->name,
             'pod_city' => $pilgrim->podCity?->name,

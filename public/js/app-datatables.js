@@ -23,18 +23,30 @@
         if ($table.hasClass('report-results-table')) {
             options.scrollX = true;
             options.autoWidth = true;
+            options.paging = false;
+            options.lengthChange = false;
+            options.info = false;
+            options.columnDefs = options.columnDefs.concat([
+                { orderable: false, targets: 0, className: 'report-serial-column' },
+            ]);
         }
 
         if ($table.hasClass('flight-assignment-hujaj-table')) {
+            options.paging = false;
+            options.lengthChange = false;
+            options.info = false;
             options.columnDefs = options.columnDefs.concat([
+                { orderable: false, targets: 0, className: 'assignment-check-col' },
+                { orderable: false, targets: 1, className: 'flight-serial-column' },
                 { width: '2.75rem', targets: 0 },
-                { width: '14%', targets: 1 },
-                { width: '9%', targets: 2 },
-                { width: '8%', targets: 3 },
-                { width: '13%', targets: 4 },
-                { width: '10%', targets: 5 },
-                { width: '12%', targets: 6 },
-                { width: '10.5rem', targets: 7 },
+                { width: '3.5rem', targets: 1 },
+                { width: '14%', targets: 2 },
+                { width: '9%', targets: 3 },
+                { width: '8%', targets: 4 },
+                { width: '13%', targets: 5 },
+                { width: '10%', targets: 6 },
+                { width: '12%', targets: 7 },
+                { width: '10.5rem', targets: 8 },
             ]);
         }
 

@@ -15,6 +15,108 @@
     var checkboxes = form.querySelectorAll('.report-column-checkbox');
     var saveForm = document.getElementById('report-save-columns-form');
     var saveInputs = document.getElementById('report-save-columns-inputs');
+    var titleModalElement = document.getElementById('report-title-modal');
+    var titleInput = document.getElementById('report-title-input');
+    var titleConfirmButton = document.getElementById('report-title-confirm');
+    var titleModalInstance = null;
+    var pendingTitleAction = null;
+
+    function getTitleModal() {
+        if (!titleModalElement || !window.bootstrap || !window.bootstrap.Modal) {
+            return null;
+        }
+
+        if (titleModalInstance) {
+            return titleModalInstance;
+        }
+
+        if (typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+            titleModalInstance = window.bootstrap.Modal.getOrCreateInstance(titleModalElement);
+        } else {
+            titleModalInstance = new window.bootstrap.Modal(titleModalElement);
+        }
+
+        return titleModalInstance;
+    }
+
+    function defaultReportTitle() {
+        var card = resultsContainer ? resultsContainer.querySelector('[data-default-report-title]') : null;
+
+        if (!card) {
+            return 'Report';
+        }
+
+        return card.getAttribute('data-default-report-title') || 'Report';
+    }
+
+    function askReportTitle(callback) {
+        var titleModal = getTitleModal();
+
+        if (!titleModal || !titleInput || !titleConfirmButton) {
+            var fallbackTitle = window.prompt('Report title:', defaultReportTitle());
+
+            if (fallbackTitle === null) {
+                return;
+            }
+
+            fallbackTitle = fallbackTitle.trim();
+
+            if (fallbackTitle === '') {
+                showValidationAlert('Enter a report title.');
+                return;
+            }
+
+            callback(fallbackTitle);
+
+            return;
+        }
+
+        titleInput.value = defaultReportTitle();
+        pendingTitleAction = callback;
+        titleModal.show();
+        window.setTimeout(function () {
+            titleInput.focus();
+            titleInput.select();
+        }, 150);
+    }
+
+    if (titleConfirmButton) {
+        titleConfirmButton.addEventListener('click', function () {
+            if (!titleInput) {
+                return;
+            }
+
+            var title = titleInput.value.trim();
+
+            if (title === '') {
+                showValidationAlert('Enter a report title.');
+                return;
+            }
+
+            var titleModal = getTitleModal();
+
+            if (titleModal) {
+                titleModal.hide();
+            }
+
+            if (pendingTitleAction) {
+                pendingTitleAction(title);
+                pendingTitleAction = null;
+            }
+        });
+    }
+
+    if (titleInput) {
+        titleInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+
+                if (titleConfirmButton) {
+                    titleConfirmButton.click();
+                }
+            }
+        });
+    }
 
     function selectedValues() {
         return Array.prototype.map.call(selectedCheckboxes(), function (checkbox) {
@@ -320,19 +422,35 @@
             return;
         }
 
-        try {
-            printHtml(buildPrintHtml(
-                printData.title || 'Report',
-                printData.meta || '',
-                printData.headings,
-                printData.rows
-            ));
-        } catch (error) {
-            showValidationAlert('Could not open the print view.');
-        }
+        askReportTitle(function (title) {
+            try {
+                printHtml(buildPrintHtml(
+                    title,
+                    printData.meta || '',
+                    printData.headings,
+                    printData.rows
+                ));
+            } catch (error) {
+                showValidationAlert('Could not open the print view.');
+            }
+        });
     }
 
     page.addEventListener('click', function (event) {
+        var exportLink = event.target.closest('[data-report-export]');
+
+        if (exportLink) {
+            event.preventDefault();
+
+            askReportTitle(function (title) {
+                var url = new URL(exportLink.getAttribute('href'), window.location.origin);
+                url.searchParams.set('report_title', title);
+                window.location.href = url.toString();
+            });
+
+            return;
+        }
+
         var printButton = event.target.closest('[data-report-print]');
 
         if (!printButton) {

@@ -3,9 +3,11 @@
 use App\Enums\FlightAssignmentAction;
 use App\Enums\FlightDirection;
 use App\Enums\HajjSeasonStatus;
+use App\Models\Company;
 use App\Models\Flight;
 use App\Models\FlightAssignmentLog;
 use App\Models\HajjSeason;
+use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\User;
 use App\Services\HajjSeasonService;
@@ -77,7 +79,30 @@ it('returns assignment workspace partial for ajax requests', function () {
         ->assertOk()
         ->assertSee('Assign selected')
         ->assertSee($this->outboundFlight->departure_flight_no)
+        ->assertSee('data-results-url', false)
+        ->assertSee('flight-assignment-filters-card', false)
+        ->assertSee('flight-assignment-results-card', false)
+        ->assertSee('flight-assignment-results', false)
         ->assertDontSee('@extends');
+});
+
+it('returns assignment results partial as json for ajax requests', function () {
+    $pilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Results Partial Pilgrim',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.flight-assignments.results', $this->outboundFlight))
+        ->assertOk()
+        ->assertJsonStructure(['html', 'count']);
+
+    expect($response->json('html'))
+        ->toContain('Results Partial Pilgrim')
+        ->toContain('flight-assignment-bulk-form')
+        ->not->toContain('data-workspace-filter-form');
+
+    expect($response->json('count'))->toBe(1);
 });
 
 it('redirects legacy show route to unified page', function () {
@@ -285,4 +310,37 @@ it('updates hujaj count on flights index after assignment', function () {
         ->get(route('admin.flights.index'))
         ->assertOk()
         ->assertSee('1');
+});
+
+it('shows serial numbers and report-style filters in assignment workspace', function () {
+    $company = Company::factory()->create([
+        'name' => 'Filter Test Co',
+        'munazzam_code' => 'MUN-99',
+    ]);
+
+    $package = Package::factory()->create([
+        'number' => 'PKG-001',
+        'name' => 'Economy Package',
+        'is_active' => true,
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Serial Row Pilgrim',
+        'company_id' => $company->id,
+        'package_id' => $package->id,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.flight-assignments.workspace', $this->outboundFlight))
+        ->assertOk()
+        ->assertSee('S.No.')
+        ->assertSee('Hujaj')
+        ->assertSee('1 rows', false)
+        ->assertSee('Serial Row Pilgrim')
+        ->assertSee('Filter Test Co (MUN-99)', false)
+        ->assertSee($package->registrationOptionLabel(), false)
+        ->assertSee('js-searchable-select', false);
+
+    expect($response->getContent())->toMatch('/<td[^>]*class="[^"]*flight-serial-column[^"]*"[^>]*>\s*1\s*<\/td>/');
 });

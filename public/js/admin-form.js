@@ -64,6 +64,10 @@
         select.querySelectorAll('option[value=""]').forEach(function (option) {
             var label = option.textContent.trim();
 
+            if (select.dataset.keepEmptyLabel === 'true' || select.classList.contains('js-filter-select')) {
+                return;
+            }
+
             if (label === '' || label === placeholder || label === 'Select') {
                 option.textContent = '';
                 option.disabled = false;
@@ -430,6 +434,12 @@
         syncSelectPlaceholder: syncSelectPlaceholder,
         setSelectEnabled: setSelectEnabled,
         initSearchableSelect: initSingleSearchableSelect,
+        initFormSelects: function (root) {
+            var scope = root || document;
+
+            initSelectPlaceholders(scope);
+            initSearchableSelects(scope);
+        },
         refreshVisibleOptions: function (select) {
             refreshTomSelectOptions(select, visibleSelectOptions(select), select.value);
             syncSelectPlaceholder(select);

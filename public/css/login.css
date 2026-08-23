@@ -78,10 +78,12 @@ html, body {
 .login-brand-logo {
     width: auto;
     max-width: 100%;
-    max-height: clamp(120px, 28vh, 220px);
+    max-height: clamp(140px, 30vh, 240px);
     height: auto;
     object-fit: contain;
     border-radius: var(--deyar-radius-container);
+    background: #fff;
+    padding: 0.625rem;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -135,7 +137,7 @@ html, body {
 .login-mobile-logo {
     display: block;
     width: clamp(140px, 40vw, 200px);
-    max-height: 80px;
+    max-height: 96px;
     object-fit: contain;
     margin: 0 auto 1rem;
     border-radius: var(--deyar-radius-container);

@@ -14,15 +14,12 @@
 
         <div class="col-lg-2 col-md-3 col-6">
             <label class="form-label" for="arrival_date">Date of Arrival <span class="text-danger">*</span></label>
-            <input type="date"
-                   name="arrival_date"
-                   id="arrival_date"
-                   value="{{ old('arrival_date', $flightModel?->arrival_date?->format('Y-m-d')) }}"
-                   class="form-control @error('arrival_date') is-invalid @enderror"
-                   required>
-            @error('arrival_date')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
+            <x-admin.date-input
+                name="arrival_date"
+                id="arrival_date"
+                :value="old('arrival_date', $flightModel?->arrival_date?->format('Y-m-d'))"
+                required
+            />
         </div>
 
         <div class="col-lg-2 col-md-3 col-6">

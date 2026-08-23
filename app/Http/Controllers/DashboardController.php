@@ -106,9 +106,9 @@ class DashboardController extends Controller
 
         return $this->buildLimitOverview(
             items: $this->mapUtilisationRows($packages, 'limit', fn (Package $package) => [
-                'name' => $package->name,
-                'code' => $package->number,
-            ]),
+                'name' => trim($package->number.' '.$package->name),
+                'code' => null,
+            ], sortByPercentage: false),
             unlimitedCount: $unlimitedPackages,
             unlimitedLabel: 'package',
             limitAttribute: 'limit',
@@ -177,9 +177,9 @@ class DashboardController extends Controller
      * @param  callable(Company|Package|FormOwner): array{name: string, code: string|null}  $labelResolver
      * @return list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>
      */
-    private function mapUtilisationRows(Collection $items, string $limitAttribute, callable $labelResolver): array
+    private function mapUtilisationRows(Collection $items, string $limitAttribute, callable $labelResolver, bool $sortByPercentage = true): array
     {
-        return $items
+        $rows = $items
             ->map(function ($item) use ($limitAttribute, $labelResolver) {
                 $labels = $labelResolver($item);
                 $limit = (int) $item->{$limitAttribute};
@@ -194,8 +194,13 @@ class DashboardController extends Controller
                         ? min(100, round(($used / $limit) * 100, 1))
                         : 0.0,
                 ];
-            })
-            ->sortByDesc('percentage')
+            });
+
+        if ($sortByPercentage) {
+            $rows = $rows->sortByDesc('percentage');
+        }
+
+        return $rows
             ->values()
             ->take(10)
             ->all();

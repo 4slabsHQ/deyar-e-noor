@@ -132,6 +132,10 @@ Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.
         ->name('flight-assignments.workspace')
         ->middleware('permission:flights.assign');
 
+    Route::get('flight-assignments/{flight}/results', [FlightAssignmentController::class, 'results'])
+        ->name('flight-assignments.results')
+        ->middleware('permission:flights.assign');
+
     Route::get('flight-assignments/{flight}', [FlightAssignmentController::class, 'show'])
         ->name('flight-assignments.show')
         ->middleware('permission:flights.assign');

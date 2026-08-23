@@ -109,8 +109,8 @@
 }
 
 .nav-header .brand-logo .logo-abbr {
-    height: 36px !important;
-    max-width: 100px;
+    height: 44px !important;
+    max-width: 120px;
     object-fit: contain;
     background: transparent;
     border: 0;
@@ -519,24 +519,24 @@
 }
 
 .deyar-quota-stat-card--total {
-    background: var(--rgba-primary-1);
-    border-color: rgba(184, 149, 106, 0.25);
+    background: var(--deyar-info-bg);
+    border-color: var(--deyar-info-border);
 }
 
 .deyar-quota-stat-card--utilised,
 .deyar-quota-stat-card--entered {
-    background: var(--deyar-warning-bg);
-    border-color: var(--deyar-warning-border);
-}
-
-.deyar-quota-stat-card--remaining {
     background: var(--deyar-success-bg);
     border-color: var(--deyar-success-border);
 }
 
+.deyar-quota-stat-card--remaining {
+    background: var(--deyar-danger-bg);
+    border-color: var(--deyar-danger-border);
+}
+
 .deyar-quota-stat-card--refund {
-    background: #f3f4f6;
-    border-color: #e5e7eb;
+    background: var(--deyar-warning-bg);
+    border-color: var(--deyar-warning-border);
 }
 
 .deyar-quota-stat-card__label {
@@ -557,20 +557,20 @@
 }
 
 .deyar-quota-stat-card--total .deyar-quota-stat-card__value {
-    color: var(--primary-hover);
+    color: var(--deyar-info);
 }
 
 .deyar-quota-stat-card--utilised .deyar-quota-stat-card__value,
 .deyar-quota-stat-card--entered .deyar-quota-stat-card__value {
-    color: var(--deyar-warning);
-}
-
-.deyar-quota-stat-card--remaining .deyar-quota-stat-card__value {
     color: var(--deyar-success);
 }
 
+.deyar-quota-stat-card--remaining .deyar-quota-stat-card__value {
+    color: var(--deyar-danger);
+}
+
 .deyar-quota-stat-card--refund .deyar-quota-stat-card__value {
-    color: #6b7280;
+    color: var(--deyar-warning);
 }
 
 .deyar-quota-overview__footer {

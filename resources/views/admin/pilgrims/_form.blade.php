@@ -52,7 +52,7 @@
                     <option value="" {{ old('company_id', $pilgrim->company_id ?? '') ? '' : 'selected' }}>Select</option>
                     @foreach ($companies as $company)
                         <option value="{{ $company->id }}" {{ old('company_id', $pilgrim->company_id ?? '') == $company->id ? 'selected' : '' }}>
-                            {{ $company->name }}@if($company->code) ({{ $company->code }})@endif
+                            {{ $company->registrationOptionLabel() }}
                         </option>
                     @endforeach
                 </select>
@@ -70,20 +70,14 @@
                 </select>
                 @error('maktab_category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <div class="col-lg-4 col-md-6">
-                <label class="form-label" for="package_id">Package</label>
-                <select name="package_id" id="package_id" class="form-control js-searchable-select @error('package_id') is-invalid @enderror" data-placeholder="Select package">
-                    <option value="" {{ old('package_id', $pilgrim->package_id ?? '') ? '' : 'selected' }}>Select</option>
-                    @foreach ($packages as $package)
-                        <option value="{{ $package->id }}"
-                                data-qurbani="{{ $package->qurbani_included ? '1' : '0' }}"
-                                {{ old('package_id', $pilgrim->package_id ?? '') == $package->id ? 'selected' : '' }}>
-                            {{ $package->registrationOptionLabel() }}
-                        </option>
-                    @endforeach
-                </select>
+            <x-admin.package-select
+                :packages="$packages"
+                :selected="old('package_id', $pilgrim->package_id ?? '')"
+                qurbani-data
+                class="@error('package_id') is-invalid @enderror"
+            >
                 @error('package_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-            </div>
+            </x-admin.package-select>
             <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label" for="qurbani_included">Qurbani</label>
                 <div class="pilgrim-form-switch @error('qurbani_included') is-invalid @enderror">
@@ -193,10 +187,12 @@
             </div>
             <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label" for="date_of_birth">DOB</label>
-                <input type="date" name="date_of_birth" id="date_of_birth"
-                       value="{{ old('date_of_birth', optional($pilgrim?->date_of_birth)->format('Y-m-d')) }}"
-                       class="form-control @error('date_of_birth') is-invalid @enderror">
-                @error('date_of_birth') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <x-admin.date-input
+                    name="date_of_birth"
+                    id="date_of_birth"
+                    :value="optional($pilgrim?->date_of_birth)->format('Y-m-d')"
+                    max="{{ now()->format('Y-m-d') }}"
+                />
             </div>
             <div class="col-lg-1 col-md-2 col-4">
                 <label class="form-label" for="age_display">Age</label>
@@ -226,10 +222,12 @@
             </div>
             <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label" for="passport_expiry">Expiry</label>
-                <input type="date" name="passport_expiry" id="passport_expiry"
-                       value="{{ old('passport_expiry', optional($pilgrim?->passport_expiry)->format('Y-m-d')) }}"
-                       class="form-control @error('passport_expiry') is-invalid @enderror">
-                @error('passport_expiry') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <x-admin.date-input
+                    name="passport_expiry"
+                    id="passport_expiry"
+                    :value="optional($pilgrim?->passport_expiry)->format('Y-m-d')"
+                    min="{{ now()->format('Y-m-d') }}"
+                />
             </div>
             <div class="col-lg-3 col-md-4 col-6">
                 <label class="form-label" for="cnic">CNIC</label>

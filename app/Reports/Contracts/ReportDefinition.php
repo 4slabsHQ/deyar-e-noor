@@ -20,6 +20,9 @@ interface ReportDefinition
     public function columnCatalog(): array;
 
     /** @return list<string> */
+    public function columnGroupOrder(): array;
+
+    /** @return list<string> */
     public function defaultColumns(): array;
 
     /**

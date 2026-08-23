@@ -109,23 +109,25 @@
             </div>
         </div>
 
-        <div class="card admin-index-card">
-            <div class="card-header">
-                <h4 class="card-title mb-0">Assign Hujaj</h4>
-            </div>
-            <div class="card-body" id="flight-assignment-workspace">
-                @if ($workspace)
-                    @include('admin.flight-assignments._workspace', $workspace)
-                @else
-                    <div class="deyar-empty-state py-4" id="flight-assignment-workspace-empty">
-                        Select a flight above and click Assign to manage hujaj assignments.
+        <div id="flight-assignment-workspace">
+            @if ($workspace)
+                @include('admin.flight-assignments._workspace', $workspace)
+            @else
+                <div class="card admin-index-card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Assign Hujaj</h4>
                     </div>
-                @endif
-            </div>
+                    <div class="card-body">
+                        <div class="deyar-empty-state py-4" id="flight-assignment-workspace-empty">
+                            Select a flight above and click Assign to manage hujaj assignments.
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/flight-assignment.js') }}?v=7"></script>
+    <script src="{{ asset('js/flight-assignment.js') }}?v=11"></script>
 @endpush

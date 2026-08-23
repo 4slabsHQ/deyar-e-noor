@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Gender;
 use App\Reports\ReportRegistry;
+use App\Rules\FourDigitYearDate;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -40,9 +41,10 @@ class RunReportRequest extends FormRequest
             'pod_city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'care_off_id' => ['nullable', 'integer', 'exists:care_offs,id'],
             'gender' => ['nullable', Rule::enum(Gender::class)],
-            'entry_from' => ['nullable', 'date'],
-            'entry_to' => ['nullable', 'date', 'after_or_equal:entry_from'],
+            'entry_from' => ['nullable', new FourDigitYearDate],
+            'entry_to' => ['nullable', new FourDigitYearDate, 'after_or_equal:entry_from'],
             'search' => ['nullable', 'string', 'max:100'],
+            'report_title' => ['nullable', 'string', 'max:150'],
         ];
 
         if ($this->shouldRun()) {
@@ -115,6 +117,13 @@ class RunReportRequest extends FormRequest
         }
 
         return $definition->validateColumns($columns);
+    }
+
+    public function reportTitle(string $default): string
+    {
+        $title = trim((string) $this->input('report_title', ''));
+
+        return $title !== '' ? $title : $default;
     }
 
     /** @return array<string, mixed> */
