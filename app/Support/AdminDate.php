@@ -46,6 +46,7 @@ class AdminDate
 
     /**
      * @param  array<string, mixed>  $fields
+     * @param  list<string>  $keys
      * @return array<string, mixed>
      */
     public static function normalizeFields(array $fields, array $keys): array
