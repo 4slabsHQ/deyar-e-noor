@@ -3,6 +3,7 @@
 namespace App\Reports;
 
 use App\Reports\Contracts\ReportDefinition;
+use App\Reports\Definitions\FlightReportDefinition;
 use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use InvalidArgumentException;
 
@@ -15,6 +16,7 @@ class ReportRegistry
     {
         $this->definitions = [
             HajjRegistrationReportDefinition::KEY => app(HajjRegistrationReportDefinition::class),
+            FlightReportDefinition::KEY => app(FlightReportDefinition::class),
         ];
     }
 

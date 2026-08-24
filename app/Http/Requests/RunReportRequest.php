@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\FlightDirection;
+use App\Enums\FlightType;
 use App\Enums\Gender;
 use App\Reports\ReportRegistry;
 use App\Rules\FourDigitYearDate;
@@ -43,6 +45,11 @@ class RunReportRequest extends FormRequest
             'gender' => ['nullable', Rule::enum(Gender::class)],
             'entry_from' => ['nullable', new FourDigitYearDate],
             'entry_to' => ['nullable', new FourDigitYearDate, 'after_or_equal:entry_from'],
+            'direction' => ['nullable', Rule::enum(FlightDirection::class)],
+            'flight_type' => ['nullable', Rule::enum(FlightType::class)],
+            'flight_id' => ['nullable', 'integer', 'exists:flights,id'],
+            'departure_from' => ['nullable', new FourDigitYearDate],
+            'departure_to' => ['nullable', new FourDigitYearDate, 'after_or_equal:departure_from'],
             'search' => ['nullable', 'string', 'max:100'],
             'report_title' => ['nullable', 'string', 'max:150'],
         ];
@@ -140,6 +147,11 @@ class RunReportRequest extends FormRequest
             'gender',
             'entry_from',
             'entry_to',
+            'direction',
+            'flight_type',
+            'flight_id',
+            'departure_from',
+            'departure_to',
             'search',
         ]);
     }

@@ -30,7 +30,6 @@
                 { orderable: false, targets: 0, className: 'report-serial-column' },
             ]);
         }
-
         if ($table.hasClass('flight-assignment-hujaj-table')) {
             options.paging = false;
             options.lengthChange = false;

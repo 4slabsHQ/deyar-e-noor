@@ -1,18 +1,22 @@
 <?php
 
+use App\Enums\FlightDirection;
 use App\Enums\Gender;
 use App\Enums\HajjSeasonStatus;
 use App\Enums\PackageDuration;
 use App\Models\Company;
+use App\Models\Flight;
 use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
 use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\User;
+use App\Reports\Definitions\FlightReportDefinition;
 use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use App\Services\HajjSeasonService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -43,12 +47,21 @@ it('shows hajj reports in the sidebar submenu', function () {
         ->assertSee('Hajj Reports');
 });
 
+it('shows flight reports in the sidebar submenu', function () {
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Flight Reports');
+});
+
 it('shows a dedicated report page with columns first', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.reports.show', HajjRegistrationReportDefinition::KEY))
         ->assertOk()
-        ->assertSee('Hajj Registration')
+        ->assertSee('Hajj Reports')
         ->assertSeeInOrder(['Columns', 'Filters'])
+        ->assertSee('column-picture', false)
+        ->assertSeeInOrder(['column-picture', 'column-hajj_year'], false)
         ->assertSee('Select all')
         ->assertSee('Save as default')
         ->assertSee('Generate')
@@ -151,7 +164,7 @@ it('exports generated report to csv', function () {
 
     expect($response->streamedContent())
         ->toContain('CSV Export Pilgrim')
-        ->toContain('Hajj Registration')
+        ->toContain('Hajj Reports')
         ->toContain('S.No.')
         ->toContain('Full Name');
 });
@@ -316,6 +329,34 @@ it('shows detailed package labels in report filters', function () {
         ->assertSee($package->registrationOptionLabel(), false);
 });
 
+it('shows detailed package labels in report results', function () {
+    $package = Package::factory()->create([
+        'number' => 'PKG-010',
+        'name' => 'Results Package',
+        'price' => 750000,
+        'days' => 21,
+        'duration' => PackageDuration::Long,
+        'qurbani_included' => false,
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'package_id' => $package->id,
+        'full_name' => 'Package Column Pilgrim',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['full_name', 'package'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Package Column Pilgrim')
+        ->toContain($package->registrationOptionLabel());
+});
+
 it('includes maktab column when selected', function () {
     $maktab = MaktabCategory::factory()->create([
         'name' => 'Category C',
@@ -336,4 +377,203 @@ it('includes maktab column when selected', function () {
         ->assertOk()
         ->assertSee('Maktab Column Pilgrim', false)
         ->assertSee('Category C (Zone 5)', false);
+});
+
+it('renders pilgrim photos when picture column is selected', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/photos/report-photo.jpg', 'photo-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Photo Column Pilgrim',
+        'photo_path' => 'pilgrims/photos/report-photo.jpg',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['picture', 'full_name'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('report-pilgrim-photo')
+        ->toContain('storage/pilgrims/photos/report-photo.jpg')
+        ->toContain('Photo Column Pilgrim');
+});
+
+it('excludes picture column from excel export', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/photos/export-photo.jpg', 'photo-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Picture Export Pilgrim',
+        'photo_path' => 'pilgrims/photos/export-photo.jpg',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.excel', [
+            'report' => 'hajj_registration',
+            'columns' => ['picture', 'full_name'],
+            'hajj_year' => $this->activeYear,
+        ]));
+
+    $content = $response->getContent();
+
+    expect($content)
+        ->toContain('Picture Export Pilgrim')
+        ->not->toContain('Picture</th>')
+        ->not->toContain('storage/pilgrims/photos/export-photo.jpg');
+});
+
+it('includes picture column in pdf export', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/photos/pdf-photo.jpg', 'photo-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'PDF Photo Pilgrim',
+        'photo_path' => 'pilgrims/photos/pdf-photo.jpg',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.pdf', [
+            'report' => 'hajj_registration',
+            'columns' => ['picture', 'full_name'],
+            'hajj_year' => $this->activeYear,
+        ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+
+    expect(strlen($response->getContent()))->toBeGreaterThan(500);
+});
+
+it('includes column keys in report print data for picture rendering', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/photos/print-photo.jpg', 'photo-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Print Photo Pilgrim',
+        'photo_path' => 'pilgrims/photos/print-photo.jpg',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['picture', 'full_name'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('"columnKeys":["serial","picture","full_name"]')
+        ->toContain('report-pilgrim-photo');
+});
+
+it('shows a dedicated flight report page with columns first', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', FlightReportDefinition::KEY))
+        ->assertOk()
+        ->assertSee('Flight Reports')
+        ->assertSeeInOrder(['Columns', 'Filters'])
+        ->assertSee('column-direction', false)
+        ->assertSee('column-departure_flight_no', false)
+        ->assertSee('column-full_name', false)
+        ->assertSee('Generate')
+        ->assertDontSee('Results');
+});
+
+it('generates a flight report for assigned hujaj', function () {
+    $flight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'FLRPT001',
+    ]);
+
+    $pilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Flight Report Pilgrim',
+        'passport_no' => 'FR0000001',
+    ]);
+
+    $flight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightReportDefinition::KEY,
+            'columns' => ['direction', 'departure_flight_no', 'full_name', 'passport_no'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('S.No.')
+        ->toContain('Flight Report Pilgrim')
+        ->toContain('FLRPT001')
+        ->toContain('Departure to Hajj');
+});
+
+it('filters flight report results by journey direction', function () {
+    $outboundFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'OUT-FLT',
+    ]);
+
+    $returnFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Return,
+        'departure_flight_no' => 'RET-FLT',
+    ]);
+
+    $outboundPilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Outbound Flight Pilgrim',
+    ]);
+
+    $returnPilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Return Flight Pilgrim',
+    ]);
+
+    $outboundFlight->pilgrims()->attach($outboundPilgrim->id, ['assigned_by' => $this->admin->id]);
+    $returnFlight->pilgrims()->attach($returnPilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightReportDefinition::KEY,
+            'columns' => ['departure_flight_no', 'full_name'],
+            'direction' => FlightDirection::Return->value,
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Return Flight Pilgrim')
+        ->toContain('RET-FLT')
+        ->not->toContain('Outbound Flight Pilgrim');
+});
+
+it('exports flight report to excel', function () {
+    $flight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+    ]);
+
+    $pilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Flight Excel Pilgrim',
+    ]);
+
+    $flight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.excel', [
+            'report' => FlightReportDefinition::KEY,
+            'columns' => ['full_name', 'departure_flight_no'],
+            'hajj_year' => $this->activeYear,
+        ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
+
+    expect($response->getContent())
+        ->toContain('Flight Excel Pilgrim')
+        ->toContain('Flight Reports');
 });

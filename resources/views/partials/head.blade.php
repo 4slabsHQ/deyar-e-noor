@@ -9,7 +9,7 @@
 <link href="{{ asset('vendor/owl-carousel/owl.carousel.css') }}" rel="stylesheet">
 <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 <link href="{{ asset('css/deyar-brand.css') }}" rel="stylesheet">
-<link href="{{ asset('css/admin-forms.css') }}?v=27" rel="stylesheet">
+<link href="{{ asset('css/admin-forms.css') }}?v=28" rel="stylesheet">
 <link href="{{ asset('vendor/tom-select/css/tom-select.default.min.css') }}" rel="stylesheet">
 <link href="{{ asset('vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
 

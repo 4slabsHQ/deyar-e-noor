@@ -115,8 +115,8 @@ test('dashboard lists package utilisation in package number order', function () 
         ->getContent();
 
     expect($content)->toContain('Package Limit Utilisation')
-        ->and(strpos($content, 'Package One'))->toBeLessThan(strpos($content, 'Package Two'))
-        ->and(strpos($content, 'Package Two'))->toBeLessThan(strpos($content, 'Package Three'));
+        ->and(strpos($content, $packageOne->registrationOptionLabel()))->toBeLessThan(strpos($content, $packageTwo->registrationOptionLabel()))
+        ->and(strpos($content, $packageTwo->registrationOptionLabel()))->toBeLessThan(strpos($content, $packageThree->registrationOptionLabel()));
 });
 
 test('dashboard shows package and form owner utilisation when limits are configured', function () {
@@ -150,8 +150,7 @@ test('dashboard shows package and form owner utilisation when limits are configu
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Economy Package')
-        ->assertSee('PKG-100')
+        ->assertSee($package->registrationOptionLabel(), false)
         ->assertSee('Self')
         ->assertSee('1/50')
         ->assertSee('1/25');

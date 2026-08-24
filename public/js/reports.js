@@ -337,14 +337,15 @@
             .replace(/"/g, '&quot;');
     }
 
-    function buildPrintHtml(title, meta, headings, rows) {
+    function buildPrintHtml(title, meta, headings, rows, columnKeys) {
         var landscape = headings.length > 6;
+        var keys = columnKeys || [];
         var headHtml = headings.map(function (heading) {
             return '<th>' + escapeHtml(heading) + '</th>';
         }).join('');
         var bodyHtml = rows.map(function (row) {
-            return '<tr>' + row.map(function (cell) {
-                return '<td>' + escapeHtml(cell || '—') + '</td>';
+            return '<tr>' + row.map(function (cell, index) {
+                return '<td>' + formatPrintCell(cell, keys[index] || null) + '</td>';
             }).join('') + '</tr>';
         }).join('');
 
@@ -358,9 +359,10 @@
             + 'h1 { font-size: 16px; margin: 0 0 4px; }'
             + '.meta { color: #6b7280; font-size: 11px; margin: 0 0 12px; }'
             + 'table { width: 100%; border-collapse: collapse; table-layout: fixed; }'
-            + 'th, td { border: 1px solid #d1d5db; padding: 4px 5px; font-size: 9px; line-height: 1.35; vertical-align: top; word-break: break-word; overflow-wrap: anywhere; }'
+            + 'th, td { border: 1px solid #d1d5db; padding: 4px 5px; font-size: 9px; line-height: 1.35; vertical-align: middle; word-break: break-word; overflow-wrap: anywhere; }'
             + 'th { background: #f3f4f6; font-weight: 600; }'
             + 'tr:nth-child(even) td { background: #fafafa; }'
+            + '.report-print-photo { width: 40px; height: 40px; object-fit: cover; display: block; margin: 0 auto; }'
             + '</style></head><body><h1>'
             + escapeHtml(title)
             + '</h1><p class="meta">'
@@ -370,6 +372,18 @@
             + '</tr></thead><tbody>'
             + bodyHtml
             + '</tbody></table></body></html>';
+    }
+
+    function formatPrintCell(cell, columnKey) {
+        if (columnKey === 'picture') {
+            if (cell) {
+                return '<img src="' + escapeHtml(cell) + '" alt="" class="report-print-photo">';
+            }
+
+            return '—';
+        }
+
+        return escapeHtml(cell || '—');
     }
 
     function collectPrintData() {
@@ -428,7 +442,8 @@
                     title,
                     printData.meta || '',
                     printData.headings,
-                    printData.rows
+                    printData.rows,
+                    printData.columnKeys || []
                 ));
             } catch (error) {
                 showValidationAlert('Could not open the print view.');

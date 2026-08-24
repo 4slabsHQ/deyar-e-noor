@@ -29,7 +29,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
 
     public function label(): string
     {
-        return 'Hajj Registration';
+        return 'Hajj Reports';
     }
 
     public function category(): string
@@ -37,14 +37,26 @@ class HajjRegistrationReportDefinition implements ReportDefinition
         return 'Hajj';
     }
 
+    /** @return list<string> */
+    public function nonSpreadsheetExportColumns(): array
+    {
+        return ['picture'];
+    }
+
     public function description(): string
     {
         return 'Registration list with selectable columns and filters.';
     }
 
+    public function filtersView(): string
+    {
+        return 'admin.reports.filters.hajj-registration';
+    }
+
     public function columnCatalog(): array
     {
         return [
+            'picture' => ['label' => 'Picture', 'group' => 'Registration'],
             'hajj_year' => ['label' => 'Hajj Year', 'group' => 'Registration'],
             'entry_date' => ['label' => 'Entry Date', 'group' => 'Registration'],
             'form_owner' => ['label' => 'Form Owner', 'group' => 'Registration'],
@@ -228,7 +240,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     {
         $map = [
             'company' => 'company:id,name',
-            'package' => 'package:id,name,number',
+            'package' => 'package:id,name,number,price,days,duration,qurbani_included',
             'maktab_category' => 'maktabCategory:id,name,zone',
             'form_owner' => 'formOwner:id,name',
             'care_off' => 'careOff:id,name',
@@ -248,6 +260,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     private function resolveColumnValue(Pilgrim $pilgrim, string $column): string|int|null
     {
         return match ($column) {
+            'picture' => $pilgrim->photo_url,
             'hajj_year' => (string) $pilgrim->hajj_year,
             'entry_date' => $pilgrim->entry_date?->format('d M Y'),
             'family_code' => $pilgrim->family_code,
@@ -268,7 +281,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'passport_no' => $pilgrim->passport_no,
             'passport_expiry' => $pilgrim->passport_expiry?->format('d M Y'),
             'company' => $pilgrim->company?->name,
-            'package' => $pilgrim->package?->name,
+            'package' => $pilgrim->package?->registrationOptionLabel(),
             'maktab_category' => $pilgrim->maktabCategory
                 ? $pilgrim->maktabCategory->name.' ('.$pilgrim->maktabCategory->zone.')'
                 : null,

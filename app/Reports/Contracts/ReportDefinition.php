@@ -14,6 +14,8 @@ interface ReportDefinition
 
     public function description(): string;
 
+    public function filtersView(): string;
+
     /**
      * @return array<string, array{label: string, group: string}>
      */
@@ -24,6 +26,9 @@ interface ReportDefinition
 
     /** @return list<string> */
     public function defaultColumns(): array;
+
+    /** @return list<string> */
+    public function nonSpreadsheetExportColumns(): array;
 
     /**
      * @param  list<string>  $columns

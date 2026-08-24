@@ -909,6 +909,34 @@ table.dataTable.report-results-table .report-serial-column {
     white-space: nowrap;
 }
 
+.report-results-table-wrap .report-picture-column,
+table.dataTable.report-results-table .report-picture-column {
+    width: 3.5rem;
+    min-width: 3.5rem;
+    max-width: 3.5rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.report-pilgrim-photo {
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+}
+
+.report-pilgrim-photo-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
 .report-results-table-wrap .dataTables_paginate,
 .report-results-table-wrap .dataTables_length {
     display: none !important;

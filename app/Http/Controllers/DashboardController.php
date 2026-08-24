@@ -106,7 +106,7 @@ class DashboardController extends Controller
 
         return $this->buildLimitOverview(
             items: $this->mapUtilisationRows($packages, 'limit', fn (Package $package) => [
-                'name' => trim($package->number.' '.$package->name),
+                'name' => $package->registrationOptionLabel(),
                 'code' => null,
             ], sortByPercentage: false),
             unlimitedCount: $unlimitedPackages,

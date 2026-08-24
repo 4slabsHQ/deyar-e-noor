@@ -5,6 +5,7 @@
             'meta' => number_format($result['total']).' rows',
             'headings' => $result['headings'],
             'rows' => $result['rows'],
+            'columnKeys' => array_merge(['serial'], $result['columns']),
         ];
     @endphp
     <script type="application/json" class="report-print-data">{!! json_encode($printData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
@@ -31,15 +32,38 @@
                 <thead>
                     <tr>
                         @foreach ($result['headings'] as $heading)
-                            <th @class(['no-sort report-serial-column' => $heading === 'S.No.'])>{{ $heading }}</th>
+                            <th @class([
+                                'no-sort report-serial-column' => $heading === 'S.No.',
+                                'no-sort report-picture-column' => $heading === 'Picture',
+                            ])>{{ $heading }}</th>
                         @endforeach
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($result['rows'] as $row)
                         <tr>
-                            @foreach ($row as $cell)
-                                <td>{{ $cell ?? '—' }}</td>
+                            @foreach ($row as $index => $cell)
+                                @php
+                                    $columnKey = $index === 0 ? 'serial' : ($result['columns'][$index - 1] ?? null);
+                                @endphp
+                                <td @class([
+                                    'report-serial-column' => $columnKey === 'serial',
+                                    'report-picture-column' => $columnKey === 'picture',
+                                ])>
+                                    @if ($columnKey === 'picture')
+                                        @if (filled($cell))
+                                            <img src="{{ $cell }}"
+                                                 alt=""
+                                                 class="report-pilgrim-photo rounded"
+                                                 width="40"
+                                                 height="40">
+                                        @else
+                                            <span class="report-pilgrim-photo-placeholder" aria-hidden="true">—</span>
+                                        @endif
+                                    @else
+                                        {{ $cell ?? '—' }}
+                                    @endif
+                                </td>
                             @endforeach
                         </tr>
                     @endforeach

@@ -165,4 +165,16 @@ class Flight extends Model
 
         return app(FlightService::class)->formatStayDuration($this->via_total_stay_minutes);
     }
+
+    public function reportFilterLabel(): string
+    {
+        $date = $this->departure_date?->format('d M Y') ?? 'No date';
+
+        return sprintf(
+            '%s — %s — %s',
+            $this->direction->label(),
+            $this->departure_flight_no,
+            $date,
+        );
+    }
 }

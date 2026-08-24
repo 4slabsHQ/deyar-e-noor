@@ -55,6 +55,7 @@ class ReportController extends Controller
             'activeYear' => $hajjSeasonService->activeYear(),
             'availableYears' => $definition->availableYears(),
             'filterOptions' => $definition->filterOptions($filters),
+            'filtersView' => $definition->filtersView(),
             'hasFilters' => $this->hasAppliedFilters($filters, $hajjSeasonService->activeYear()),
             'result' => $result,
             'exportQuery' => $result
@@ -121,7 +122,7 @@ class ReportController extends Controller
     ): StreamedResponse {
         $definition = $registry->get($request->reportKey());
         $filters = $definition->normalizeFilters($request->filters());
-        $columns = $request->selectedColumns();
+        $columns = $this->spreadsheetExportColumns($definition, $request->selectedColumns());
         $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
         $defaultTitle = $this->defaultReportTitle($definition, $filters);
         $title = $request->reportTitle($defaultTitle);
@@ -139,14 +140,23 @@ class ReportController extends Controller
     ): Response {
         $definition = $registry->get($request->reportKey());
         $filters = $definition->normalizeFilters($request->filters());
-        $columns = $request->selectedColumns();
+        $selectedColumns = $request->selectedColumns();
+        $columns = $format === 'pdf'
+            ? $selectedColumns
+            : $this->spreadsheetExportColumns($definition, $selectedColumns);
         $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
         $defaultTitle = $this->defaultReportTitle($definition, $filters);
         $title = $request->reportTitle($defaultTitle);
         $filename = sprintf('%s-%s.%s', $definition->key(), $filters['hajj_year'], $format === 'pdf' ? 'pdf' : 'xls');
 
         return $format === 'pdf'
-            ? $exportService->toPdf($title, $result['headings'], $result['rows'], $filename)
+            ? $exportService->toPdf(
+                $title,
+                $result['headings'],
+                $result['rows'],
+                $filename,
+                $this->reportColumnKeys($result['columns']),
+            )
             : $exportService->toExcel($title, $result['headings'], $result['rows'], $filename);
     }
 
@@ -219,6 +229,22 @@ class ReportController extends Controller
     private function defaultReportTitle(ReportDefinition $definition, array $filters): string
     {
         return $definition->label().' — Hajj '.$filters['hajj_year'];
+    }
+
+    /** @param  list<string>  $columns
+     * @return list<string>
+     */
+    private function spreadsheetExportColumns(ReportDefinition $definition, array $columns): array
+    {
+        return array_values(array_diff($columns, $definition->nonSpreadsheetExportColumns()));
+    }
+
+    /** @param  list<string>  $columns
+     * @return list<string>
+     */
+    private function reportColumnKeys(array $columns): array
+    {
+        return array_merge(['serial'], $columns);
     }
 
     /** @param  array<string, mixed>  $filters */

@@ -11,13 +11,15 @@ class ReportExportService
     /**
      * @param  list<string>  $headings
      * @param  list<list<string|int|null>>  $rows
+     * @param  list<string>  $columnKeys
      */
-    public function toPdf(string $title, array $headings, array $rows, string $filename): Response
+    public function toPdf(string $title, array $headings, array $rows, string $filename, array $columnKeys = []): Response
     {
         $pdf = Pdf::loadView('admin.reports.export-pdf', [
             'title' => $title,
             'headings' => $headings,
-            'rows' => $rows,
+            'rows' => $this->preparePdfRows($rows, $columnKeys),
+            'columnKeys' => $columnKeys,
             'generatedAt' => now()->format('d M Y H:i'),
         ])->setPaper('a4', count($headings) > 6 ? 'landscape' : 'portrait');
 
@@ -73,6 +75,48 @@ class ReportExportService
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    /**
+     * @param  list<list<string|int|null>>  $rows
+     * @param  list<string>  $columnKeys
+     * @return list<list<string|int|null>>
+     */
+    private function preparePdfRows(array $rows, array $columnKeys): array
+    {
+        if ($columnKeys === []) {
+            return $rows;
+        }
+
+        return array_map(function (array $row) use ($columnKeys): array {
+            return array_map(function (mixed $cell, int $index) use ($columnKeys): mixed {
+                if (($columnKeys[$index] ?? null) !== 'picture' || ! filled($cell)) {
+                    return $cell;
+                }
+
+                return $this->pictureSourceForPdf((string) $cell);
+            }, $row, array_keys($row));
+        }, $rows);
+    }
+
+    private function pictureSourceForPdf(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
+            return $url;
+        }
+
+        $relativePath = ltrim(substr($path, strlen('/storage/')), '/');
+        $fullPath = storage_path('app/public/'.$relativePath);
+
+        if (! is_file($fullPath)) {
+            return $url;
+        }
+
+        $mime = mime_content_type($fullPath) ?: 'image/jpeg';
+
+        return 'data:'.$mime.';base64,'.base64_encode((string) file_get_contents($fullPath));
     }
 
     /**
