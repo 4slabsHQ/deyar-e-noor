@@ -50,6 +50,9 @@ class RunReportRequest extends FormRequest
             'flight_id' => ['nullable', 'integer', 'exists:flights,id'],
             'departure_from' => ['nullable', new FourDigitYearDate],
             'departure_to' => ['nullable', new FourDigitYearDate, 'after_or_equal:departure_from'],
+            'deleted_by' => ['nullable', 'integer', 'exists:users,id'],
+            'deleted_from' => ['nullable', new FourDigitYearDate],
+            'deleted_to' => ['nullable', new FourDigitYearDate, 'after_or_equal:deleted_from'],
             'search' => ['nullable', 'string', 'max:100'],
             'report_title' => ['nullable', 'string', 'max:150'],
         ];
@@ -152,6 +155,9 @@ class RunReportRequest extends FormRequest
             'flight_id',
             'departure_from',
             'departure_to',
+            'deleted_by',
+            'deleted_from',
+            'deleted_to',
             'search',
         ]);
     }

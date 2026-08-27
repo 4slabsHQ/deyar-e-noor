@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\BloodGroup;
+use App\Enums\FlightDirection;
 use App\Enums\Gender;
 use App\Enums\HajjSeasonStatus;
 use App\Enums\PackageDuration;
@@ -8,12 +9,14 @@ use App\Models\CareOff;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
+use App\Models\Flight;
 use App\Models\FormOwner;
 use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
 use App\Models\MehramRelation;
 use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Models\PilgrimDeletionLog;
 use App\Models\RoomType;
 use App\Models\User;
 use App\Models\WarisRelation;
@@ -885,4 +888,86 @@ test('keeping family assignment preserves the current family on edit', function 
 
     expect($pilgrim->fresh()->given_name)->toBe('Updated')
         ->and($pilgrim->fresh()->family_code)->toBe('DYN-01-S');
+});
+
+test('deletion preview shows registration details family impact and flights', function () {
+    $flight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'DELPREVIEW1',
+    ]);
+
+    registerPilgrim(['passport_no' => 'AB1111111', 'given_name' => 'Member A']);
+    registerPilgrim(['passport_no' => 'AB2222222', 'given_name' => 'Member B', 'existing_family_number' => 1]);
+    registerPilgrim(['passport_no' => 'AB3333333', 'given_name' => 'Member C', 'existing_family_number' => 1]);
+
+    $memberB = Pilgrim::query()->where('passport_no', 'AB2222222')->firstOrFail();
+    $flight->pilgrims()->attach($memberB->id, ['assigned_by' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('admin.pilgrims.deletion-preview', $memberB))
+        ->assertOk();
+
+    expect($response->json('pilgrim.full_name'))->toContain('Member B')
+        ->and($response->json('family.outcome'))->toBe('rebalance')
+        ->and($response->json('family.other_members'))->toHaveCount(2)
+        ->and(collect($response->json('family.changes'))->pluck('new_family_code')->all())
+        ->toBe(['DYN-01-A', 'DYN-01-B'])
+        ->and($response->json('flights.0.flight_no'))->toBe('DELPREVIEW1');
+});
+
+test('pilgrims index includes delete preview modal assets', function () {
+    registerPilgrim(['passport_no' => 'AB1111111']);
+
+    $this->actingAs($this->user)
+        ->get(route('admin.pilgrims.index'))
+        ->assertOk()
+        ->assertSee('pilgrim-delete-modal', false)
+        ->assertSee('pilgrim-delete.js', false)
+        ->assertSee(route('admin.pilgrims.deletion-preview', Pilgrim::query()->first()), false);
+});
+
+test('deleting a pilgrim removes flight assignments', function () {
+    $flight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+    ]);
+
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111']);
+    $flight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->user->id]);
+
+    $this->actingAs($this->user)
+        ->delete(route('admin.pilgrims.destroy', $pilgrim))
+        ->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($flight->fresh()->pilgrims()->count())->toBe(0);
+});
+
+test('deletion preview denies users without delete permission', function () {
+    $pilgrim = registerPilgrim(['passport_no' => 'AB1111111']);
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('pilgrims.view');
+
+    $this->actingAs($viewer)
+        ->getJson(route('admin.pilgrims.deletion-preview', $pilgrim))
+        ->assertForbidden();
+});
+
+test('deleting a pilgrim records an audit log entry', function () {
+    $pilgrim = registerPilgrim([
+        'passport_no' => 'AB9999999',
+        'given_name' => 'Audit',
+        'surname' => 'Delete',
+    ]);
+
+    $this->actingAs($this->user)
+        ->delete(route('admin.pilgrims.destroy', $pilgrim))
+        ->assertRedirect(route('admin.pilgrims.index'));
+
+    $log = PilgrimDeletionLog::query()->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->pilgrim_id)->toBe($pilgrim->id)
+        ->and($log->deleted_by)->toBe($this->user->id)
+        ->and($log->full_name)->toContain('Audit')
+        ->and($log->passport_no)->toBe('AB9999999')
+        ->and($log->family_code)->toBe('DYN-01-S');
 });

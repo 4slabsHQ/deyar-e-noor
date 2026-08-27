@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\Pilgrim;
+use App\Models\PilgrimDeletionLog;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -300,8 +301,43 @@ class PilgrimService
         );
     }
 
+    /** @return array<string, mixed> */
+    public function previewDeletion(Pilgrim $pilgrim): array
+    {
+        $pilgrim->loadMissing(['company', 'package', 'podCity', 'flights']);
+
+        return [
+            'pilgrim' => [
+                'id' => $pilgrim->id,
+                'full_name' => $pilgrim->full_name,
+                'passport_no' => $pilgrim->passport_no,
+                'family_code' => $pilgrim->family_code,
+                'hajj_year' => $pilgrim->hajj_year,
+                'company' => $pilgrim->company?->name,
+                'package' => $pilgrim->package?->registrationOptionLabel(),
+                'pod_city' => $pilgrim->podCity?->name,
+                'gender' => $pilgrim->gender?->label(),
+            ],
+            'family' => $this->previewFamilyImpact($pilgrim),
+            'flights' => $pilgrim->flights
+                ->sortBy('departure_date')
+                ->values()
+                ->map(fn ($flight): array => [
+                    'id' => $flight->id,
+                    'label' => $flight->reportFilterLabel(),
+                    'direction' => $flight->direction->label(),
+                    'flight_no' => $flight->departure_flight_no,
+                    'departure_date' => $flight->departure_date?->format('d M Y'),
+                ])
+                ->all(),
+        ];
+    }
+
     public function deletePilgrim(Pilgrim $pilgrim): void
     {
+        $this->recordDeletionLog($pilgrim);
+        $pilgrim->flights()->detach();
+
         if ($pilgrim->company_id === null || $pilgrim->hajj_year === null || $pilgrim->family_number === null) {
             $pilgrim->delete();
 
@@ -317,6 +353,28 @@ class PilgrimService
             $pilgrim->delete();
             $this->rebalanceFamily($company, $hajjYear, $familyNumber);
         });
+    }
+
+    private function recordDeletionLog(Pilgrim $pilgrim): void
+    {
+        $pilgrim->loadMissing(['company', 'package', 'podCity']);
+
+        PilgrimDeletionLog::query()->create([
+            'pilgrim_id' => $pilgrim->id,
+            'deleted_by' => auth()->id(),
+            'deleted_at' => now(),
+            'hajj_year' => $pilgrim->hajj_year,
+            'full_name' => $pilgrim->full_name,
+            'passport_no' => $pilgrim->passport_no,
+            'family_code' => $pilgrim->family_code,
+            'company_id' => $pilgrim->company_id,
+            'company_name' => $pilgrim->company?->registrationOptionLabel() ?? $pilgrim->company?->name,
+            'package_label' => $pilgrim->package?->registrationOptionLabel(),
+            'pod_city_name' => $pilgrim->podCity?->name,
+            'gender' => $pilgrim->gender?->label(),
+            'mobile' => $pilgrim->mobile,
+            'entry_date' => $pilgrim->entry_date,
+        ]);
     }
 
     /**
@@ -462,6 +520,98 @@ class PilgrimService
         }
 
         return $this->prepareNewSingleFamily($company, $hajjYear);
+    }
+
+    /** @return array<string, mixed> */
+    private function previewFamilyImpact(Pilgrim $pilgrim): array
+    {
+        if ($pilgrim->company_id === null || $pilgrim->hajj_year === null || $pilgrim->family_number === null) {
+            return [
+                'connected' => false,
+                'outcome' => 'none',
+                'summary' => 'This registration is not linked to a family group.',
+                'other_members' => [],
+                'changes' => [],
+            ];
+        }
+
+        $company = Company::query()->findOrFail($pilgrim->company_id);
+        $companyId = (int) $pilgrim->company_id;
+        $hajjYear = (int) $pilgrim->hajj_year;
+        $familyNumber = (int) $pilgrim->family_number;
+
+        $otherMembers = $this->familyMembers($companyId, $hajjYear, $familyNumber)
+            ->where('id', '!=', $pilgrim->id)
+            ->values();
+
+        $otherMemberRows = $otherMembers
+            ->map(fn (Pilgrim $member): array => [
+                'id' => $member->id,
+                'full_name' => $member->full_name,
+                'family_code' => $member->family_code,
+            ])
+            ->all();
+
+        if ($otherMembers->isEmpty()) {
+            return [
+                'connected' => true,
+                'family_number' => $familyNumber,
+                'outcome' => 'freed',
+                'summary' => sprintf(
+                    'Family number %02d will be released and can be reused for new registrations.',
+                    $familyNumber,
+                ),
+                'other_members' => [],
+                'changes' => [],
+            ];
+        }
+
+        if ($otherMembers->count() === 1) {
+            /** @var Pilgrim $member */
+            $member = $otherMembers->first();
+            $newCode = $this->formatFamilyCode($company, $familyNumber, 'S');
+
+            return [
+                'connected' => true,
+                'family_number' => $familyNumber,
+                'outcome' => 'revert_to_single',
+                'summary' => 'The remaining family member will become a single registration.',
+                'other_members' => $otherMemberRows,
+                'changes' => [[
+                    'full_name' => $member->full_name,
+                    'current_family_code' => $member->family_code,
+                    'new_family_code' => $newCode,
+                    'will_change' => $member->family_code !== $newCode,
+                ]],
+            ];
+        }
+
+        $changes = $otherMembers
+            ->values()
+            ->map(function (Pilgrim $member, int $index) use ($company, $familyNumber): array {
+                $suffix = $this->suffixForMemberIndex($index) ?? '?';
+                $newCode = $this->formatFamilyCode($company, $familyNumber, $suffix);
+
+                return [
+                    'full_name' => $member->full_name,
+                    'current_family_code' => $member->family_code,
+                    'new_family_code' => $newCode,
+                    'will_change' => $member->family_code !== $newCode,
+                ];
+            })
+            ->all();
+
+        return [
+            'connected' => true,
+            'family_number' => $familyNumber,
+            'outcome' => 'rebalance',
+            'summary' => sprintf(
+                '%d remaining family members will be renumbered to close the gap.',
+                $otherMembers->count(),
+            ),
+            'other_members' => $otherMemberRows,
+            'changes' => $changes,
+        ];
     }
 
     private function lockFamilyRows(int $companyId, int $hajjYear, int $familyNumber): void

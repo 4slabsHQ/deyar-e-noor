@@ -56,11 +56,11 @@
                                 :view-route="route('admin.pilgrims.show', $pilgrim)"
                                 :edit-route="route('admin.pilgrims.edit', $pilgrim)"
                                 :delete-route="route('admin.pilgrims.destroy', $pilgrim)"
+                                :delete-preview-route="route('admin.pilgrims.deletion-preview', $pilgrim)"
                                 view-title="View registration"
                                 view-permission="pilgrims.view"
                                 edit-permission="pilgrims.update"
                                 delete-permission="pilgrims.delete"
-                                :delete-confirm="'Delete '.($pilgrim->full_name ?: 'this registration').'?'"
                             />
                         </td>
                     </tr>
@@ -68,4 +68,10 @@
             </tbody>
         </table>
     </x-admin.index-page>
+
+    @include('admin.pilgrims._delete-modal')
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/pilgrim-delete.js') }}?v=3"></script>
+@endpush

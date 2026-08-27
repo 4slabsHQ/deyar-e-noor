@@ -4,6 +4,8 @@ namespace App\Reports\Definitions;
 
 use App\Enums\FlightDirection;
 use App\Enums\FlightType;
+use App\Models\CareOff;
+use App\Models\City;
 use App\Models\Company;
 use App\Models\Flight;
 use App\Models\HajjSeason;
@@ -31,7 +33,7 @@ class FlightReportDefinition implements ReportDefinition
 
     public function label(): string
     {
-        return 'Flight Reports';
+        return 'Flight Assignment Reports';
     }
 
     public function category(): string
@@ -81,14 +83,21 @@ class FlightReportDefinition implements ReportDefinition
             'arrival_airport' => ['label' => 'Arrival Airport', 'group' => 'Flight'],
             'assigned_at' => ['label' => 'Assigned At', 'group' => 'Flight'],
             'hajj_year' => ['label' => 'Hajj Year', 'group' => 'Hujaj'],
-            'full_name' => ['label' => 'Full Name', 'group' => 'Hujaj'],
-            'passport_no' => ['label' => 'Passport No', 'group' => 'Hujaj'],
-            'family_code' => ['label' => 'Family Code', 'group' => 'Hujaj'],
-            'gender' => ['label' => 'Gender', 'group' => 'Hujaj'],
+            'form_owner' => ['label' => 'Form Owner', 'group' => 'Hujaj'],
             'company' => ['label' => 'Company', 'group' => 'Hujaj'],
+            'maktab_category' => ['label' => 'Maktab', 'group' => 'Hujaj'],
             'package' => ['label' => 'Package', 'group' => 'Hujaj'],
+            'care_off' => ['label' => 'Care Off', 'group' => 'Hujaj'],
             'pod_city' => ['label' => 'POD', 'group' => 'Hujaj'],
-            'mobile' => ['label' => 'Mobile', 'group' => 'Hujaj'],
+            'gender' => ['label' => 'Gender', 'group' => 'Hujaj'],
+            'surname' => ['label' => 'Surname', 'group' => 'Hujaj'],
+            'given_name' => ['label' => 'Given Name', 'group' => 'Hujaj'],
+            'full_name' => ['label' => 'Full Name', 'group' => 'Hujaj'],
+            'date_of_birth' => ['label' => 'Date of Birth', 'group' => 'Hujaj'],
+            'age' => ['label' => 'Age', 'group' => 'Hujaj'],
+            'passport_no' => ['label' => 'Passport No', 'group' => 'Hujaj'],
+            'passport_expiry' => ['label' => 'Passport Expiry', 'group' => 'Hujaj'],
+            'family_code' => ['label' => 'Family Code', 'group' => 'Hujaj'],
         ];
     }
 
@@ -147,6 +156,8 @@ class FlightReportDefinition implements ReportDefinition
             'departure_to' => $input['departure_to'] ?? null,
             'company_id' => $input['company_id'] ?? null,
             'package_id' => $input['package_id'] ?? null,
+            'pod_city_id' => $input['pod_city_id'] ?? null,
+            'care_off_id' => $input['care_off_id'] ?? null,
             'search' => $input['search'] ?? null,
         ];
     }
@@ -161,21 +172,23 @@ class FlightReportDefinition implements ReportDefinition
 
     public function filterOptions(array $filters): array
     {
-        $scopedCompanyIds = Pilgrim::query()
+        $scopedIds = fn (string $column) => Pilgrim::query()
             ->where('hajj_year', $filters['hajj_year'])
             ->whereHas('flights')
             ->distinct()
-            ->pluck('company_id')
+            ->pluck($column)
             ->filter();
 
         return [
             'directions' => FlightDirection::cases(),
             'flightTypes' => FlightType::cases(),
             'companies' => Company::query()
-                ->whereIn('id', $scopedCompanyIds)
+                ->whereIn('id', $scopedIds('company_id'))
                 ->orderBy('name')
                 ->get(['id', 'name', 'munazzam_code']),
             'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
+            'podCities' => City::query()->whereIn('id', $scopedIds('pod_city_id'))->orderBy('name')->get(['id', 'name']),
+            'careOffs' => CareOff::query()->whereIn('id', $scopedIds('care_off_id'))->orderBy('name')->get(['id', 'name']),
             'flights' => Flight::query()
                 ->whereHas('pilgrims', fn (Builder $query) => $query->where('hajj_year', $filters['hajj_year']))
                 ->with('departureCity:id,name')
@@ -281,8 +294,11 @@ class FlightReportDefinition implements ReportDefinition
     private function pilgrimRelationsForColumns(array $columns): array
     {
         $map = [
+            'form_owner' => 'formOwner:id,name',
             'company' => 'company:id,name,munazzam_code',
+            'maktab_category' => 'maktabCategory:id,name,zone',
             'package' => 'package:id,name,number,price,days,duration,qurbani_included',
+            'care_off' => 'careOff:id,name',
             'pod_city' => 'podCity:id,name',
         ];
 
@@ -321,14 +337,23 @@ class FlightReportDefinition implements ReportDefinition
             'arrival_airport' => $flight->arrivalAirport?->name,
             'assigned_at' => $record->assignedAt?->format('d M Y H:i'),
             'hajj_year' => (string) $pilgrim->hajj_year,
-            'full_name' => $pilgrim->full_name,
-            'passport_no' => $pilgrim->passport_no,
-            'family_code' => $pilgrim->family_code,
-            'gender' => $pilgrim->gender?->label(),
+            'form_owner' => $pilgrim->formOwner?->name,
             'company' => $pilgrim->company?->registrationOptionLabel(),
+            'maktab_category' => $pilgrim->maktabCategory
+                ? $pilgrim->maktabCategory->name.' ('.$pilgrim->maktabCategory->zone.')'
+                : null,
             'package' => $pilgrim->package?->registrationOptionLabel(),
+            'care_off' => $pilgrim->careOff?->name,
             'pod_city' => $pilgrim->podCity?->name,
-            'mobile' => $pilgrim->mobile,
+            'gender' => $pilgrim->gender?->label(),
+            'surname' => $pilgrim->surname,
+            'given_name' => $pilgrim->given_name,
+            'full_name' => $pilgrim->full_name,
+            'date_of_birth' => $pilgrim->date_of_birth?->format('d M Y'),
+            'age' => $pilgrim->age !== null ? (string) $pilgrim->age : null,
+            'passport_no' => $pilgrim->passport_no,
+            'passport_expiry' => $pilgrim->passport_expiry?->format('d M Y'),
+            'family_code' => $pilgrim->family_code,
             default => null,
         };
     }
@@ -369,6 +394,14 @@ class FlightReportDefinition implements ReportDefinition
             $query->where('package_id', (int) $filters['package_id']);
         }
 
+        if (filled($filters['pod_city_id'] ?? null)) {
+            $query->where('pod_city_id', (int) $filters['pod_city_id']);
+        }
+
+        if (filled($filters['care_off_id'] ?? null)) {
+            $query->where('care_off_id', (int) $filters['care_off_id']);
+        }
+
         if (filled($filters['search'] ?? null)) {
             $term = trim((string) $filters['search']);
 
@@ -376,7 +409,6 @@ class FlightReportDefinition implements ReportDefinition
                 $query->where('full_name', 'like', "%{$term}%")
                     ->orWhere('passport_no', 'like', "%{$term}%")
                     ->orWhere('family_code', 'like', "%{$term}%")
-                    ->orWhere('mobile', 'like', "%{$term}%")
                     ->orWhereHas('flights', function (Builder $query) use ($term): void {
                         $query->where('departure_flight_no', 'like', "%{$term}%")
                             ->orWhere('via_departure_flight_no', 'like', "%{$term}%");

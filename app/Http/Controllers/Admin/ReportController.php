@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RunReportRequest;
 use App\Http\Requests\SaveReportColumnsRequest;
+use App\Reports\Contracts\ProvidesReportSummary;
 use App\Reports\Contracts\ReportDefinition;
 use App\Reports\ReportRegistry;
 use App\Services\HajjSeasonService;
@@ -222,6 +223,9 @@ class ReportController extends Controller
             'exportQuery' => $this->exportQuery($definition, $columns, $filters),
             'reportLabel' => $definition->label(),
             'defaultReportTitle' => $this->defaultReportTitle($definition, $filters),
+            'summaryStats' => $definition instanceof ProvidesReportSummary
+                ? $definition->summaryStats($filters)
+                : null,
         ];
     }
 

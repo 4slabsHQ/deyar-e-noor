@@ -64,7 +64,7 @@ class DashboardController extends Controller
         ));
     }
 
-    /** @return array{total_quota: int, entered: int, remaining: int, refund: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
+    /** @return array{total_quota: int, entered: int, remaining: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
     private function companyQuotaStats(int $hajjYear): array
     {
         $companies = Company::query()
@@ -90,7 +90,7 @@ class DashboardController extends Controller
         );
     }
 
-    /** @return array{total_quota: int, entered: int, remaining: int, refund: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
+    /** @return array{total_quota: int, entered: int, remaining: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
     private function packageLimitStats(int $hajjYear): array
     {
         $packages = Package::query()
@@ -116,7 +116,7 @@ class DashboardController extends Controller
         );
     }
 
-    /** @return array{total_quota: int, entered: int, remaining: int, refund: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
+    /** @return array{total_quota: int, entered: int, remaining: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>} */
     private function formOwnerLimitStats(int $hajjYear): array
     {
         $formOwners = FormOwner::query()
@@ -145,7 +145,7 @@ class DashboardController extends Controller
     /**
      * @param  list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>  $items
      * @param  Collection<int, Company|Package|FormOwner>  $limitedItems
-     * @return array{total_quota: int, entered: int, remaining: int, refund: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>}
+     * @return array{total_quota: int, entered: int, remaining: int, utilisation_percentage: float, unlimited_count: int, unlimited_label: string, items: list<array{name: string, code: string|null, limit: int, used: int, percentage: float}>}
      */
     private function buildLimitOverview(
         array $items,
@@ -154,15 +154,13 @@ class DashboardController extends Controller
         string $limitAttribute,
         Collection $limitedItems,
     ): array {
-        $refund = 0;
         $totalLimit = (int) $limitedItems->sum($limitAttribute);
         $entered = (int) $limitedItems->sum('registered_count');
 
         return [
             'total_quota' => $totalLimit,
             'entered' => $entered,
-            'remaining' => max(0, $totalLimit - $entered - $refund),
-            'refund' => $refund,
+            'remaining' => max(0, $totalLimit - $entered),
             'utilisation_percentage' => $totalLimit > 0
                 ? min(100, round(($entered / $totalLimit) * 100, 1))
                 : 0.0,

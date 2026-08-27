@@ -30,8 +30,8 @@ class FlightFactory extends Factory
         $arrivalAirport = Airport::factory()->create(['city_id' => $arrivalCity->id, 'is_active' => true]);
         $airline = Airline::query()->create([
             'name' => 'Test Airline',
-            'code' => strtoupper(fake()->unique()->lexify('??')),
-            'iata_code' => strtoupper(fake()->unique()->lexify('??')),
+            'code' => strtoupper(fake()->unique()->bothify('??###')),
+            'iata_code' => strtoupper(fake()->lexify('??')),
             'country_id' => $country->id,
             'is_active' => true,
         ]);
@@ -62,8 +62,8 @@ class FlightFactory extends Factory
             $viaAirport = Airport::factory()->create(['city_id' => $viaCity->id, 'is_active' => true]);
             $viaAirline = Airline::query()->create([
                 'name' => 'Via Airline',
-                'code' => strtoupper(fake()->unique()->lexify('??')),
-                'iata_code' => strtoupper(fake()->unique()->lexify('??')),
+                'code' => strtoupper(fake()->unique()->bothify('??###')),
+                'iata_code' => strtoupper(fake()->lexify('??')),
                 'country_id' => $country->id,
                 'is_active' => true,
             ]);

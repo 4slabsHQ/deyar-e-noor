@@ -19,11 +19,6 @@
             <option value="{{ $flightType->value }}" @selected(($filters['flight_type'] ?? '') === $flightType->value)>{{ $flightType->label() }}</option>
         @endforeach
     </x-admin.filter-select>
-    <x-admin.filter-select name="flight_id" label="Flight" :selected="$filters['flight_id'] ?? ''">
-        @foreach ($filterOptions['flights'] as $flight)
-            <option value="{{ $flight->id }}" @selected((string) ($filters['flight_id'] ?? '') === (string) $flight->id)>{{ $flight->reportFilterLabel() }}</option>
-        @endforeach
-    </x-admin.filter-select>
     <x-admin.filter-select name="company_id" label="Company" :selected="$filters['company_id'] ?? ''">
         @foreach ($filterOptions['companies'] as $company)
             <option value="{{ $company->id }}" @selected((string) ($filters['company_id'] ?? '') === (string) $company->id)>{{ $company->registrationOptionLabel() }}</option>
@@ -54,7 +49,7 @@
     </div>
     <div class="col-lg-3 col-md-6">
         <label for="search" class="admin-form-label">Search</label>
-        <input type="text" name="search" id="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="Name, passport, family, flight no">
+        <input type="text" name="search" id="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="Flight number">
     </div>
     <div class="col-lg-auto d-flex gap-2">
         <button type="submit" class="btn btn-primary btn-sm" data-report-generate>Generate</button>

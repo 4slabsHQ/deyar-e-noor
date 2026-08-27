@@ -111,6 +111,10 @@ Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.
         ->name('pilgrims.families')
         ->middleware('permission:pilgrims.create|pilgrims.update');
 
+    Route::get('pilgrims/{pilgrim}/deletion-preview', [PilgrimController::class, 'deletionPreview'])
+        ->name('pilgrims.deletion-preview')
+        ->middleware('permission:pilgrims.delete');
+
     Route::resource('pilgrims', PilgrimController::class)
         ->middlewareFor(['index', 'show'], 'permission:pilgrims.view')
         ->middlewareFor(['create', 'store'], 'permission:pilgrims.create')

@@ -3,7 +3,9 @@
 namespace App\Reports;
 
 use App\Reports\Contracts\ReportDefinition;
+use App\Reports\Definitions\DeletedRegistrationsReportDefinition;
 use App\Reports\Definitions\FlightReportDefinition;
+use App\Reports\Definitions\FlightSummaryReportDefinition;
 use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use InvalidArgumentException;
 
@@ -16,7 +18,9 @@ class ReportRegistry
     {
         $this->definitions = [
             HajjRegistrationReportDefinition::KEY => app(HajjRegistrationReportDefinition::class),
+            FlightSummaryReportDefinition::KEY => app(FlightSummaryReportDefinition::class),
             FlightReportDefinition::KEY => app(FlightReportDefinition::class),
+            DeletedRegistrationsReportDefinition::KEY => app(DeletedRegistrationsReportDefinition::class),
         ];
     }
 
@@ -51,9 +55,8 @@ class ReportRegistry
         return collect($this->all())
             ->map(fn (ReportDefinition $definition): array => [
                 'key' => $definition->key(),
-                'label' => $definition->category().' Reports',
+                'label' => $definition->label(),
             ])
-            ->sortBy('label')
             ->values()
             ->all();
     }

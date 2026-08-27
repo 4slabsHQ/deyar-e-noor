@@ -99,7 +99,7 @@
                    href="javascript:void()"
                    aria-expanded="{{ $hajjMastersActive ? 'true' : 'false' }}">
                     <i class="fas fa-database"></i>
-                    <span class="nav-text">Hajj Masters</span>
+                    <span class="nav-text">Hajj Setup</span>
                 </a>
                 <ul aria-expanded="{{ $hajjMastersActive ? 'true' : 'false' }}">
                     @can('companies.view')

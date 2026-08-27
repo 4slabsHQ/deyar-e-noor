@@ -11,13 +11,13 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 });
 
-test('sidebar shows hajj masters and access control for super admin', function () {
+test('sidebar shows hajj setup and access control for super admin', function () {
     $user = User::factory()->create();
     $user->assignRole('Super Admin');
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('nav-text">Hajj Masters', false)
+        ->assertSee('nav-text">Hajj Setup', false)
         ->assertSee('nav-text">Access Control', false)
         ->assertSee('nav-text">Hajj Registration', false)
         ->assertSee('nav-text">Flights', false);

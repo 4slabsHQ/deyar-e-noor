@@ -28,10 +28,6 @@
                                 <span class="deyar-quota-stat-card__label">Remaining</span>
                                 <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['remaining']) }}</span>
                             </div>
-                            <div class="deyar-quota-stat-card deyar-quota-stat-card--refund">
-                                <span class="deyar-quota-stat-card__label">Refund</span>
-                                <span class="deyar-quota-stat-card__value">{{ number_format($quotaStats['refund']) }}</span>
-                            </div>
                         </div>
 
                         <div class="deyar-quota-overview__footer">

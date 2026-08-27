@@ -254,6 +254,11 @@ class PilgrimController extends Controller
         return (int) $familyMoveTo !== (int) $pilgrim->family_number;
     }
 
+    public function deletionPreview(Pilgrim $pilgrim, PilgrimService $pilgrimService): JsonResponse
+    {
+        return response()->json($pilgrimService->previewDeletion($pilgrim));
+    }
+
     public function destroy(Pilgrim $pilgrim, PilgrimService $pilgrimService)
     {
         foreach (array_values(self::DOCUMENT_FIELDS) as $column) {

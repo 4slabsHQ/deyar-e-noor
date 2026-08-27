@@ -23,6 +23,8 @@
         </div>
     </div>
     <div class="card-body">
+        @includeWhen(isset($summaryStats), 'admin.reports._summary-stats', ['summaryStats' => $summaryStats ?? null])
+
         <div class="admin-index-table-wrap report-results-table-wrap">
             <table data-datatable
                    data-scroll-x="true"

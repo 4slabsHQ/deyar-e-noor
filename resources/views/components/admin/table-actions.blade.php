@@ -2,6 +2,7 @@
     'viewRoute' => null,
     'editRoute' => null,
     'deleteRoute' => null,
+    'deletePreviewRoute' => null,
     'assignRoute' => null,
     'viewTitle' => 'View',
     'assignTitle' => 'Assign hujaj',
@@ -58,19 +59,31 @@
     @if($deleteRoute)
         @if($deletePermission)
             @can($deletePermission)
-                <form action="{{ $deleteRoute }}" method="POST" onsubmit="return confirm(@js($deleteConfirm))">
+                <form action="{{ $deleteRoute }}" method="POST" @if($deletePreviewRoute) data-pilgrim-delete-form @else onsubmit="return confirm(@js($deleteConfirm))" @endif>
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger shadow btn-xs sharp" title="Delete">
+                    <button type="{{ $deletePreviewRoute ? 'button' : 'submit' }}"
+                            class="btn btn-danger shadow btn-xs sharp"
+                            title="Delete"
+                            @if($deletePreviewRoute)
+                                data-pilgrim-delete-trigger
+                                data-preview-url="{{ $deletePreviewRoute }}"
+                            @endif>
                         <i class="fa fa-trash"></i>
                     </button>
                 </form>
             @endcan
         @else
-            <form action="{{ $deleteRoute }}" method="POST" onsubmit="return confirm(@js($deleteConfirm))">
+            <form action="{{ $deleteRoute }}" method="POST" @if($deletePreviewRoute) data-pilgrim-delete-form @else onsubmit="return confirm(@js($deleteConfirm))" @endif>
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-danger shadow btn-xs sharp" title="Delete">
+                <button type="{{ $deletePreviewRoute ? 'button' : 'submit' }}"
+                        class="btn btn-danger shadow btn-xs sharp"
+                        title="Delete"
+                        @if($deletePreviewRoute)
+                            data-pilgrim-delete-trigger
+                            data-preview-url="{{ $deletePreviewRoute }}"
+                        @endif>
                     <i class="fa fa-trash"></i>
                 </button>
             </form>

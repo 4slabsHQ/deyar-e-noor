@@ -18,9 +18,9 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->unique()->country(),
-            'iso2' => strtoupper(fake()->unique()->lexify('??')),
-            'iso3' => strtoupper(fake()->unique()->lexify('???')),
+            'name' => fake()->country().' '.fake()->unique()->numerify('####'),
+            'iso2' => strtoupper(fake()->unique()->bothify('??##')),
+            'iso3' => strtoupper(fake()->unique()->bothify('???##')),
             'phone_code' => fake()->numberBetween(1, 999),
             'is_active' => true,
         ];

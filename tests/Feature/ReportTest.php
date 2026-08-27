@@ -10,8 +10,11 @@ use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
 use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Models\PilgrimDeletionLog;
 use App\Models\User;
+use App\Reports\Definitions\DeletedRegistrationsReportDefinition;
 use App\Reports\Definitions\FlightReportDefinition;
+use App\Reports\Definitions\FlightSummaryReportDefinition;
 use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use App\Services\HajjSeasonService;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -47,11 +50,34 @@ it('shows hajj reports in the sidebar submenu', function () {
         ->assertSee('Hajj Reports');
 });
 
-it('shows flight reports in the sidebar submenu', function () {
+it('shows flight summary in the sidebar submenu', function () {
     $this->actingAs($this->admin)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Flight Reports');
+        ->assertSee('Flight Summary');
+});
+
+it('shows flight assignment reports in the sidebar submenu', function () {
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Flight Assignment Reports');
+});
+
+it('shows deleted registrations in the sidebar submenu', function () {
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Deleted Registrations');
+});
+
+it('orders report submenu items as hajj, flight summary, flight assignment reports, then deleted registrations', function () {
+    $content = $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->getContent();
+
+    expect($content)->toMatch('/Hajj Reports[\s\S]*Flight Summary[\s\S]*Flight Assignment Reports[\s\S]*Deleted Registrations/');
 });
 
 it('shows a dedicated report page with columns first', function () {
@@ -472,16 +498,117 @@ it('includes column keys in report print data for picture rendering', function (
         ->toContain('report-pilgrim-photo');
 });
 
+it('shows a dedicated flight summary report page with columns first', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', FlightSummaryReportDefinition::KEY))
+        ->assertOk()
+        ->assertSee('Flight Summary')
+        ->assertSeeInOrder(['Columns', 'Filters'])
+        ->assertSee('column-direction', false)
+        ->assertSee('column-departure_flight_no', false)
+        ->assertSee('column-pilgrims_count', false)
+        ->assertSee('Generate')
+        ->assertDontSee('Results');
+});
+
+it('generates a flight summary report with per-flight hujaj counts and overview stats', function () {
+    $outboundFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'SUM-OUT',
+    ]);
+
+    $returnFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Return,
+        'departure_flight_no' => 'SUM-RET',
+    ]);
+
+    $assignedBoth = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Both Flights Pilgrim',
+    ]);
+
+    $outboundOnly = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Outbound Only Pilgrim',
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Unassigned Pilgrim',
+    ]);
+
+    $outboundFlight->pilgrims()->attach($assignedBoth->id, ['assigned_by' => $this->admin->id]);
+    $outboundFlight->pilgrims()->attach($outboundOnly->id, ['assigned_by' => $this->admin->id]);
+    $returnFlight->pilgrims()->attach($assignedBoth->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightSummaryReportDefinition::KEY,
+            'columns' => ['direction', 'departure_flight_no', 'pilgrims_count'],
+            'hajj_year' => $this->activeYear,
+        ]))
+        ->assertOk();
+
+    $html = $response->json('html');
+
+    expect($html)
+        ->toContain('SUM-OUT')
+        ->toContain('SUM-RET')
+        ->toContain('Registered Hujaj')
+        ->toContain('Assigned Hujaj')
+        ->toContain('Unassigned Hujaj')
+        ->toContain('Missing Return')
+        ->toContain('Missing Outbound');
+});
+
+it('filters flight summary results by journey direction', function () {
+    $outboundFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'SUM-FLT-OUT',
+    ]);
+
+    $returnFlight = Flight::factory()->create([
+        'direction' => FlightDirection::Return,
+        'departure_flight_no' => 'SUM-FLT-RET',
+    ]);
+
+    $pilgrim = Pilgrim::factory()->create(['hajj_year' => $this->activeYear]);
+    $outboundFlight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->admin->id]);
+    $returnFlight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightSummaryReportDefinition::KEY,
+            'columns' => ['departure_flight_no', 'pilgrims_count'],
+            'hajj_year' => $this->activeYear,
+            'direction' => FlightDirection::Return->value,
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('SUM-FLT-RET')
+        ->not->toContain('SUM-FLT-OUT');
+});
+
 it('shows a dedicated flight report page with columns first', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.reports.show', FlightReportDefinition::KEY))
         ->assertOk()
-        ->assertSee('Flight Reports')
+        ->assertSee('Flight Assignment Reports')
         ->assertSeeInOrder(['Columns', 'Filters'])
         ->assertSee('column-direction', false)
         ->assertSee('column-departure_flight_no', false)
-        ->assertSee('column-full_name', false)
+        ->assertSee('column-given_name', false)
+        ->assertSee('column-surname', false)
+        ->assertSee('column-date_of_birth', false)
+        ->assertSee('column-age', false)
+        ->assertSee('column-passport_expiry', false)
+        ->assertSee('column-care_off', false)
+        ->assertSee('column-maktab_category', false)
+        ->assertSee('column-form_owner', false)
+        ->assertSee('column-gender', false)
         ->assertSee('Generate')
+        ->assertDontSee('column-mobile', false)
         ->assertDontSee('Results');
 });
 
@@ -575,5 +702,145 @@ it('exports flight report to excel', function () {
 
     expect($response->getContent())
         ->toContain('Flight Excel Pilgrim')
-        ->toContain('Flight Reports');
+        ->toContain('Flight Assignment Reports');
+});
+
+it('includes expanded hujaj columns in flight report results', function () {
+    $flight = Flight::factory()->create([
+        'direction' => FlightDirection::Outbound,
+        'departure_flight_no' => 'HJJCOL001',
+    ]);
+
+    $pilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'surname' => 'Khan',
+        'given_name' => 'Ali',
+        'full_name' => 'Khan Ali',
+        'passport_no' => 'PK1234567',
+        'date_of_birth' => '1985-06-15',
+        'passport_expiry' => '2030-12-31',
+        'gender' => Gender::Male,
+    ]);
+
+    $flight->pilgrims()->attach($pilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightReportDefinition::KEY,
+            'columns' => [
+                'departure_flight_no',
+                'form_owner',
+                'company',
+                'maktab_category',
+                'package',
+                'gender',
+                'given_name',
+                'surname',
+                'date_of_birth',
+                'age',
+                'passport_expiry',
+                'care_off',
+            ],
+            'hajj_year' => $this->activeYear,
+        ]))
+        ->assertOk();
+
+    $html = $response->json('html');
+
+    expect($html)
+        ->toContain('HJJCOL001')
+        ->toContain('Khan')
+        ->toContain('Ali')
+        ->toContain('15 Jun 1985')
+        ->toContain('31 Dec 2030')
+        ->toContain($pilgrim->formOwner->name)
+        ->toContain($pilgrim->company->registrationOptionLabel())
+        ->toContain($pilgrim->careOff->name)
+        ->toContain($pilgrim->gender->label());
+});
+
+it('filters flight report results by pod and care off', function () {
+    $flight = Flight::factory()->create([
+        'departure_flight_no' => 'PODFLT001',
+    ]);
+
+    $matchingPilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Matching POD Care Off Pilgrim',
+    ]);
+
+    $otherPilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Other POD Care Off Pilgrim',
+    ]);
+
+    $flight->pilgrims()->attach($matchingPilgrim->id, ['assigned_by' => $this->admin->id]);
+    $flight->pilgrims()->attach($otherPilgrim->id, ['assigned_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => FlightReportDefinition::KEY,
+            'columns' => ['full_name', 'pod_city', 'care_off'],
+            'hajj_year' => $this->activeYear,
+            'pod_city_id' => $matchingPilgrim->pod_city_id,
+            'care_off_id' => $matchingPilgrim->care_off_id,
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Matching POD Care Off Pilgrim')
+        ->not->toContain('Other POD Care Off Pilgrim');
+});
+
+it('shows pod and care off filters on the flight report page', function () {
+    $content = $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', FlightReportDefinition::KEY))
+        ->assertOk()
+        ->getContent();
+
+    foreach (['pod_city_id', 'care_off_id'] as $field) {
+        expect($content)->toMatch('/id="'.$field.'"[\s\S]*?<option value=""[\s\S]*?selected[\s\S]*?>All<\/option>/');
+    }
+});
+
+it('generates deleted registrations report from deletion logs', function () {
+    $pilgrim = Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Deleted Report Pilgrim',
+        'passport_no' => 'DR0000001',
+        'family_code' => 'DYN-01-S',
+    ]);
+
+    PilgrimDeletionLog::query()->create([
+        'pilgrim_id' => $pilgrim->id,
+        'deleted_by' => $this->admin->id,
+        'deleted_at' => now(),
+        'hajj_year' => $this->activeYear,
+        'full_name' => $pilgrim->full_name,
+        'passport_no' => $pilgrim->passport_no,
+        'family_code' => $pilgrim->family_code,
+        'company_name' => 'Audit Company',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => DeletedRegistrationsReportDefinition::KEY,
+            'columns' => ['deleted_at', 'deleted_by', 'full_name', 'passport_no', 'company'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Deleted Report Pilgrim')
+        ->toContain('DR0000001')
+        ->toContain('Audit Company')
+        ->toContain($this->admin->name);
+});
+
+it('shows dedicated deleted registrations report page', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', DeletedRegistrationsReportDefinition::KEY))
+        ->assertOk()
+        ->assertSee('Deleted Registrations')
+        ->assertSee('column-deleted_at', false)
+        ->assertSee('Deleted By');
 });

@@ -27,7 +27,7 @@ class PermissionCatalog
                 ],
             ],
             'hajj_masters' => [
-                'label' => 'Hajj Masters',
+                'label' => 'Hajj Setup',
                 'permissions' => [
                     'form-owners.view', 'form-owners.create', 'form-owners.update', 'form-owners.delete',
                     'maktab-categories.view', 'maktab-categories.create', 'maktab-categories.update', 'maktab-categories.delete',
