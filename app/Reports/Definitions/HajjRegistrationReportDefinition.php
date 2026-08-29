@@ -20,6 +20,12 @@ class HajjRegistrationReportDefinition implements ReportDefinition
 {
     public const KEY = 'hajj_registration';
 
+    /** @return list<string> */
+    public static function documentColumns(): array
+    {
+        return ['passport_document', 'visa_document', 'ticket_document'];
+    }
+
     public function __construct(private HajjSeasonService $hajjSeasonService) {}
 
     public function key(): string
@@ -40,7 +46,13 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     /** @return list<string> */
     public function nonSpreadsheetExportColumns(): array
     {
-        return ['picture'];
+        return array_merge(['picture'], self::documentColumns());
+    }
+
+    /** @return list<string> */
+    public function frontendOnlyColumns(): array
+    {
+        return self::documentColumns();
     }
 
     public function description(): string
@@ -91,6 +103,9 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'family_number' => ['label' => 'Family Number', 'group' => 'Family & Association'],
             'family_member_suffix' => ['label' => 'Family Suffix', 'group' => 'Family & Association'],
             'comments' => ['label' => 'Comments', 'group' => 'Comments'],
+            'passport_document' => ['label' => 'Passport Document', 'group' => 'Documents'],
+            'visa_document' => ['label' => 'Visa Document', 'group' => 'Documents'],
+            'ticket_document' => ['label' => 'Ticket Document', 'group' => 'Documents'],
             'entered_by' => ['label' => 'Entered By', 'group' => 'System'],
             'created_at' => ['label' => 'Created At', 'group' => 'System'],
         ];
@@ -105,6 +120,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'Mehram & Waris',
             'Family & Association',
             'Comments',
+            'Documents',
             'System',
         ];
     }
@@ -297,6 +313,9 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'waris_mobile' => $pilgrim->waris_mobile,
             'qurbani_included' => $pilgrim->qurbani_included ? 'Yes' : 'No',
             'comments' => $pilgrim->comments,
+            'passport_document' => $pilgrim->passport_url,
+            'visa_document' => $pilgrim->visa_url,
+            'ticket_document' => $pilgrim->ticket_url,
             'entered_by' => $pilgrim->creator?->name,
             'created_at' => $pilgrim->created_at?->format('d M Y H:i'),
             default => null,

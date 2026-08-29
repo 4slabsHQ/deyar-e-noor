@@ -47,6 +47,12 @@ class FlightReportDefinition implements ReportDefinition
         return [];
     }
 
+    /** @return list<string> */
+    public function frontendOnlyColumns(): array
+    {
+        return [];
+    }
+
     public function description(): string
     {
         return 'Flight assignments with selectable columns and filters.';

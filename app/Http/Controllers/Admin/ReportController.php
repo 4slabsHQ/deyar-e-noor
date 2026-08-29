@@ -7,6 +7,7 @@ use App\Http\Requests\RunReportRequest;
 use App\Http\Requests\SaveReportColumnsRequest;
 use App\Reports\Contracts\ProvidesReportSummary;
 use App\Reports\Contracts\ReportDefinition;
+use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use App\Reports\ReportRegistry;
 use App\Services\HajjSeasonService;
 use App\Services\ReportBuilderService;
@@ -63,7 +64,7 @@ class ReportController extends Controller
                 ? $this->exportQuery($definition, $columns, $filters)
                 : [],
             'resultView' => $result
-                ? $this->resultViewData($definition, $columns, $filters, $result)
+                ? $this->resultViewData($definition, $columns, $filters, $result, $builder)
                 : null,
         ]);
     }
@@ -90,7 +91,7 @@ class ReportController extends Controller
         $filters = $definition->normalizeFilters($request->filters());
         $columns = $request->selectedColumns();
         $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
-        $viewData = $this->resultViewData($definition, $columns, $filters, $result);
+        $viewData = $this->resultViewData($definition, $columns, $filters, $result, $builder);
 
         return response()->json([
             'html' => view('admin.reports._results', $viewData)->render(),
@@ -143,7 +144,7 @@ class ReportController extends Controller
         $filters = $definition->normalizeFilters($request->filters());
         $selectedColumns = $request->selectedColumns();
         $columns = $format === 'pdf'
-            ? $selectedColumns
+            ? array_values(array_diff($selectedColumns, $definition->frontendOnlyColumns()))
             : $this->spreadsheetExportColumns($definition, $selectedColumns);
         $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
         $defaultTitle = $this->defaultReportTitle($definition, $filters);
@@ -217,9 +218,14 @@ class ReportController extends Controller
         array $columns,
         array $filters,
         array $result,
+        ReportBuilderService $builder,
     ): array {
         return [
             'result' => $result,
+            'printResult' => $builder->excludeColumns($result, $definition->frontendOnlyColumns()),
+            'documentColumns' => $definition->key() === HajjRegistrationReportDefinition::KEY
+                ? HajjRegistrationReportDefinition::documentColumns()
+                : [],
             'exportQuery' => $this->exportQuery($definition, $columns, $filters),
             'reportLabel' => $definition->label(),
             'defaultReportTitle' => $this->defaultReportTitle($definition, $filters),

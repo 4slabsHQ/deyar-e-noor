@@ -30,6 +30,9 @@ interface ReportDefinition
     /** @return list<string> */
     public function nonSpreadsheetExportColumns(): array;
 
+    /** @return list<string> */
+    public function frontendOnlyColumns(): array;
+
     /**
      * @param  list<string>  $columns
      * @return list<string>

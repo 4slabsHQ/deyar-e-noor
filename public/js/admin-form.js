@@ -185,7 +185,6 @@
             var previewState = field.querySelector('.js-image-preview');
             var image = field.querySelector('.js-image-preview-img');
             var filePreview = field.querySelector('.js-file-preview');
-            var fileLink = field.querySelector('.js-file-preview-link');
             var fileName = field.querySelector('.js-file-preview-name');
             var existingUrl = field.dataset.existingUrl || '';
             var existingFilename = field.dataset.existingFilename || '';
@@ -213,10 +212,6 @@
                 image.removeAttribute('src');
                 filePreview.hidden = true;
 
-                if (fileLink) {
-                    fileLink.setAttribute('href', '#');
-                }
-
                 if (fileName) {
                     fileName.textContent = '';
                 }
@@ -240,10 +235,6 @@
                 image.hidden = true;
                 image.removeAttribute('src');
                 filePreview.hidden = false;
-
-                if (fileLink) {
-                    fileLink.href = url;
-                }
 
                 if (fileName) {
                     fileName.textContent = name;

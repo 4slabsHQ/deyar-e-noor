@@ -498,6 +498,119 @@ it('includes column keys in report print data for picture rendering', function (
         ->toContain('report-pilgrim-photo');
 });
 
+it('shows document columns in the hajj report column picker but not in defaults', function () {
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.show', HajjRegistrationReportDefinition::KEY))
+        ->assertOk();
+
+    expect($response->getContent())
+        ->toContain('column-passport_document', false)
+        ->toContain('column-visa_document', false)
+        ->toContain('column-ticket_document', false)
+        ->not->toContain('name="columns[]" value="passport_document"', false);
+});
+
+it('renders view and download icon buttons when a document is uploaded', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/passports/report-passport.pdf', 'passport-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Document Column Pilgrim',
+        'passport_path' => 'pilgrims/passports/report-passport.pdf',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['passport_document', 'full_name'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Document Column Pilgrim')
+        ->toContain('report-document-actions')
+        ->toContain('fas fa-eye')
+        ->toContain('fas fa-download')
+        ->toContain('title="View"')
+        ->toContain('title="Download"')
+        ->toContain('target="_blank"')
+        ->toContain('download')
+        ->toContain('storage/pilgrims/passports/report-passport.pdf');
+});
+
+it('renders a dash when document columns are selected but files are missing', function () {
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Missing Document Pilgrim',
+        'passport_path' => null,
+        'visa_path' => null,
+        'ticket_path' => null,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['passport_document', 'visa_document', 'ticket_document', 'full_name'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Missing Document Pilgrim')
+        ->not->toContain('report-document-actions')
+        ->not->toContain('fas fa-eye')
+        ->not->toContain('fas fa-download');
+});
+
+it('excludes document columns from excel export', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/passports/export-passport.pdf', 'passport-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Document Export Pilgrim',
+        'passport_path' => 'pilgrims/passports/export-passport.pdf',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.reports.export.excel', [
+            'report' => 'hajj_registration',
+            'columns' => ['passport_document', 'full_name'],
+            'hajj_year' => $this->activeYear,
+        ]));
+
+    $content = $response->getContent();
+
+    expect($content)
+        ->toContain('Document Export Pilgrim')
+        ->not->toContain('Passport Document</th>')
+        ->not->toContain('storage/pilgrims/passports/export-passport.pdf');
+});
+
+it('excludes document columns from print data while keeping picture columns', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/photos/print-doc-photo.jpg', 'photo-bytes');
+    Storage::disk('public')->put('pilgrims/passports/print-doc-passport.pdf', 'passport-bytes');
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Print Document Pilgrim',
+        'photo_path' => 'pilgrims/photos/print-doc-photo.jpg',
+        'passport_path' => 'pilgrims/passports/print-doc-passport.pdf',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => ['picture', 'passport_document', 'full_name'],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('"columnKeys":["serial","picture","full_name"]')
+        ->not->toContain('"passport_document"');
+});
+
 it('shows a dedicated flight summary report page with columns first', function () {
     $this->actingAs($this->admin)
         ->get(route('admin.reports.show', FlightSummaryReportDefinition::KEY))

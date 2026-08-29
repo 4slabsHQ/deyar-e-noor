@@ -67,6 +67,10 @@
                     </span>
                 </div>
                 <div class="pilgrim-doc-field">
+                    <span class="field-label">Munazzam</span>
+                    <span class="field-value">{{ $pilgrim->company?->munazzam_code ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
                     <span class="field-label">Maktab Category</span>
                     <span class="field-value">
                         @if ($pilgrim->maktabCategory)
@@ -76,15 +80,9 @@
                         @endif
                     </span>
                 </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Package</span>
-                    <span class="field-value">
-                        @if ($pilgrim->package)
-                            {{ $pilgrim->package->number }} — {{ $pilgrim->package->name }}
-                        @else
-                            —
-                        @endif
-                    </span>
+                <div class="pilgrim-doc-field full-width">
+                    <span class="field-label">Package Details</span>
+                    <span class="field-value">{{ $pilgrim->package?->registrationOptionLabel() ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Qurbani</span>

@@ -234,6 +234,14 @@
     padding: 0.35rem 0.55rem;
 }
 
+.pilgrim-form .pilgrim-doc-upload-col {
+    min-width: 0;
+}
+
+.pilgrim-form .pilgrim-doc-upload-col .admin-image-upload {
+    width: 100%;
+}
+
 /* Flight form utilities (shared hajj-form shell) */
 
 .hajj-form .flight-number-group {

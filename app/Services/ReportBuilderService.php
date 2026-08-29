@@ -62,6 +62,71 @@ class ReportBuilderService
     }
 
     /**
+     * @param  array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }  $result
+     * @param  list<string>  $excludeColumns
+     * @return array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }
+     */
+    public function excludeColumns(array $result, array $excludeColumns): array
+    {
+        if ($excludeColumns === []) {
+            return $result;
+        }
+
+        $keepDataColumnIndices = [];
+
+        foreach ($result['columns'] as $index => $column) {
+            if (! in_array($column, $excludeColumns, true)) {
+                $keepDataColumnIndices[] = $index;
+            }
+        }
+
+        if (count($keepDataColumnIndices) === count($result['columns'])) {
+            return $result;
+        }
+
+        $keptHeadings = array_map(
+            fn (int $index): string => $result['headings'][$index + 1],
+            $keepDataColumnIndices,
+        );
+
+        $keptColumns = array_values(array_map(
+            fn (int $index): string => $result['columns'][$index],
+            $keepDataColumnIndices,
+        ));
+
+        $keptRows = array_map(
+            function (array $row) use ($keepDataColumnIndices): array {
+                $keptValues = array_map(
+                    fn (int $index): string|int|null => $row[$index + 1],
+                    $keepDataColumnIndices,
+                );
+
+                return array_merge([$row[0]], $keptValues);
+            },
+            $result['rows'],
+        );
+
+        return [
+            ...$result,
+            'headings' => array_merge(['S.No.'], $keptHeadings),
+            'rows' => $keptRows,
+            'columns' => $keptColumns,
+        ];
+    }
+
+    /**
      * @param  array<string, array{label: string, group: string}>  $catalog
      * @return array<string, list<array{key: string, label: string}>>
      */

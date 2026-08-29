@@ -639,6 +639,40 @@ test('pilgrim registration document shows company logo when available', function
         ->assertSee('pilgrim-doc-logo', false);
 });
 
+test('pilgrim registration document shows munazzam and package details', function () {
+    $this->company->update(['munazzam_code' => 'MZ-DYN-100']);
+
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee('Munazzam')
+        ->assertSee('MZ-DYN-100')
+        ->assertSee('Package Details')
+        ->assertSee('PKG-001')
+        ->assertSee('850,000.00')
+        ->assertSee('21 days');
+});
+
+test('pilgrim edit form uses compact document upload controls', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('pilgrims/passports/uploaded-passport.pdf', 'passport-bytes');
+
+    $pilgrim = registerPilgrim();
+    $pilgrim->update(['passport_path' => 'pilgrims/passports/uploaded-passport.pdf']);
+
+    $response = $this->actingAs($this->user)->get(route('admin.pilgrims.edit', $pilgrim));
+
+    $response->assertOk()
+        ->assertSee('admin-image-upload__remove', false)
+        ->assertSee('fa-trash', false)
+        ->assertSee('admin-image-upload__filename', false)
+        ->assertDontSee('>Change</button>', false)
+        ->assertDontSee('>Remove</button>', false);
+});
+
 test('pilgrim registration validates passport format', function () {
     $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
         'passport_no' => 'INVALID',

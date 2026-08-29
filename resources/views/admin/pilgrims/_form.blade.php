@@ -367,7 +367,7 @@
     <section class="pilgrim-form-section">
         <h5 class="pilgrim-form-section-title">Documents</h5>
         <div class="row compact g-2">
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-3 col-md-6 pilgrim-doc-upload-col">
                 <label class="form-label">Photo</label>
                 <x-admin.image-upload
                     name="photo"
@@ -378,7 +378,7 @@
                     preview-alt="Photo preview"
                 />
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-3 col-md-6 pilgrim-doc-upload-col">
                 <label class="form-label">Passport</label>
                 <x-admin.image-upload
                     name="passport"
@@ -389,7 +389,7 @@
                     preview-alt="Passport preview"
                 />
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-3 col-md-6 pilgrim-doc-upload-col">
                 <label class="form-label">Visa</label>
                 <x-admin.image-upload
                     name="visa"
@@ -400,7 +400,7 @@
                     preview-alt="Visa preview"
                 />
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-3 col-md-6 pilgrim-doc-upload-col">
                 <label class="form-label">Ticket</label>
                 <x-admin.image-upload
                     name="ticket"

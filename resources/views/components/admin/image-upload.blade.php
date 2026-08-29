@@ -40,15 +40,20 @@
     </div>
 
     <div class="admin-image-upload__preview js-image-preview" hidden>
-        <img src="" alt="{{ $previewAlt }}" class="admin-image-upload__image js-image-preview-img" hidden>
-        <div class="admin-image-upload__file js-file-preview" hidden>
-            <a href="#" target="_blank" rel="noopener" class="admin-image-upload__file-link js-file-preview-link">
-                <span class="admin-image-upload__filename js-file-preview-name"></span>
-            </a>
-        </div>
-        <div class="admin-image-upload__actions">
-            <button type="button" class="btn btn-sm btn-outline-primary js-image-change">Change</button>
-            <button type="button" class="btn btn-sm btn-outline-danger js-image-remove">Remove</button>
+        <div class="admin-image-upload__card">
+            <button type="button"
+                    class="admin-image-upload__remove js-image-remove"
+                    title="Remove"
+                    aria-label="Remove file">
+                <i class="fa fa-trash"></i>
+            </button>
+            <button type="button" class="admin-image-upload__change js-image-change" title="Change file">
+                <img src="" alt="{{ $previewAlt }}" class="admin-image-upload__image js-image-preview-img" hidden>
+                <div class="admin-image-upload__file js-file-preview" hidden>
+                    <i class="fas fa-file-alt admin-image-upload__file-icon" aria-hidden="true"></i>
+                    <span class="admin-image-upload__filename js-file-preview-name"></span>
+                </div>
+            </button>
         </div>
     </div>
 </div>

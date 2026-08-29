@@ -3,10 +3,11 @@
         $printData = [
             'title' => $defaultReportTitle,
             'meta' => number_format($result['total']).' rows',
-            'headings' => $result['headings'],
-            'rows' => $result['rows'],
-            'columnKeys' => array_merge(['serial'], $result['columns']),
+            'headings' => $printResult['headings'],
+            'rows' => $printResult['rows'],
+            'columnKeys' => array_merge(['serial'], $printResult['columns']),
         ];
+        $documentColumns = $documentColumns ?? [];
     @endphp
     <script type="application/json" class="report-print-data">{!! json_encode($printData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -61,6 +62,26 @@
                                                  height="40">
                                         @else
                                             <span class="report-pilgrim-photo-placeholder" aria-hidden="true">—</span>
+                                        @endif
+                                    @elseif (in_array($columnKey, $documentColumns, true))
+                                        @if (filled($cell))
+                                            <div class="report-document-actions d-flex">
+                                                <a href="{{ $cell }}"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="btn btn-info shadow btn-xs sharp me-1"
+                                                   title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ $cell }}"
+                                                   download
+                                                   class="btn btn-primary shadow btn-xs sharp"
+                                                   title="Download">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
+                                        @else
+                                            —
                                         @endif
                                     @else
                                         {{ $cell ?? '—' }}

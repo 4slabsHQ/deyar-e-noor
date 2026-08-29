@@ -39,6 +39,12 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
         return [];
     }
 
+    /** @return list<string> */
+    public function frontendOnlyColumns(): array
+    {
+        return [];
+    }
+
     public function description(): string
     {
         return 'Audit log of deleted Hajj registrations.';

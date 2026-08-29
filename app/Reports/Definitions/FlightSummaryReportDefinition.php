@@ -45,6 +45,12 @@ class FlightSummaryReportDefinition implements ProvidesReportSummary, ReportDefi
         return [];
     }
 
+    /** @return list<string> */
+    public function frontendOnlyColumns(): array
+    {
+        return [];
+    }
+
     public function description(): string
     {
         return 'Flight-wise hujaj counts and assignment overview for the selected Hajj year.';
