@@ -53,10 +53,6 @@
                     <span class="field-value">{{ $pilgrim->entry_date?->format('d/m/Y') ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
-                    <span class="field-label">Form Owner</span>
-                    <span class="field-value">{{ $pilgrim->formOwner?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
                     <span class="field-label">Company</span>
                     <span class="field-value">
                         @if ($companyName)
