@@ -71,24 +71,6 @@
                     <span class="field-value">{{ $pilgrim->company?->munazzam_code ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
-                    <span class="field-label">Maktab Category</span>
-                    <span class="field-value">
-                        @if ($pilgrim->maktabCategory)
-                            {{ $pilgrim->maktabCategory->name }} ({{ $pilgrim->maktabCategory->zone }})
-                        @else
-                            —
-                        @endif
-                    </span>
-                </div>
-                <div class="pilgrim-doc-field full-width">
-                    <span class="field-label">Package Details</span>
-                    <span class="field-value">{{ $pilgrim->package?->registrationOptionLabel() ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Qurbani</span>
-                    <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
                     <span class="field-label">Care Off</span>
                     <span class="field-value">{{ $pilgrim->careOff?->name ?? '—' }}</span>
                 </div>
@@ -103,6 +85,56 @@
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Family Code</span>
                     <span class="field-value">{{ $pilgrim->family_code ?? '—' }}</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pilgrim-doc-section">
+            <h2 class="pilgrim-doc-section-title">Package Details</h2>
+            <div class="pilgrim-doc-grid">
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Package No</span>
+                    <span class="field-value">{{ $pilgrim->package?->number ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Package Name</span>
+                    <span class="field-value">{{ $pilgrim->package?->name ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Price</span>
+                    <span class="field-value">
+                        @if ($pilgrim->package)
+                            {{ number_format((float) $pilgrim->package->price, 2) }}
+                        @else
+                            —
+                        @endif
+                    </span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Days</span>
+                    <span class="field-value">
+                        @if ($pilgrim->package)
+                            {{ $pilgrim->package->days }}
+                        @else
+                            —
+                        @endif
+                    </span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Duration</span>
+                    <span class="field-value">{{ $pilgrim->package?->duration?->label() ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Maktab Category</span>
+                    <span class="field-value">{{ $pilgrim->maktabCategory?->name ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Zone</span>
+                    <span class="field-value">{{ $pilgrim->maktabCategory?->zone ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Qurbani</span>
+                    <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
                 </div>
             </div>
         </section>

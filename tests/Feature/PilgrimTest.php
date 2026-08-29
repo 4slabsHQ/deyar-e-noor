@@ -639,7 +639,7 @@ test('pilgrim registration document shows company logo when available', function
         ->assertSee('pilgrim-doc-logo', false);
 });
 
-test('pilgrim registration document shows munazzam and package details', function () {
+test('pilgrim registration document shows munazzam and package details section', function () {
     $this->company->update(['munazzam_code' => 'MZ-DYN-100']);
 
     registerPilgrim();
@@ -650,10 +650,15 @@ test('pilgrim registration document shows munazzam and package details', functio
         ->assertOk()
         ->assertSee('Munazzam')
         ->assertSee('MZ-DYN-100')
-        ->assertSee('Package Details')
+        ->assertSeeInOrder(['Package Details', 'Package No', 'Package Name', 'Price', 'Days', 'Duration', 'Maktab Category', 'Zone', 'Qurbani'], false)
         ->assertSee('PKG-001')
+        ->assertSee('Economy')
         ->assertSee('850,000.00')
-        ->assertSee('21 days');
+        ->assertSee('21')
+        ->assertSee('Long')
+        ->assertSee('Category A')
+        ->assertSee('Zone 1')
+        ->assertSee('Yes');
 });
 
 test('pilgrim edit form uses compact document upload controls', function () {
