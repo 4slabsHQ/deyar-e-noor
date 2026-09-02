@@ -209,7 +209,11 @@ class HajjRegistrationReportDefinition implements ReportDefinition
 
         return [
             'companies' => Company::query()->whereIn('id', $scopedIds('company_id'))->orderBy('name')->get(['id', 'name']),
-            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
+            'packages' => Package::query()
+                ->where('hajj_year', $filters['hajj_year'])
+                ->where('is_active', true)
+                ->orderBy('number')
+                ->get(),
             'maktabCategories' => MaktabCategory::query()->whereIn('id', $scopedIds('maktab_category_id'))->orderBy('name')->get(['id', 'name']),
             'formOwners' => FormOwner::query()->whereIn('id', $scopedIds('form_owner_id'))->orderBy('name')->get(['id', 'name']),
             'podCities' => City::query()->whereIn('id', $scopedIds('pod_city_id'))->orderBy('name')->get(['id', 'name']),

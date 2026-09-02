@@ -29,7 +29,7 @@ class CompanyController extends Controller
         $data = $request->validated();
         $data['code'] = strtoupper($data['code']);
 
-        $this->service->store($data);
+        $this->service->store($this->withActiveHajjYear($data));
 
         return redirect()->route('admin.companies.index')
             ->with('success', 'Company created successfully.');

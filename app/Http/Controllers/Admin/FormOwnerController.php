@@ -11,7 +11,7 @@ class FormOwnerController extends Controller
 {
     public function index()
     {
-        $formOwners = FormOwner::query()->orderBy('name')->get();
+        $formOwners = FormOwner::query()->forActiveYear()->orderBy('name')->get();
 
         return view('admin.form-owners.index', compact('formOwners'));
     }
@@ -23,7 +23,7 @@ class FormOwnerController extends Controller
 
     public function store(StoreFormOwnerRequest $request)
     {
-        FormOwner::create($request->validated());
+        FormOwner::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.form-owners.index')->with('success', 'Form owner created successfully.');
     }

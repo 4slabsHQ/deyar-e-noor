@@ -197,10 +197,15 @@ class FlightReportDefinition implements ReportDefinition
                 ->whereIn('id', $scopedIds('company_id'))
                 ->orderBy('name')
                 ->get(['id', 'name', 'munazzam_code']),
-            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
+            'packages' => Package::query()
+                ->where('hajj_year', $filters['hajj_year'])
+                ->where('is_active', true)
+                ->orderBy('number')
+                ->get(),
             'podCities' => City::query()->whereIn('id', $scopedIds('pod_city_id'))->orderBy('name')->get(['id', 'name']),
             'careOffs' => CareOff::query()->whereIn('id', $scopedIds('care_off_id'))->orderBy('name')->get(['id', 'name']),
             'flights' => Flight::query()
+                ->where('hajj_year', $filters['hajj_year'])
                 ->whereHas('pilgrims', fn (Builder $query) => $query->where('hajj_year', $filters['hajj_year']))
                 ->with('departureCity:id,name')
                 ->orderBy('departure_date')

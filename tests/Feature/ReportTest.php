@@ -656,19 +656,27 @@ it('generates a flight summary report with per-flight hujaj counts and overview 
         'departure_flight_no' => 'SUM-RET',
     ]);
 
-    $assignedBoth = Pilgrim::factory()->create([
+    $company = Company::factory()->create(['hajj_year' => $this->activeYear]);
+
+    $assignedBoth = Pilgrim::query()->create([
+        'company_id' => $company->id,
         'hajj_year' => $this->activeYear,
         'full_name' => 'Both Flights Pilgrim',
+        'entry_date' => now(),
     ]);
 
-    $outboundOnly = Pilgrim::factory()->create([
+    $outboundOnly = Pilgrim::query()->create([
+        'company_id' => $company->id,
         'hajj_year' => $this->activeYear,
         'full_name' => 'Outbound Only Pilgrim',
+        'entry_date' => now(),
     ]);
 
-    Pilgrim::factory()->create([
+    Pilgrim::query()->create([
+        'company_id' => $company->id,
         'hajj_year' => $this->activeYear,
         'full_name' => 'Unassigned Pilgrim',
+        'entry_date' => now(),
     ]);
 
     $outboundFlight->pilgrims()->attach($assignedBoth->id, ['assigned_by' => $this->admin->id]);

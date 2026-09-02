@@ -11,7 +11,7 @@ class MehramRelationController extends Controller
 {
     public function index()
     {
-        $mehramRelations = MehramRelation::query()->orderBy('name')->get();
+        $mehramRelations = MehramRelation::query()->forActiveYear()->orderBy('name')->get();
 
         return view('admin.mehram-relations.index', compact('mehramRelations'));
     }
@@ -23,7 +23,7 @@ class MehramRelationController extends Controller
 
     public function store(StoreMehramRelationRequest $request)
     {
-        MehramRelation::create($request->validated());
+        MehramRelation::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.mehram-relations.index')->with('success', 'Mehram relation created successfully.');
     }

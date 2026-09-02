@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\RoomType;
+use Database\Factories\Concerns\UsesActiveHajjYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class RoomTypeFactory extends Factory
 {
+    use UsesActiveHajjYear;
+
     protected $model = RoomType::class;
 
     /**
@@ -18,6 +21,7 @@ class RoomTypeFactory extends Factory
     public function definition(): array
     {
         return [
+            'hajj_year' => $this->activeHajjYear(),
             'name' => fake()->unique()->randomElement(['Sharing', 'Double', 'Triple', 'Quad']),
             'is_active' => true,
         ];

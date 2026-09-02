@@ -11,7 +11,7 @@ class RoomTypeController extends Controller
 {
     public function index()
     {
-        $roomTypes = RoomType::query()->orderBy('name')->get();
+        $roomTypes = RoomType::query()->forActiveYear()->orderBy('name')->get();
 
         return view('admin.room-types.index', compact('roomTypes'));
     }
@@ -23,7 +23,7 @@ class RoomTypeController extends Controller
 
     public function store(StoreRoomTypeRequest $request)
     {
-        RoomType::create($request->validated());
+        RoomType::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.room-types.index')->with('success', 'Room type created successfully.');
     }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateFormOwnerRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class UpdateFormOwnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('form_owners', 'name')->ignore($this->route('form_owner'))],
+            'name' => ['required', 'string', 'max:255', SeasonValidation::unique('form_owners', 'name', $this->route('form_owner'))],
             'limit' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToHajjSeason;
 use App\Concerns\GuardsDeletionWhenReferenced;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Company extends Model
 {
-    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
+    use BelongsToHajjSeason, GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'hajj_year',
         'name',
         'code',
         'legal_name',
@@ -38,6 +40,7 @@ class Company extends Model
     protected function casts(): array
     {
         return [
+            'hajj_year' => 'integer',
             'is_active' => 'boolean',
             'quota' => 'integer',
         ];

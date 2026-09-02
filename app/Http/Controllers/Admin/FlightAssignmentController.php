@@ -27,6 +27,7 @@ class FlightAssignmentController extends Controller
         $flightType = $request->input('flight_type');
 
         $flights = Flight::query()
+            ->forActiveYear()
             ->with([
                 'departureCity',
                 'departureAirport',
@@ -181,7 +182,7 @@ class FlightAssignmentController extends Controller
         return [
             'companies' => Company::query()->whereIn('id', $companyIds)->orderBy('name')->get(['id', 'name', 'munazzam_code']),
             'podCities' => City::query()->whereIn('id', $podCityIds)->orderBy('name')->get(['id', 'name']),
-            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
+            'packages' => Package::query()->forYear($activeYear)->where('is_active', true)->orderBy('number')->get(),
             'formOwners' => FormOwner::query()->whereIn('id', $formOwnerIds)->orderBy('name')->get(['id', 'name']),
         ];
     }

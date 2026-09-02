@@ -11,7 +11,7 @@ class PackageController extends Controller
 {
     public function index()
     {
-        $packages = Package::query()->orderBy('number')->get();
+        $packages = Package::query()->forActiveYear()->orderBy('number')->get();
 
         return view('admin.packages.index', compact('packages'));
     }
@@ -23,7 +23,7 @@ class PackageController extends Controller
 
     public function store(StorePackageRequest $request)
     {
-        Package::create($request->validated());
+        Package::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.packages.index')->with('success', 'Package created successfully.');
     }

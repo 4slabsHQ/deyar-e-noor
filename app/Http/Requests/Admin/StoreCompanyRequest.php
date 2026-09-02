@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCompanyRequest extends FormRequest
@@ -22,13 +23,13 @@ class StoreCompanyRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:20', 'alpha_num', 'unique:companies,code'],
+            'code' => ['required', 'string', 'max:20', 'alpha_num', SeasonValidation::unique('companies', 'code')],
             'enr_number' => ['nullable', 'string', 'max:100'],
             'munazzam_code' => ['nullable', 'string', 'max:100'],
             'quota' => ['nullable', 'integer', 'min:1'],
             'legal_name' => ['nullable', 'string', 'max:255'],
-            'registration_number' => ['nullable', 'string', 'max:100', 'unique:companies'],
-            'tax_number' => ['nullable', 'string', 'max:100', 'unique:companies'],
+            'registration_number' => ['nullable', 'string', 'max:100', SeasonValidation::unique('companies', 'registration_number')],
+            'tax_number' => ['nullable', 'string', 'max:100', SeasonValidation::unique('companies', 'tax_number')],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

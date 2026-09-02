@@ -45,6 +45,7 @@ class DashboardController extends Controller
         if (auth()->user()?->can('flights.view')) {
             $flightStats = [
                 'upcoming' => Flight::query()
+                    ->forActiveYear()
                     ->with(['departureCity', 'arrivalCity', 'departureAirline'])
                     ->withCount('pilgrims')
                     ->where('departure_date', '>=', now())
@@ -68,6 +69,7 @@ class DashboardController extends Controller
     private function companyQuotaStats(int $hajjYear): array
     {
         $companies = Company::query()
+            ->forActiveYear()
             ->active()
             ->whereNotNull('quota')
             ->withCount([
@@ -76,7 +78,7 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get();
 
-        $unlimitedCompanies = Company::query()->active()->whereNull('quota')->count();
+        $unlimitedCompanies = Company::query()->forActiveYear()->active()->whereNull('quota')->count();
 
         return $this->buildLimitOverview(
             items: $this->mapUtilisationRows($companies, 'quota', fn (Company $company) => [
@@ -94,6 +96,7 @@ class DashboardController extends Controller
     private function packageLimitStats(int $hajjYear): array
     {
         $packages = Package::query()
+            ->forActiveYear()
             ->where('is_active', true)
             ->whereNotNull('limit')
             ->withCount([
@@ -102,7 +105,7 @@ class DashboardController extends Controller
             ->orderBy('number')
             ->get();
 
-        $unlimitedPackages = Package::query()->where('is_active', true)->whereNull('limit')->count();
+        $unlimitedPackages = Package::query()->forActiveYear()->where('is_active', true)->whereNull('limit')->count();
 
         return $this->buildLimitOverview(
             items: $this->mapUtilisationRows($packages, 'limit', fn (Package $package) => [
@@ -120,6 +123,7 @@ class DashboardController extends Controller
     private function formOwnerLimitStats(int $hajjYear): array
     {
         $formOwners = FormOwner::query()
+            ->forActiveYear()
             ->where('is_active', true)
             ->whereNotNull('limit')
             ->withCount([
@@ -128,7 +132,7 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get();
 
-        $unlimitedFormOwners = FormOwner::query()->where('is_active', true)->whereNull('limit')->count();
+        $unlimitedFormOwners = FormOwner::query()->forActiveYear()->where('is_active', true)->whereNull('limit')->count();
 
         return $this->buildLimitOverview(
             items: $this->mapUtilisationRows($formOwners, 'limit', fn (FormOwner $formOwner) => [

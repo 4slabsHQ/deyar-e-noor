@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class HajjSeasonService
 {
+    private HajjSeason|false|null $resolvedActiveSeason = false;
+
     public function activeYear(): int
     {
         return $this->active()?->year
@@ -16,9 +18,15 @@ class HajjSeasonService
 
     public function active(): ?HajjSeason
     {
-        return HajjSeason::query()
+        if ($this->resolvedActiveSeason !== false) {
+            return $this->resolvedActiveSeason;
+        }
+
+        $this->resolvedActiveSeason = HajjSeason::query()
             ->where('status', HajjSeasonStatus::Active)
             ->first();
+
+        return $this->resolvedActiveSeason;
     }
 
     public function create(int $year): HajjSeason
@@ -42,6 +50,8 @@ class HajjSeasonService
                 'activated_at' => now(),
                 'activated_by' => auth()->id(),
             ]);
+
+            $this->resolvedActiveSeason = false;
 
             return $season->fresh();
         });

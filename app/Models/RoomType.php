@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToHajjSeason;
 use App\Concerns\GuardsDeletionWhenReferenced;
 use Database\Factories\RoomTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +13,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RoomType extends Model
 {
     /** @use HasFactory<RoomTypeFactory> */
-    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
+    use BelongsToHajjSeason, GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'hajj_year',
         'name',
         'is_active',
     ];
@@ -22,6 +24,7 @@ class RoomType extends Model
     protected function casts(): array
     {
         return [
+            'hajj_year' => 'integer',
             'is_active' => 'boolean',
         ];
     }

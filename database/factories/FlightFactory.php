@@ -9,6 +9,7 @@ use App\Models\Airport;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Flight;
+use Database\Factories\Concerns\UsesActiveHajjYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class FlightFactory extends Factory
 {
+    use UsesActiveHajjYear;
+
     protected $model = Flight::class;
 
     /**
@@ -39,6 +42,7 @@ class FlightFactory extends Factory
         $departureDate = fake()->dateTimeBetween('+1 week', '+2 months');
 
         return [
+            'hajj_year' => $this->activeHajjYear(),
             'flight_type' => FlightType::Direct,
             'direction' => FlightDirection::Outbound,
             'departure_city_id' => $departureCity->id,

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Reports\ReportRegistry;
+use App\Services\HajjSeasonService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,10 @@ class AppServiceProvider extends ServiceProvider
     protected function configureViewComposers(): void
     {
         View::composer('partials.sidebar', function ($view): void {
-            $view->with('reportNavItems', app(ReportRegistry::class)->navItems());
+            $view->with([
+                'reportNavItems' => app(ReportRegistry::class)->navItems(),
+                'activeHajjYear' => app(HajjSeasonService::class)->activeYear(),
+            ]);
         });
     }
 

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreFormOwnerRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class StoreFormOwnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('form_owners', 'name')],
+            'name' => ['required', 'string', 'max:255', SeasonValidation::unique('form_owners', 'name')],
             'limit' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ];

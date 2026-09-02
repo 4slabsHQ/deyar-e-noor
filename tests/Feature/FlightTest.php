@@ -215,7 +215,7 @@ it('shows assigned hujaj count on flight index', function () {
     ]);
 
     $pilgrim = Pilgrim::query()->create([
-        'hajj_year' => now()->year,
+        'hajj_year' => activeHajjYear(),
     ]);
 
     $flight->pilgrims()->attach($pilgrim->id);

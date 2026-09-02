@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\PackageDuration;
 use App\Models\Package;
+use Database\Factories\Concerns\UsesActiveHajjYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PackageFactory extends Factory
 {
+    use UsesActiveHajjYear;
+
     protected $model = Package::class;
 
     /**
@@ -19,6 +22,7 @@ class PackageFactory extends Factory
     public function definition(): array
     {
         return [
+            'hajj_year' => $this->activeHajjYear(),
             'number' => 'PKG-'.fake()->unique()->numerify('###'),
             'name' => fake()->words(2, true),
             'price' => fake()->numberBetween(500000, 1500000),

@@ -11,7 +11,7 @@ class MaktabCategoryController extends Controller
 {
     public function index()
     {
-        $maktabCategories = MaktabCategory::query()->orderBy('name')->orderBy('zone')->get();
+        $maktabCategories = MaktabCategory::query()->forActiveYear()->orderBy('name')->orderBy('zone')->get();
 
         return view('admin.maktab-categories.index', compact('maktabCategories'));
     }
@@ -23,7 +23,7 @@ class MaktabCategoryController extends Controller
 
     public function store(StoreMaktabCategoryRequest $request)
     {
-        MaktabCategory::create($request->validated());
+        MaktabCategory::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.maktab-categories.index')->with('success', 'Maktab category created successfully.');
     }

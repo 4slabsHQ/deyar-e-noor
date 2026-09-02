@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToHajjSeason;
 use App\Concerns\GuardsDeletionWhenReferenced;
 use App\Enums\PackageDuration;
 use Database\Factories\PackageFactory;
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Package extends Model
 {
     /** @use HasFactory<PackageFactory> */
-    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
+    use BelongsToHajjSeason, GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'hajj_year',
         'number',
         'name',
         'price',
@@ -29,6 +31,7 @@ class Package extends Model
     protected function casts(): array
     {
         return [
+            'hajj_year' => 'integer',
             'price' => 'decimal:2',
             'days' => 'integer',
             'limit' => 'integer',

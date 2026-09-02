@@ -15,7 +15,7 @@ class CompanyService
     */
     public function getAll()
     {
-        return Company::latest()->paginate(10);
+        return Company::query()->forActiveYear()->latest()->paginate(10);
     }
 
     public function findById(int $id): Company

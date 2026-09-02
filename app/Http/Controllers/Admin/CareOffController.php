@@ -11,7 +11,7 @@ class CareOffController extends Controller
 {
     public function index()
     {
-        $careOffs = CareOff::query()->orderBy('name')->get();
+        $careOffs = CareOff::query()->forActiveYear()->orderBy('name')->get();
 
         return view('admin.care-offs.index', compact('careOffs'));
     }
@@ -23,7 +23,7 @@ class CareOffController extends Controller
 
     public function store(StoreCareOffRequest $request)
     {
-        CareOff::create($request->validated());
+        CareOff::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.care-offs.index')->with('success', 'Care off created successfully.');
     }

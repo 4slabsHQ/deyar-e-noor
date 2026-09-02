@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateWarisRelationRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class UpdateWarisRelationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('waris_relations', 'name')->ignore($this->route('waris_relation'))],
+            'name' => ['required', 'string', 'max:255', SeasonValidation::unique('waris_relations', 'name', $this->route('waris_relation'))],
             'is_active' => ['boolean'],
         ];
     }

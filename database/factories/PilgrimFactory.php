@@ -16,6 +16,7 @@ use App\Models\RoomType;
 use App\Models\WarisRelation;
 use App\Services\PilgrimService;
 use Carbon\Carbon;
+use Database\Factories\Concerns\UsesActiveHajjYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -23,12 +24,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PilgrimFactory extends Factory
 {
+    use UsesActiveHajjYear;
+
     protected $model = Pilgrim::class;
 
     /** @return array<string, mixed> */
     public function definition(): array
     {
-        $hajjYear = (int) now()->year;
+        $hajjYear = $this->activeHajjYear();
         $dob = Carbon::parse(fake()->dateTimeBetween('-70 years', '-25 years'));
         $service = app(PilgrimService::class);
         $surname = fake()->lastName();

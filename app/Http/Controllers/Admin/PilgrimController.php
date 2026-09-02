@@ -17,6 +17,7 @@ use App\Models\RoomType;
 use App\Models\WarisRelation;
 use App\Services\HajjSeasonService;
 use App\Services\PilgrimService;
+use App\Support\SeasonValidation;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,7 @@ class PilgrimController extends Controller
     public function index()
     {
         $pilgrims = Pilgrim::query()
+            ->where('hajj_year', $this->activeHajjYear())
             ->with(['company', 'package', 'podCity', 'creator'])
             ->latest()
             ->get();
@@ -69,7 +71,7 @@ class PilgrimController extends Controller
     public function previewFamilyCode(Request $request, PilgrimService $pilgrimService): JsonResponse
     {
         $validated = $request->validate([
-            'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'company_id' => ['required', 'integer', SeasonValidation::existsActive('companies')],
             'hajj_year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'pilgrim_id' => ['nullable', 'integer', Rule::exists('pilgrims', 'id')],
             'family_number' => ['nullable', 'integer', 'min:1'],
@@ -103,7 +105,7 @@ class PilgrimController extends Controller
     public function families(Request $request, PilgrimService $pilgrimService): JsonResponse
     {
         $validated = $request->validate([
-            'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'company_id' => ['required', 'integer', SeasonValidation::existsActive('companies')],
             'hajj_year' => ['required', 'integer', 'min:2000', 'max:2100'],
         ]);
 
@@ -325,15 +327,15 @@ class PilgrimController extends Controller
     {
         return [
             'activeHajjYear' => app(HajjSeasonService::class)->activeYear(),
-            'formOwners' => FormOwner::query()->where('is_active', true)->orderBy('name')->get(),
-            'companies' => Company::query()->where('is_active', true)->orderBy('name')->get(),
-            'maktabCategories' => MaktabCategory::query()->where('is_active', true)->orderBy('name')->get(),
-            'packages' => Package::query()->where('is_active', true)->orderBy('number')->get(),
-            'careOffs' => CareOff::query()->where('is_active', true)->orderBy('name')->get(),
+            'formOwners' => FormOwner::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
+            'companies' => Company::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
+            'maktabCategories' => MaktabCategory::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
+            'packages' => Package::query()->forActiveYear()->where('is_active', true)->orderBy('number')->get(),
+            'careOffs' => CareOff::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
             'cities' => City::query()->where('is_active', true)->orderBy('name')->get(),
-            'roomTypes' => RoomType::query()->where('is_active', true)->orderBy('name')->get(),
-            'mehramRelations' => MehramRelation::query()->where('is_active', true)->orderBy('name')->get(),
-            'warisRelations' => WarisRelation::query()->where('is_active', true)->orderBy('name')->get(),
+            'roomTypes' => RoomType::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
+            'mehramRelations' => MehramRelation::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
+            'warisRelations' => WarisRelation::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
         ];
     }
 }

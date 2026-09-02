@@ -16,6 +16,7 @@ class FlightController extends Controller
     public function index()
     {
         $flights = Flight::query()
+            ->forActiveYear()
             ->with([
                 'departureCity',
                 'departureAirport',
@@ -37,7 +38,7 @@ class FlightController extends Controller
 
     public function store(StoreFlightRequest $request, FlightService $flightService)
     {
-        Flight::query()->create($request->flightPayload($flightService));
+        Flight::query()->create($this->withActiveHajjYear($request->flightPayload($flightService)));
 
         return redirect()->route('admin.flights.index')->with('success', 'Flight saved successfully.');
     }

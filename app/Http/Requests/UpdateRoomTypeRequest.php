@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateRoomTypeRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class UpdateRoomTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('room_types', 'name')->ignore($this->route('room_type'))],
+            'name' => ['required', 'string', 'max:255', SeasonValidation::unique('room_types', 'name', $this->route('room_type'))],
             'is_active' => ['boolean'],
         ];
     }

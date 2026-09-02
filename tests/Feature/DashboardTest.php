@@ -32,7 +32,7 @@ test('dashboard shows quota metrics for users with company access', function () 
 
     Pilgrim::query()->create([
         'company_id' => $company->id,
-        'hajj_year' => now()->year,
+        'hajj_year' => activeHajjYear(),
     ]);
 
     $this->actingAs($user)
@@ -62,7 +62,10 @@ test('dashboard lists package utilisation in package number order', function () 
 
     $company = Company::factory()->create();
 
+    $activeYear = activeHajjYear();
+
     $packageThree = Package::create([
+        'hajj_year' => $activeYear,
         'number' => 'PKG-003',
         'name' => 'Package Three',
         'price' => 850000,
@@ -74,6 +77,7 @@ test('dashboard lists package utilisation in package number order', function () 
     ]);
 
     $packageOne = Package::create([
+        'hajj_year' => $activeYear,
         'number' => 'PKG-001',
         'name' => 'Package One',
         'price' => 850000,
@@ -85,6 +89,7 @@ test('dashboard lists package utilisation in package number order', function () 
     ]);
 
     $packageTwo = Package::create([
+        'hajj_year' => $activeYear,
         'number' => 'PKG-002',
         'name' => 'Package Two',
         'price' => 850000,
@@ -99,14 +104,14 @@ test('dashboard lists package utilisation in package number order', function () 
         Pilgrim::query()->create([
             'company_id' => $company->id,
             'package_id' => $package->id,
-            'hajj_year' => now()->year,
+            'hajj_year' => activeHajjYear(),
         ]);
     }
 
     Pilgrim::query()->create([
         'company_id' => $company->id,
         'package_id' => $packageThree->id,
-        'hajj_year' => now()->year,
+        'hajj_year' => activeHajjYear(),
     ]);
 
     $content = $this->actingAs($user)
@@ -123,7 +128,10 @@ test('dashboard shows package and form owner utilisation when limits are configu
     $user = User::factory()->create();
     $user->assignRole('Super Admin');
 
+    $activeYear = activeHajjYear();
+
     $package = Package::create([
+        'hajj_year' => $activeYear,
         'number' => 'PKG-100',
         'name' => 'Economy Package',
         'price' => 850000,
@@ -135,6 +143,7 @@ test('dashboard shows package and form owner utilisation when limits are configu
     ]);
 
     $formOwner = FormOwner::create([
+        'hajj_year' => $activeYear,
         'name' => 'Self',
         'limit' => 25,
         'is_active' => true,
@@ -144,7 +153,7 @@ test('dashboard shows package and form owner utilisation when limits are configu
         'company_id' => Company::factory()->create()->id,
         'package_id' => $package->id,
         'form_owner_id' => $formOwner->id,
-        'hajj_year' => now()->year,
+        'hajj_year' => activeHajjYear(),
     ]);
 
     $this->actingAs($user)

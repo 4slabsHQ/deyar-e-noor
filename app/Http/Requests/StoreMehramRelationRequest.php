@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreMehramRelationRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class StoreMehramRelationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('mehram_relations', 'name')],
+            'name' => ['required', 'string', 'max:255', SeasonValidation::unique('mehram_relations', 'name')],
             'is_active' => ['boolean'],
         ];
     }

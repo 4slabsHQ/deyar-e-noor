@@ -11,7 +11,7 @@ class WarisRelationController extends Controller
 {
     public function index()
     {
-        $warisRelations = WarisRelation::query()->orderBy('name')->get();
+        $warisRelations = WarisRelation::query()->forActiveYear()->orderBy('name')->get();
 
         return view('admin.waris-relations.index', compact('warisRelations'));
     }
@@ -23,7 +23,7 @@ class WarisRelationController extends Controller
 
     public function store(StoreWarisRelationRequest $request)
     {
-        WarisRelation::create($request->validated());
+        WarisRelation::create($this->withActiveHajjYear($request->validated()));
 
         return redirect()->route('admin.waris-relations.index')->with('success', 'Waris relation created successfully.');
     }

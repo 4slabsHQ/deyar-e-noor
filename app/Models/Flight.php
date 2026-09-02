@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToHajjSeason;
 use App\Concerns\GuardsDeletionWhenReferenced;
 use App\Enums\FlightDirection;
 use App\Enums\FlightType;
@@ -17,9 +18,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Flight extends Model
 {
     /** @use HasFactory<FlightFactory> */
-    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
+    use BelongsToHajjSeason, GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'hajj_year',
         'flight_type',
         'direction',
         'departure_city_id',
@@ -48,6 +50,7 @@ class Flight extends Model
     protected function casts(): array
     {
         return [
+            'hajj_year' => 'integer',
             'flight_type' => FlightType::class,
             'direction' => FlightDirection::class,
             'departure_date' => 'date',

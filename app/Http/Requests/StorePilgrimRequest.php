@@ -10,6 +10,7 @@ use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Rules\FourDigitYearDate;
 use App\Services\HajjSeasonService;
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -325,14 +326,14 @@ class StorePilgrimRequest extends FormRequest
         return [
             'hajj_year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'entry_date' => ['nullable', new FourDigitYearDate],
-            'form_owner_id' => ['nullable', Rule::exists('form_owners', 'id')],
-            'company_id' => ['nullable', Rule::exists('companies', 'id')],
-            'maktab_category_id' => ['nullable', Rule::exists('maktab_categories', 'id')],
-            'package_id' => ['nullable', Rule::exists('packages', 'id')],
+            'form_owner_id' => ['nullable', SeasonValidation::existsActive('form_owners')],
+            'company_id' => ['nullable', SeasonValidation::existsActive('companies')],
+            'maktab_category_id' => ['nullable', SeasonValidation::existsActive('maktab_categories')],
+            'package_id' => ['nullable', SeasonValidation::existsActive('packages')],
             'qurbani_included' => ['boolean'],
-            'care_off_id' => ['nullable', Rule::exists('care_offs', 'id')],
+            'care_off_id' => ['nullable', SeasonValidation::existsActive('care_offs')],
             'pod_city_id' => ['nullable', Rule::exists('cities', 'id')],
-            'room_type_id' => ['nullable', Rule::exists('room_types', 'id')],
+            'room_type_id' => ['nullable', SeasonValidation::existsActive('room_types')],
             'gender' => ['nullable', Rule::enum(Gender::class)],
             'surname' => ['nullable', 'string', 'max:100'],
             'given_name' => ['nullable', 'string', 'max:100'],
@@ -360,10 +361,10 @@ class StorePilgrimRequest extends FormRequest
             ],
             'blood_group' => ['nullable', Rule::enum(BloodGroup::class)],
             'mehram_name' => ['nullable', 'string', 'max:150'],
-            'mehram_relation_id' => ['nullable', Rule::exists('mehram_relations', 'id')],
+            'mehram_relation_id' => ['nullable', SeasonValidation::existsActive('mehram_relations')],
             'waris_name' => ['nullable', 'string', 'max:150'],
             'waris_cnic' => ['nullable', 'string', 'regex:/^\d{5}-\d{7}-\d$/'],
-            'waris_relation_id' => ['nullable', Rule::exists('waris_relations', 'id')],
+            'waris_relation_id' => ['nullable', SeasonValidation::existsActive('waris_relations')],
             'waris_mobile' => ['nullable', 'string', 'max:20'],
             'existing_family_number' => [
                 'nullable',

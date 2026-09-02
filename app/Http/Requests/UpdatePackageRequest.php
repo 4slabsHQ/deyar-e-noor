@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\PackageDuration;
+use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ class UpdatePackageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'number' => ['required', 'string', 'max:50', Rule::unique('packages', 'number')->ignore($this->route('package'))],
+            'number' => ['required', 'string', 'max:50', SeasonValidation::unique('packages', 'number', $this->route('package'))],
             'name' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'days' => ['required', 'integer', 'min:0'],

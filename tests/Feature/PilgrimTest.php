@@ -20,6 +20,7 @@ use App\Models\PilgrimDeletionLog;
 use App\Models\RoomType;
 use App\Models\User;
 use App\Models\WarisRelation;
+use App\Services\HajjSeasonService;
 use App\Services\PilgrimService;
 use Carbon\Carbon;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -35,12 +36,14 @@ beforeEach(function () {
     $this->user = User::factory()->create();
     $this->user->assignRole('Super Admin');
 
+    $this->hajjYear = app(HajjSeasonService::class)->activeYear();
+
     $this->country = Country::factory()->create(['iso2' => 'PK', 'name' => 'Pakistan']);
     $this->city = City::factory()->create(['country_id' => $this->country->id, 'name' => 'Lahore', 'is_active' => true]);
-    $this->company = Company::factory()->create(['code' => 'DYN', 'name' => 'Deyar-e-Noor', 'is_active' => true]);
-    $this->formOwner = FormOwner::create(['name' => 'Self', 'is_active' => true]);
-    $this->maktabCategory = MaktabCategory::create(['name' => 'Category A', 'zone' => 'Zone 1', 'is_active' => true]);
-    $this->package = Package::create([
+    $this->company = Company::factory()->create(['code' => 'DYN', 'name' => 'Deyar-e-Noor', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->formOwner = FormOwner::factory()->create(['name' => 'Self', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->maktabCategory = MaktabCategory::factory()->create(['name' => 'Category A', 'zone' => 'Zone 1', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->package = Package::factory()->create([
         'number' => 'PKG-001',
         'name' => 'Economy',
         'price' => 850000,
@@ -48,12 +51,12 @@ beforeEach(function () {
         'qurbani_included' => true,
         'duration' => PackageDuration::Long,
         'is_active' => true,
+        'hajj_year' => $this->hajjYear,
     ]);
-    $this->careOff = CareOff::create(['name' => 'Head Office', 'is_active' => true]);
-    $this->roomType = RoomType::create(['name' => 'Sharing', 'is_active' => true]);
-    $this->mehramRelation = MehramRelation::create(['name' => 'Husband', 'is_active' => true]);
-    $this->warisRelation = WarisRelation::create(['name' => 'Son', 'is_active' => true]);
-    $this->hajjYear = (int) now()->year;
+    $this->careOff = CareOff::factory()->create(['name' => 'Head Office', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->roomType = RoomType::factory()->create(['name' => 'Sharing', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->mehramRelation = MehramRelation::factory()->create(['name' => 'Husband', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $this->warisRelation = WarisRelation::factory()->create(['name' => 'Son', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
 });
 
 function validPilgrimPayload(array $overrides = []): array
@@ -257,6 +260,10 @@ test('registration uses active hajj season year regardless of submitted value', 
         ['year' => $activeYear],
         ['status' => HajjSeasonStatus::Active, 'activated_at' => now()],
     );
+
+    foreach ([Company::class, FormOwner::class, MaktabCategory::class, Package::class, CareOff::class, RoomType::class, MehramRelation::class, WarisRelation::class] as $model) {
+        $model::query()->update(['hajj_year' => $activeYear]);
+    }
 
     $pilgrim = registerPilgrim(['hajj_year' => (string) ($this->hajjYear + 5)]);
 

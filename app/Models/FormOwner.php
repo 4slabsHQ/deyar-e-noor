@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToHajjSeason;
 use App\Concerns\GuardsDeletionWhenReferenced;
 use Database\Factories\FormOwnerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +13,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FormOwner extends Model
 {
     /** @use HasFactory<FormOwnerFactory> */
-    use GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
+    use BelongsToHajjSeason, GuardsDeletionWhenReferenced, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'hajj_year',
         'name',
         'limit',
         'is_active',
@@ -23,6 +25,7 @@ class FormOwner extends Model
     protected function casts(): array
     {
         return [
+            'hajj_year' => 'integer',
             'limit' => 'integer',
             'is_active' => 'boolean',
         ];

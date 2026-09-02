@@ -23,7 +23,7 @@ test('super admin can view hajj seasons page', function () {
         ->get(route('admin.hajj-seasons.index'))
         ->assertOk()
         ->assertSee('Hajj Seasons')
-        ->assertSee('Hajj '.now()->year);
+        ->assertSee('Hajj '.activeHajjYear());
 });
 
 test('super admin can add a hajj season', function () {
@@ -64,6 +64,7 @@ test('dashboard uses the active hajj season year', function () {
     $company = Company::factory()->create([
         'quota' => 100,
         'is_active' => true,
+        'hajj_year' => $activeYear,
     ]);
 
     Pilgrim::query()->create([
@@ -181,4 +182,73 @@ test('registration staff cannot manage hajj seasons', function () {
     $this->actingAs($user)
         ->post(route('admin.hajj-seasons.store'), ['year' => now()->year + 2])
         ->assertForbidden();
+});
+
+test('hajj setup index lists only active season records', function () {
+    $activeYear = 2027;
+    $archivedYear = 2026;
+
+    config(['hajj.default_active_year' => $activeYear]);
+
+    HajjSeason::query()->delete();
+    HajjSeason::factory()->create(['year' => $archivedYear, 'status' => HajjSeasonStatus::Archived]);
+    HajjSeason::factory()->create(['year' => $activeYear, 'status' => HajjSeasonStatus::Active]);
+
+    Company::factory()->create(['name' => 'Current Season Co', 'code' => 'CUR', 'hajj_year' => $activeYear]);
+    Company::factory()->create(['name' => 'Previous Season Co', 'code' => 'OLD', 'hajj_year' => $archivedYear]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.companies.index'))
+        ->assertOk()
+        ->assertSee('Current Season Co')
+        ->assertDontSee('Previous Season Co');
+});
+
+test('new hajj setup records are assigned the active season year', function () {
+    $activeYear = 2027;
+
+    config(['hajj.default_active_year' => $activeYear]);
+    HajjSeason::query()->delete();
+    HajjSeason::factory()->create(['year' => $activeYear, 'status' => HajjSeasonStatus::Active]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.companies.store'), [
+            'name' => 'Season Scoped Co',
+            'code' => 'SSC',
+            'is_active' => true,
+        ])
+        ->assertRedirect(route('admin.companies.index'));
+
+    expect(Company::query()->where('code', 'SSC')->value('hajj_year'))->toBe($activeYear);
+});
+
+test('pilgrim index lists only active season registrations', function () {
+    $activeYear = 2027;
+    $archivedYear = 2026;
+
+    config(['hajj.default_active_year' => $activeYear]);
+    HajjSeason::query()->delete();
+    HajjSeason::factory()->create(['year' => $activeYear, 'status' => HajjSeasonStatus::Active]);
+
+    $company = Company::factory()->create(['hajj_year' => $activeYear]);
+
+    Pilgrim::query()->create([
+        'company_id' => $company->id,
+        'hajj_year' => $activeYear,
+        'full_name' => 'ActiveYearPilgrim',
+        'entry_date' => now(),
+    ]);
+
+    Pilgrim::query()->create([
+        'company_id' => $company->id,
+        'hajj_year' => $archivedYear,
+        'full_name' => 'ArchivedYearPilgrim',
+        'entry_date' => now()->subYear(),
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.pilgrims.index'))
+        ->assertOk()
+        ->assertSee('ActiveYearPilgrim')
+        ->assertDontSee('ArchivedYearPilgrim');
 });
