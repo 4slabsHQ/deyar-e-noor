@@ -46,13 +46,22 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     /** @return list<string> */
     public function nonSpreadsheetExportColumns(): array
     {
-        return array_merge(['picture'], self::documentColumns());
+        return ['picture'];
     }
 
     /** @return list<string> */
     public function frontendOnlyColumns(): array
     {
-        return self::documentColumns();
+        return [];
+    }
+
+    public function exportCellValue(string $column, string|int|null $value): string|int|null
+    {
+        if (in_array($column, self::documentColumns(), true)) {
+            return filled($value) ? 'Yes' : 'No';
+        }
+
+        return $value;
     }
 
     public function description(): string

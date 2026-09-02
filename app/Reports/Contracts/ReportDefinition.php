@@ -78,4 +78,6 @@ interface ReportDefinition
      * @return list<string|int|null>
      */
     public function rowValues(mixed $record, array $columns): array;
+
+    public function exportCellValue(string $column, string|int|null $value): string|int|null;
 }

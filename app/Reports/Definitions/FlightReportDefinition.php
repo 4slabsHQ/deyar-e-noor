@@ -53,6 +53,11 @@ class FlightReportDefinition implements ReportDefinition
         return [];
     }
 
+    public function exportCellValue(string $column, string|int|null $value): string|int|null
+    {
+        return $value;
+    }
+
     public function description(): string
     {
         return 'Flight assignments with selectable columns and filters.';

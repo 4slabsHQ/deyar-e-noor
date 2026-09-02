@@ -562,7 +562,7 @@ it('renders a dash when document columns are selected but files are missing', fu
         ->not->toContain('fas fa-download');
 });
 
-it('excludes document columns from excel export', function () {
+it('includes document columns in excel export as yes or no', function () {
     Storage::fake('public');
     Storage::disk('public')->put('pilgrims/passports/export-passport.pdf', 'passport-bytes');
 
@@ -570,6 +570,12 @@ it('excludes document columns from excel export', function () {
         'hajj_year' => $this->activeYear,
         'full_name' => 'Document Export Pilgrim',
         'passport_path' => 'pilgrims/passports/export-passport.pdf',
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Missing Document Export Pilgrim',
+        'passport_path' => null,
     ]);
 
     $response = $this->actingAs($this->admin)
@@ -582,12 +588,15 @@ it('excludes document columns from excel export', function () {
     $content = $response->getContent();
 
     expect($content)
+        ->toContain('Passport Document</th>')
         ->toContain('Document Export Pilgrim')
-        ->not->toContain('Passport Document</th>')
+        ->toContain('Missing Document Export Pilgrim')
+        ->toContain('>Yes</td>')
+        ->toContain('>No</td>')
         ->not->toContain('storage/pilgrims/passports/export-passport.pdf');
 });
 
-it('excludes document columns from print data while keeping picture columns', function () {
+it('includes document columns in print data as yes or no', function () {
     Storage::fake('public');
     Storage::disk('public')->put('pilgrims/photos/print-doc-photo.jpg', 'photo-bytes');
     Storage::disk('public')->put('pilgrims/passports/print-doc-passport.pdf', 'passport-bytes');
@@ -599,6 +608,12 @@ it('excludes document columns from print data while keeping picture columns', fu
         'passport_path' => 'pilgrims/passports/print-doc-passport.pdf',
     ]);
 
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'full_name' => 'Print Missing Document Pilgrim',
+        'passport_path' => null,
+    ]);
+
     $response = $this->actingAs($this->admin)
         ->getJson(route('admin.reports.results', [
             'report' => HajjRegistrationReportDefinition::KEY,
@@ -606,9 +621,15 @@ it('excludes document columns from print data while keeping picture columns', fu
         ]))
         ->assertOk();
 
-    expect($response->json('html'))
-        ->toContain('"columnKeys":["serial","picture","full_name"]')
-        ->not->toContain('"passport_document"');
+    $html = $response->json('html');
+
+    expect($html)
+        ->toContain('"columnKeys":["serial","picture","passport_document","full_name"]')
+        ->toContain('"Yes","Print Document Pilgrim"')
+        ->toContain('"No","Print Missing Document Pilgrim"')
+        ->toContain('report-document-actions');
+
+    expect($html)->not->toMatch('/report-print-data">\{[^<]*passports\/print-doc-passport/');
 });
 
 it('shows a dedicated flight summary report page with columns first', function () {

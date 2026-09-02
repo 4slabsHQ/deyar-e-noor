@@ -69,6 +69,52 @@ class ReportBuilderService
      *     columns: list<string>,
      *     filters: array<string, mixed>
      * }  $result
+     * @return array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }
+     */
+    public function formatForExport(array $result, ReportDefinition $definition): array
+    {
+        $result['rows'] = array_map(
+            function (array $row) use ($result, $definition): array {
+                return array_map(
+                    function (mixed $cell, int $index) use ($result, $definition): mixed {
+                        if ($index === 0) {
+                            return $cell;
+                        }
+
+                        $column = $result['columns'][$index - 1] ?? null;
+
+                        if (! is_string($column)) {
+                            return $cell;
+                        }
+
+                        $value = is_string($cell) || is_int($cell) ? $cell : null;
+
+                        return $definition->exportCellValue($column, $value);
+                    },
+                    $row,
+                    array_keys($row),
+                );
+            },
+            $result['rows'],
+        );
+
+        return $result;
+    }
+
+    /**
+     * @param  array{
+     *     headings: list<string>,
+     *     rows: list<list<string|int|null>>,
+     *     total: int,
+     *     columns: list<string>,
+     *     filters: array<string, mixed>
+     * }  $result
      * @param  list<string>  $excludeColumns
      * @return array{
      *     headings: list<string>,

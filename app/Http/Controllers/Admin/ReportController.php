@@ -125,7 +125,10 @@ class ReportController extends Controller
         $definition = $registry->get($request->reportKey());
         $filters = $definition->normalizeFilters($request->filters());
         $columns = $this->spreadsheetExportColumns($definition, $request->selectedColumns());
-        $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
+        $result = $builder->formatForExport(
+            $builder->appendSerialNumbers($builder->build($definition, $columns, $filters)),
+            $definition,
+        );
         $defaultTitle = $this->defaultReportTitle($definition, $filters);
         $title = $request->reportTitle($defaultTitle);
         $filename = sprintf('%s-%s.csv', $definition->key(), $filters['hajj_year']);
@@ -144,9 +147,12 @@ class ReportController extends Controller
         $filters = $definition->normalizeFilters($request->filters());
         $selectedColumns = $request->selectedColumns();
         $columns = $format === 'pdf'
-            ? array_values(array_diff($selectedColumns, $definition->frontendOnlyColumns()))
+            ? $selectedColumns
             : $this->spreadsheetExportColumns($definition, $selectedColumns);
-        $result = $builder->appendSerialNumbers($builder->build($definition, $columns, $filters));
+        $result = $builder->formatForExport(
+            $builder->appendSerialNumbers($builder->build($definition, $columns, $filters)),
+            $definition,
+        );
         $defaultTitle = $this->defaultReportTitle($definition, $filters);
         $title = $request->reportTitle($defaultTitle);
         $filename = sprintf('%s-%s.%s', $definition->key(), $filters['hajj_year'], $format === 'pdf' ? 'pdf' : 'xls');
@@ -222,7 +228,7 @@ class ReportController extends Controller
     ): array {
         return [
             'result' => $result,
-            'printResult' => $builder->excludeColumns($result, $definition->frontendOnlyColumns()),
+            'printResult' => $builder->formatForExport($result, $definition),
             'documentColumns' => $definition->key() === HajjRegistrationReportDefinition::KEY
                 ? HajjRegistrationReportDefinition::documentColumns()
                 : [],
