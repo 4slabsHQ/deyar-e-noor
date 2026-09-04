@@ -25,6 +25,53 @@ beforeEach(function () {
     $this->user->assignRole('Super Admin');
 });
 
+test('property city and type coupling matches accommodation plan slots', function (PropertyCity $city, PropertyType $type, array $acceptedSlotValues, array $rejectedSlotValues) {
+    foreach (AccommodationPlanSlot::cases() as $slot) {
+        $accepts = $slot->acceptsProperty($city, $type);
+
+        if (in_array($slot->value, $acceptedSlotValues, true)) {
+            expect($accepts)->toBeTrue("Expected {$city->value}/{$type->value} in {$slot->value}");
+        }
+
+        if (in_array($slot->value, $rejectedSlotValues, true)) {
+            expect($accepts)->toBeFalse("Expected {$city->value}/{$type->value} to be excluded from {$slot->value}");
+        }
+    }
+})->with([
+    'makkah hotel' => [PropertyCity::Makkah, PropertyType::Hotel, ['makkah_hotel'], ['madinah_hotel', 'shifting_building']],
+    'makkah building' => [PropertyCity::Makkah, PropertyType::Building, ['makkah_hotel'], ['madinah_hotel', 'shifting_building']],
+    'madinah hotel' => [PropertyCity::Madinah, PropertyType::Hotel, ['madinah_hotel'], ['makkah_hotel', 'shifting_building']],
+    'madinah building' => [PropertyCity::Madinah, PropertyType::Building, ['madinah_hotel'], ['makkah_hotel', 'shifting_building']],
+    'makkah shifting sheesha' => [PropertyCity::MakkahShifting, PropertyType::ShiftingBuilding, ['shifting_building'], ['makkah_hotel', 'madinah_hotel']],
+    'makkah shifting building' => [PropertyCity::MakkahShifting, PropertyType::Building, ['shifting_building'], ['makkah_hotel', 'madinah_hotel']],
+]);
+
+test('accommodation plan form lists every assignable property type for its city', function () {
+    $assignableProperties = [
+        ['EMAAR GRAND', PropertyCity::Makkah, PropertyType::Hotel],
+        ['Still Building 1550 PKG', PropertyCity::Makkah, PropertyType::Building],
+        ['MARKAZIA 1705 PKG', PropertyCity::Madinah, PropertyType::Hotel],
+        ['STILL BUILDING 1550 700 M', PropertyCity::Madinah, PropertyType::Building],
+        ['SHEESHA HOTEL NAME', PropertyCity::MakkahShifting, PropertyType::ShiftingBuilding],
+    ];
+
+    foreach ($assignableProperties as [$name, $city, $type]) {
+        Property::factory()->create([
+            'name' => $name,
+            'city' => $city,
+            'type' => $type,
+        ]);
+    }
+
+    $response = $this->actingAs($this->user)->get(route('admin.accommodation-plans.create'));
+
+    $response->assertOk();
+
+    foreach ($assignableProperties as [$name]) {
+        $response->assertSee($name, escape: false);
+    }
+});
+
 test('admin can create property with akads', function () {
     $this->actingAs($this->user)->post(route('admin.properties.store'), [
         'name' => 'Swissotel Makkah',
