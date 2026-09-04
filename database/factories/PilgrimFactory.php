@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
+use App\Enums\PackageDuration;
 use App\Models\CareOff;
 use App\Models\City;
 use App\Models\Company;
@@ -44,6 +45,9 @@ class PilgrimFactory extends Factory
             'company_id' => Company::factory(),
             'maktab_category_id' => MaktabCategory::factory(),
             'package_id' => Package::factory(),
+            'qurbani_included' => true,
+            'days' => 21,
+            'duration' => PackageDuration::Long,
             'care_off_id' => CareOff::factory(),
             'pod_city_id' => City::factory(),
             'room_type_id' => RoomType::factory(),

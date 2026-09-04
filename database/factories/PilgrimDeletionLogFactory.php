@@ -30,6 +30,7 @@ class PilgrimDeletionLogFactory extends Factory
             'company_name' => fake()->company(),
             'package_label' => 'PKG-001 Economy',
             'pod_city_name' => fake()->city(),
+            'care_off_name' => fake()->name(),
             'gender' => 'Male',
             'mobile' => fake()->numerify('03#########'),
             'entry_date' => now()->toDateString(),

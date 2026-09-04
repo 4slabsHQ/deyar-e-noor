@@ -1,9 +1,16 @@
 <?php
 
+use App\Enums\AccommodationPlanType;
 use App\Enums\FlightDirection;
 use App\Enums\Gender;
 use App\Enums\HajjSeasonStatus;
 use App\Enums\PackageDuration;
+use App\Enums\PropertyCity;
+use App\Enums\PropertyType;
+use App\Enums\RoutePointType;
+use App\Models\AccommodationPlan;
+use App\Models\Airport;
+use App\Models\City;
 use App\Models\Company;
 use App\Models\Flight;
 use App\Models\HajjSeason;
@@ -11,6 +18,8 @@ use App\Models\MaktabCategory;
 use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\PilgrimDeletionLog;
+use App\Models\Property;
+use App\Models\Route;
 use App\Models\User;
 use App\Reports\Definitions\DeletedRegistrationsReportDefinition;
 use App\Reports\Definitions\FlightReportDefinition;
@@ -316,7 +325,7 @@ it('groups report columns by registration form sections', function () {
         ->assertOk()
         ->getContent();
 
-    expect($content)->toMatch('/report-column-group-title">Registration<\/div>[\s\S]*report-column-group-title">Personal Details<\/div>[\s\S]*report-column-group-title">Passport &amp; Contact<\/div>[\s\S]*report-column-group-title">Mehram &amp; Waris<\/div>[\s\S]*report-column-group-title">Family &amp; Association<\/div>[\s\S]*report-column-group-title">Comments<\/div>/');
+    expect($content)->toMatch('/report-column-group-title">Registration<\/div>[\s\S]*report-column-group-title">Package &amp; Accommodation<\/div>[\s\S]*report-column-group-title">Personal Details<\/div>[\s\S]*report-column-group-title">Passport &amp; Contact<\/div>[\s\S]*report-column-group-title">Mehram &amp; Waris<\/div>[\s\S]*report-column-group-title">Family &amp; Association<\/div>[\s\S]*report-column-group-title">Comments<\/div>/');
     expect($content)->toMatch('/id="column-hajj_year"[\s\S]*id="column-form_owner"[\s\S]*id="column-gender"[\s\S]*id="column-passport_no"[\s\S]*id="column-mehram_name"[\s\S]*id="column-family_code"/');
 });
 
@@ -381,6 +390,90 @@ it('shows detailed package labels in report results', function () {
     expect($response->json('html'))
         ->toContain('Package Column Pilgrim')
         ->toContain($package->registrationOptionLabel());
+});
+
+it('includes route and accommodation plan columns in hajj report results', function () {
+    $makkahProperty = Property::factory()->create([
+        'name' => 'Report Makkah Hotel',
+        'city' => PropertyCity::Makkah,
+        'type' => PropertyType::Hotel,
+        'hajj_year' => $this->activeYear,
+    ]);
+    $madinahProperty = Property::factory()->create([
+        'name' => 'Report Madinah Hotel',
+        'city' => PropertyCity::Madinah,
+        'type' => PropertyType::Hotel,
+        'hajj_year' => $this->activeYear,
+    ]);
+
+    $plan = AccommodationPlan::factory()->create([
+        'name' => 'Report Still Plan',
+        'type' => AccommodationPlanType::Still,
+        'hajj_year' => $this->activeYear,
+    ]);
+    $plan->slots()->createMany([
+        ['slot' => 'makkah_hotel', 'property_id' => $makkahProperty->id, 'sequence' => 1],
+        ['slot' => 'madinah_hotel', 'property_id' => $madinahProperty->id, 'sequence' => 2],
+    ]);
+
+    $route = Route::factory()->create([
+        'name' => 'Report Route 1',
+        'hajj_year' => $this->activeYear,
+    ]);
+    $airport = Airport::factory()->create(['name' => 'Report Airport', 'code' => 'JED']);
+    $makkahCity = City::factory()->create(['name' => 'Report Makkah']);
+    $route->steps()->createMany([
+        ['sequence' => 1, 'point_type' => RoutePointType::Airport, 'airport_id' => $airport->id],
+        ['sequence' => 2, 'point_type' => RoutePointType::City, 'city_id' => $makkahCity->id],
+        ['sequence' => 3, 'point_type' => RoutePointType::Hajj],
+    ]);
+
+    $package = Package::factory()->create([
+        'number' => 'PKG-RPT-ACC',
+        'name' => 'Report Acc Package',
+        'accommodation_plan_id' => $plan->id,
+        'route_id' => $route->id,
+        'hajj_year' => $this->activeYear,
+    ]);
+
+    Pilgrim::factory()->create([
+        'hajj_year' => $this->activeYear,
+        'package_id' => $package->id,
+        'full_name' => 'Report Route Plan Pilgrim',
+        'days' => 18,
+        'duration' => PackageDuration::Short,
+        'qurbani_included' => false,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->getJson(route('admin.reports.results', [
+            'report' => HajjRegistrationReportDefinition::KEY,
+            'columns' => [
+                'full_name',
+                'days',
+                'duration',
+                'qurbani_included',
+                'route',
+                'route_path',
+                'accommodation_plan',
+                'accommodation_plan_type',
+                'makkah_hotel',
+                'madinah_hotel',
+            ],
+        ]))
+        ->assertOk();
+
+    expect($response->json('html'))
+        ->toContain('Report Route Plan Pilgrim')
+        ->toContain('18')
+        ->toContain('Short')
+        ->toContain('No')
+        ->toContain('Report Route 1')
+        ->toContain('Report Airport (JED) → Report Makkah → Hajj')
+        ->toContain('Report Still Plan')
+        ->toContain('Still')
+        ->toContain('Report Makkah Hotel (Makkah · Hotel)')
+        ->toContain('Report Madinah Hotel (Madinah · Hotel)');
 });
 
 it('includes maktab column when selected', function () {
@@ -746,6 +839,9 @@ it('shows a dedicated flight report page with columns first', function () {
         ->assertSee('column-age', false)
         ->assertSee('column-passport_expiry', false)
         ->assertSee('column-care_off', false)
+        ->assertSee('column-route', false)
+        ->assertSee('column-accommodation_plan', false)
+        ->assertSee('column-makkah_hotel', false)
         ->assertSee('column-maktab_category', false)
         ->assertSee('column-form_owner', false)
         ->assertSee('column-gender', false)
@@ -951,7 +1047,12 @@ it('generates deleted registrations report from deletion logs', function () {
         'full_name' => 'Deleted Report Pilgrim',
         'passport_no' => 'DR0000001',
         'family_code' => 'DYN-01-S',
+        'cnic' => '35201-8888888-8',
+        'days' => 18,
+        'duration' => PackageDuration::Short,
     ]);
+
+    $snapshot = app(HajjRegistrationReportDefinition::class)->snapshotFor($pilgrim->fresh());
 
     PilgrimDeletionLog::query()->create([
         'pilgrim_id' => $pilgrim->id,
@@ -961,21 +1062,27 @@ it('generates deleted registrations report from deletion logs', function () {
         'full_name' => $pilgrim->full_name,
         'passport_no' => $pilgrim->passport_no,
         'family_code' => $pilgrim->family_code,
-        'company_name' => 'Audit Company',
+        'company_id' => $pilgrim->company_id,
+        'company_name' => $pilgrim->company?->name,
+        'registration_snapshot' => $snapshot,
     ]);
 
     $response = $this->actingAs($this->admin)
         ->getJson(route('admin.reports.results', [
             'report' => DeletedRegistrationsReportDefinition::KEY,
-            'columns' => ['deleted_at', 'deleted_by', 'full_name', 'passport_no', 'company'],
+            'columns' => ['deleted_at', 'deleted_by', 'full_name', 'passport_no', 'company', 'care_off', 'cnic', 'days', 'duration'],
         ]))
         ->assertOk();
 
     expect($response->json('html'))
         ->toContain('Deleted Report Pilgrim')
         ->toContain('DR0000001')
-        ->toContain('Audit Company')
-        ->toContain($this->admin->name);
+        ->toContain($pilgrim->company?->name)
+        ->toContain($pilgrim->careOff?->name)
+        ->toContain('35201-8888888-8')
+        ->toContain('18')
+        ->toContain('Short')
+        ->toContain(e($this->admin->name));
 });
 
 it('shows dedicated deleted registrations report page', function () {
@@ -984,5 +1091,6 @@ it('shows dedicated deleted registrations report page', function () {
         ->assertOk()
         ->assertSee('Deleted Registrations')
         ->assertSee('column-deleted_at', false)
+        ->assertSee('column-care_off', false)
         ->assertSee('Deleted By');
 });

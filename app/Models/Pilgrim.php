@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
+use App\Enums\PackageDuration;
 use Database\Factories\PilgrimFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +27,8 @@ class Pilgrim extends Model
         'maktab_category_id',
         'package_id',
         'qurbani_included',
+        'days',
+        'duration',
         'care_off_id',
         'pod_city_id',
         'room_type_id',
@@ -72,7 +75,9 @@ class Pilgrim extends Model
             'blood_group' => BloodGroup::class,
             'family_number' => 'integer',
             'age' => 'integer',
+            'days' => 'integer',
             'qurbani_included' => 'boolean',
+            'duration' => PackageDuration::class,
         ];
     }
 

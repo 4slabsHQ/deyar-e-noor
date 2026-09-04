@@ -1,10 +1,16 @@
 <?php
 
+use App\Enums\AccommodationPlanType;
 use App\Enums\BloodGroup;
 use App\Enums\FlightDirection;
 use App\Enums\Gender;
 use App\Enums\HajjSeasonStatus;
 use App\Enums\PackageDuration;
+use App\Enums\PropertyCity;
+use App\Enums\PropertyType;
+use App\Enums\RoutePointType;
+use App\Models\AccommodationPlan;
+use App\Models\Airport;
 use App\Models\CareOff;
 use App\Models\City;
 use App\Models\Company;
@@ -17,7 +23,9 @@ use App\Models\MehramRelation;
 use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\PilgrimDeletionLog;
+use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\Route;
 use App\Models\User;
 use App\Models\WarisRelation;
 use App\Services\HajjSeasonService;
@@ -301,6 +309,43 @@ test('admin can upload passport visa and ticket on create', function () {
     Storage::disk('public')->assertExists($pilgrim->passport_path);
     Storage::disk('public')->assertExists($pilgrim->visa_path);
     Storage::disk('public')->assertExists($pilgrim->ticket_path);
+});
+
+test('days and duration default from package and can be overridden per pilgrim', function () {
+    expect($this->package->days)->toBe(21)
+        ->and($this->package->duration)->toBe(PackageDuration::Long);
+
+    $pilgrim = registerPilgrim();
+
+    expect($pilgrim->days)->toBe(21)
+        ->and($pilgrim->duration)->toBe(PackageDuration::Long);
+
+    $pilgrimWithOverrides = registerPilgrim([
+        'passport_no' => 'DT7654321',
+        'cnic' => '35201-7777777-7',
+        'days' => '14',
+        'duration' => PackageDuration::Short->value,
+    ]);
+
+    expect($pilgrimWithOverrides->days)->toBe(14)
+        ->and($pilgrimWithOverrides->duration)->toBe(PackageDuration::Short)
+        ->and($this->package->fresh()->days)->toBe(21);
+});
+
+test('admin can update pilgrim days and duration without changing package settings', function () {
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->put(route('admin.pilgrims.update', $pilgrim), validPilgrimPayload([
+        'passport_no' => $pilgrim->passport_no,
+        'days' => '18',
+        'duration' => PackageDuration::Short->value,
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    expect($pilgrim->fresh()->days)->toBe(18)
+        ->and($pilgrim->fresh()->duration)->toBe(PackageDuration::Short)
+        ->and($this->package->fresh()->days)->toBe(21);
 });
 
 test('qurbani defaults from package and can be overridden per pilgrim', function () {
@@ -668,6 +713,65 @@ test('pilgrim registration document shows munazzam and package details section',
         ->assertSee('Yes');
 });
 
+test('pilgrim registration document shows route and accommodation plan from package', function () {
+    $makkahProperty = Property::factory()->create([
+        'name' => 'View Makkah Hotel',
+        'city' => PropertyCity::Makkah,
+        'type' => PropertyType::Hotel,
+        'hajj_year' => $this->hajjYear,
+    ]);
+    $madinahProperty = Property::factory()->create([
+        'name' => 'View Madinah Hotel',
+        'city' => PropertyCity::Madinah,
+        'type' => PropertyType::Hotel,
+        'hajj_year' => $this->hajjYear,
+    ]);
+
+    $plan = AccommodationPlan::factory()->create([
+        'name' => 'View Still Plan',
+        'type' => AccommodationPlanType::Still,
+        'hajj_year' => $this->hajjYear,
+    ]);
+    $plan->slots()->createMany([
+        ['slot' => 'makkah_hotel', 'property_id' => $makkahProperty->id, 'sequence' => 1],
+        ['slot' => 'madinah_hotel', 'property_id' => $madinahProperty->id, 'sequence' => 2],
+    ]);
+
+    $route = Route::factory()->create([
+        'name' => 'View Route 1',
+        'hajj_year' => $this->hajjYear,
+    ]);
+    $airport = Airport::factory()->create(['name' => 'Jeddah Airport', 'code' => 'JED']);
+    $makkahCity = City::factory()->create(['name' => 'Makkah City']);
+    $route->steps()->createMany([
+        ['sequence' => 1, 'point_type' => RoutePointType::Airport, 'airport_id' => $airport->id],
+        ['sequence' => 2, 'point_type' => RoutePointType::City, 'city_id' => $makkahCity->id],
+        ['sequence' => 3, 'point_type' => RoutePointType::Hajj],
+    ]);
+
+    $this->package->update([
+        'accommodation_plan_id' => $plan->id,
+        'route_id' => $route->id,
+    ]);
+
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee('Route')
+        ->assertSee('View Route 1')
+        ->assertSee('Jeddah Airport (JED) → Makkah City → Hajj')
+        ->assertSee('Accommodation Plan')
+        ->assertSee('View Still Plan')
+        ->assertSee('Still')
+        ->assertSee('Makkah hotel')
+        ->assertSee('View Makkah Hotel (Makkah · Hotel)')
+        ->assertSee('Madinah hotel')
+        ->assertSee('View Madinah Hotel (Madinah · Hotel)');
+});
+
 test('pilgrim edit form uses compact document upload controls', function () {
     Storage::fake('public');
     Storage::disk('public')->put('pilgrims/passports/uploaded-passport.pdf', 'passport-bytes');
@@ -1015,5 +1119,12 @@ test('deleting a pilgrim records an audit log entry', function () {
         ->and($log->deleted_by)->toBe($this->user->id)
         ->and($log->full_name)->toContain('Audit')
         ->and($log->passport_no)->toBe('AB9999999')
-        ->and($log->family_code)->toBe('DYN-01-S');
+        ->and($log->family_code)->toBe('DYN-01-S')
+        ->and($log->care_off_name)->toBe($this->careOff->name)
+        ->and($log->registration_snapshot)->toBeArray()
+        ->and($log->registration_snapshot['full_name'] ?? null)->toContain('Audit')
+        ->and($log->registration_snapshot['passport_no'] ?? null)->toBe('AB9999999')
+        ->and($log->registration_snapshot['care_off'] ?? null)->toBe($this->careOff->name)
+        ->and($log->registration_snapshot['days'] ?? null)->toBe('21')
+        ->and($log->registration_snapshot['duration'] ?? null)->toBe('Long');
 });

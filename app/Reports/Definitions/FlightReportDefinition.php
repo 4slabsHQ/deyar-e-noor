@@ -11,6 +11,7 @@ use App\Models\Flight;
 use App\Models\HajjSeason;
 use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Reports\Concerns\ResolvesPilgrimPackageReportColumns;
 use App\Reports\Contracts\ReportDefinition;
 use App\Reports\FlightReportRecord;
 use App\Services\HajjSeasonService;
@@ -22,6 +23,8 @@ use InvalidArgumentException;
 
 class FlightReportDefinition implements ReportDefinition
 {
+    use ResolvesPilgrimPackageReportColumns;
+
     public const KEY = 'flight';
 
     public function __construct(private HajjSeasonService $hajjSeasonService) {}
@@ -98,6 +101,7 @@ class FlightReportDefinition implements ReportDefinition
             'company' => ['label' => 'Company', 'group' => 'Hujaj'],
             'maktab_category' => ['label' => 'Maktab', 'group' => 'Hujaj'],
             'package' => ['label' => 'Package', 'group' => 'Hujaj'],
+            ...$this->pilgrimPackageColumnCatalog('Hujaj'),
             'care_off' => ['label' => 'Care Off', 'group' => 'Hujaj'],
             'pod_city' => ['label' => 'POD', 'group' => 'Hujaj'],
             'gender' => ['label' => 'Gender', 'group' => 'Hujaj'],
@@ -313,14 +317,14 @@ class FlightReportDefinition implements ReportDefinition
             'form_owner' => 'formOwner:id,name',
             'company' => 'company:id,name,munazzam_code',
             'maktab_category' => 'maktabCategory:id,name,zone',
-            'package' => 'package:id,name,number,price,days,duration,qurbani_included',
+            'package' => 'package:id,name,number,price,days,duration,qurbani_included,accommodation_plan_id,route_id',
             'care_off' => 'careOff:id,name',
             'pod_city' => 'podCity:id,name',
         ];
 
-        return array_values(array_unique(array_intersect_key(
-            $map,
-            array_flip($columns),
+        return array_values(array_unique(array_merge(
+            array_values(array_intersect_key($map, array_flip($columns))),
+            $this->pilgrimPackageRelationsForColumns($columns),
         )));
     }
 
@@ -359,6 +363,16 @@ class FlightReportDefinition implements ReportDefinition
                 ? $pilgrim->maktabCategory->name.' ('.$pilgrim->maktabCategory->zone.')'
                 : null,
             'package' => $pilgrim->package?->registrationOptionLabel(),
+            'days' => $this->resolvePilgrimPackageColumn($pilgrim, 'days'),
+            'duration' => $this->resolvePilgrimPackageColumn($pilgrim, 'duration'),
+            'qurbani_included' => $this->resolvePilgrimPackageColumn($pilgrim, 'qurbani_included'),
+            'route' => $this->resolvePilgrimPackageColumn($pilgrim, 'route'),
+            'route_path' => $this->resolvePilgrimPackageColumn($pilgrim, 'route_path'),
+            'accommodation_plan' => $this->resolvePilgrimPackageColumn($pilgrim, 'accommodation_plan'),
+            'accommodation_plan_type' => $this->resolvePilgrimPackageColumn($pilgrim, 'accommodation_plan_type'),
+            'makkah_hotel' => $this->resolvePilgrimPackageColumn($pilgrim, 'makkah_hotel'),
+            'madinah_hotel' => $this->resolvePilgrimPackageColumn($pilgrim, 'madinah_hotel'),
+            'shifting_building' => $this->resolvePilgrimPackageColumn($pilgrim, 'shifting_building'),
             'care_off' => $pilgrim->careOff?->name,
             'pod_city' => $pilgrim->podCity?->name,
             'gender' => $pilgrim->gender?->label(),

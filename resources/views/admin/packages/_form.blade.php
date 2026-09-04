@@ -42,6 +42,30 @@
         @error('duration') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </x-admin.form-field>
 
+    <x-admin.form-field label="Accommodation plan" for="accommodation_plan_id" class="col-lg-4 col-md-6">
+        <select name="accommodation_plan_id" id="accommodation_plan_id" class="form-control js-searchable-select @error('accommodation_plan_id') is-invalid @enderror">
+            <option value="">None</option>
+            @foreach ($accommodationPlans ?? [] as $plan)
+                <option value="{{ $plan->id }}" @selected((string) old('accommodation_plan_id', $package->accommodation_plan_id ?? '') === (string) $plan->id)>
+                    {{ $plan->registrationOptionLabel() }}
+                </option>
+            @endforeach
+        </select>
+        @error('accommodation_plan_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </x-admin.form-field>
+
+    <x-admin.form-field label="Route" for="route_id" class="col-lg-4 col-md-6">
+        <select name="route_id" id="route_id" class="form-control js-searchable-select @error('route_id') is-invalid @enderror">
+            <option value="">None</option>
+            @foreach ($routes ?? [] as $routeModel)
+                <option value="{{ $routeModel->id }}" @selected((string) old('route_id', $package->route_id ?? '') === (string) $routeModel->id)>
+                    {{ $routeModel->registrationOptionLabel() }}
+                </option>
+            @endforeach
+        </select>
+        @error('route_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </x-admin.form-field>
+
     <x-admin.form-field label="Options" class="col-lg-3 col-md-4">
         <div class="form-check form-switch admin-form-switch-inline">
             <input class="form-check-input" type="checkbox" name="qurbani_included" value="1" id="qurbani_included"

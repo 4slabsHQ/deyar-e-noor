@@ -7,6 +7,7 @@
     'emptyLabel' => 'Select',
     'qurbaniData' => false,
     'filterMode' => false,
+    'columnClass' => 'col-lg-4 col-md-6',
 ])
 
 @php
@@ -16,7 +17,7 @@
     $placeholder = $filterMode ? 'All' : $placeholder;
 @endphp
 
-<div class="col-lg-4 col-md-6">
+<div @class([$columnClass])>
     <label class="form-label" for="{{ $fieldId }}">Package</label>
     <select
         name="{{ $name }}"
@@ -33,7 +34,11 @@
         @foreach ($packages as $package)
             <option
                 value="{{ $package->id }}"
-                @if ($qurbaniData) data-qurbani="{{ $package->qurbani_included ? '1' : '0' }}" @endif
+            @if ($qurbaniData)
+                data-qurbani="{{ $package->qurbani_included ? '1' : '0' }}"
+                data-days="{{ $package->days }}"
+                data-duration="{{ $package->duration->value }}"
+            @endif
                 @selected((string) $selected === (string) $package->id)
             >{{ $package->registrationOptionLabel() }}</option>
         @endforeach

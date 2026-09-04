@@ -8,7 +8,7 @@
 <script src="{{ asset('js/app-datatables.js') }}?v=6"></script>
 
 <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
-<script src="{{ asset('js/admin-form.js') }}?v=15"></script>
+<script src="{{ asset('js/admin-form.js') }}?v=16"></script>
 
 <script src="{{ asset('js/custom.min.js') }}"></script>
 <script src="{{ asset('js/dlabnav-init.js') }}"></script>

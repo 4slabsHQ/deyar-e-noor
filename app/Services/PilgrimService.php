@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\Pilgrim;
 use App\Models\PilgrimDeletionLog;
+use App\Reports\Definitions\HajjRegistrationReportDefinition;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -357,7 +358,20 @@ class PilgrimService
 
     private function recordDeletionLog(Pilgrim $pilgrim): void
     {
-        $pilgrim->loadMissing(['company', 'package', 'podCity']);
+        $pilgrim->loadMissing([
+            'company',
+            'package',
+            'podCity',
+            'careOff',
+            'formOwner',
+            'maktabCategory',
+            'roomType',
+            'mehramRelation',
+            'warisRelation',
+            'creator',
+        ]);
+
+        $snapshot = app(HajjRegistrationReportDefinition::class)->snapshotFor($pilgrim);
 
         PilgrimDeletionLog::query()->create([
             'pilgrim_id' => $pilgrim->id,
@@ -371,9 +385,11 @@ class PilgrimService
             'company_name' => $pilgrim->company?->registrationOptionLabel() ?? $pilgrim->company?->name,
             'package_label' => $pilgrim->package?->registrationOptionLabel(),
             'pod_city_name' => $pilgrim->podCity?->name,
+            'care_off_name' => $pilgrim->careOff?->name,
             'gender' => $pilgrim->gender?->label(),
             'mobile' => $pilgrim->mobile,
             'entry_date' => $pilgrim->entry_date,
+            'registration_snapshot' => $snapshot,
         ]);
     }
 

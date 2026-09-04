@@ -10,6 +10,7 @@ use App\Models\HajjSeason;
 use App\Models\MaktabCategory;
 use App\Models\Package;
 use App\Models\Pilgrim;
+use App\Reports\Concerns\ResolvesPilgrimPackageReportColumns;
 use App\Reports\Contracts\ReportDefinition;
 use App\Services\HajjSeasonService;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,8 @@ use InvalidArgumentException;
 
 class HajjRegistrationReportDefinition implements ReportDefinition
 {
+    use ResolvesPilgrimPackageReportColumns;
+
     public const KEY = 'hajj_registration';
 
     /** @return list<string> */
@@ -84,7 +87,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'company' => ['label' => 'Company', 'group' => 'Registration'],
             'maktab_category' => ['label' => 'Maktab', 'group' => 'Registration'],
             'package' => ['label' => 'Package', 'group' => 'Registration'],
-            'qurbani_included' => ['label' => 'Qurbani', 'group' => 'Registration'],
+            ...$this->pilgrimPackageColumnCatalog('Package & Accommodation'),
             'care_off' => ['label' => 'Care Off', 'group' => 'Registration'],
             'pod_city' => ['label' => 'POD', 'group' => 'Registration'],
             'room_type' => ['label' => 'Room Type', 'group' => 'Registration'],
@@ -124,6 +127,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     {
         return [
             'Registration',
+            'Package & Accommodation',
             'Personal Details',
             'Passport & Contact',
             'Mehram & Waris',
@@ -262,6 +266,23 @@ class HajjRegistrationReportDefinition implements ReportDefinition
         );
     }
 
+    /** @return array<string, string|int|null> */
+    public function snapshotFor(Pilgrim $pilgrim): array
+    {
+        $columns = array_keys($this->columnCatalog());
+
+        $pilgrim->loadMissing($this->relationsForColumns($columns));
+
+        $snapshot = [];
+
+        foreach ($columns as $column) {
+            $value = $this->resolveColumnValue($pilgrim, $column);
+            $snapshot[$column] = $this->exportCellValue($column, $value);
+        }
+
+        return $snapshot;
+    }
+
     /** @param  list<string>  $columns
      * @return list<string>
      */
@@ -269,7 +290,7 @@ class HajjRegistrationReportDefinition implements ReportDefinition
     {
         $map = [
             'company' => 'company:id,name',
-            'package' => 'package:id,name,number,price,days,duration,qurbani_included',
+            'package' => 'package:id,name,number,price,days,duration,qurbani_included,accommodation_plan_id,route_id',
             'maktab_category' => 'maktabCategory:id,name,zone',
             'form_owner' => 'formOwner:id,name',
             'care_off' => 'careOff:id,name',
@@ -280,10 +301,12 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'entered_by' => 'creator:id,name',
         ];
 
-        return array_values(array_unique(array_intersect_key(
-            $map,
-            array_flip($columns),
+        $relations = array_values(array_unique(array_merge(
+            array_values(array_intersect_key($map, array_flip($columns))),
+            $this->pilgrimPackageRelationsForColumns($columns),
         )));
+
+        return $relations;
     }
 
     private function resolveColumnValue(Pilgrim $pilgrim, string $column): string|int|null
@@ -311,6 +334,16 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'passport_expiry' => $pilgrim->passport_expiry?->format('d M Y'),
             'company' => $pilgrim->company?->name,
             'package' => $pilgrim->package?->registrationOptionLabel(),
+            'days' => $this->resolvePilgrimPackageColumn($pilgrim, 'days'),
+            'duration' => $this->resolvePilgrimPackageColumn($pilgrim, 'duration'),
+            'qurbani_included' => $this->resolvePilgrimPackageColumn($pilgrim, 'qurbani_included'),
+            'route' => $this->resolvePilgrimPackageColumn($pilgrim, 'route'),
+            'route_path' => $this->resolvePilgrimPackageColumn($pilgrim, 'route_path'),
+            'accommodation_plan' => $this->resolvePilgrimPackageColumn($pilgrim, 'accommodation_plan'),
+            'accommodation_plan_type' => $this->resolvePilgrimPackageColumn($pilgrim, 'accommodation_plan_type'),
+            'makkah_hotel' => $this->resolvePilgrimPackageColumn($pilgrim, 'makkah_hotel'),
+            'madinah_hotel' => $this->resolvePilgrimPackageColumn($pilgrim, 'madinah_hotel'),
+            'shifting_building' => $this->resolvePilgrimPackageColumn($pilgrim, 'shifting_building'),
             'maktab_category' => $pilgrim->maktabCategory
                 ? $pilgrim->maktabCategory->name.' ('.$pilgrim->maktabCategory->zone.')'
                 : null,
@@ -324,7 +357,6 @@ class HajjRegistrationReportDefinition implements ReportDefinition
             'waris_cnic' => $pilgrim->waris_cnic,
             'waris_relation' => $pilgrim->warisRelation?->name,
             'waris_mobile' => $pilgrim->waris_mobile,
-            'qurbani_included' => $pilgrim->qurbani_included ? 'Yes' : 'No',
             'comments' => $pilgrim->comments,
             'passport_document' => $pilgrim->passport_url,
             'visa_document' => $pilgrim->visa_url,

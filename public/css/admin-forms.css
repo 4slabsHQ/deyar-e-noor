@@ -22,6 +22,28 @@
     margin-bottom: 0;
 }
 
+.admin-form-page .card-body {
+    overflow: visible;
+}
+
+.route-steps-table-wrap {
+    overflow: visible;
+}
+
+.route-steps-table td,
+.route-steps-table th {
+    overflow: visible;
+    vertical-align: middle;
+}
+
+.route-steps-table .route-step-location {
+    min-width: 16rem;
+}
+
+body > .ts-dropdown {
+    z-index: 2000;
+}
+
 .admin-form {
     --bs-gutter-x: 1rem;
 }

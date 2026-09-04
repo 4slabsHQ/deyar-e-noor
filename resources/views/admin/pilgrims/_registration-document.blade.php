@@ -108,17 +108,11 @@
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Days</span>
-                    <span class="field-value">
-                        @if ($pilgrim->package)
-                            {{ $pilgrim->package->days }}
-                        @else
-                            —
-                        @endif
-                    </span>
+                    <span class="field-value">{{ $pilgrim->days ?? $pilgrim->package?->days ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Duration</span>
-                    <span class="field-value">{{ $pilgrim->package?->duration?->label() ?? '—' }}</span>
+                    <span class="field-value">{{ ($pilgrim->duration ?? $pilgrim->package?->duration)?->label() ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Maktab Category</span>
@@ -132,8 +126,38 @@
                     <span class="field-label">Qurbani</span>
                     <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
                 </div>
+                <div class="pilgrim-doc-field">
+                    <span class="field-label">Route</span>
+                    <span class="field-value">{{ $pilgrim->package?->route?->name ?? '—' }}</span>
+                </div>
+                <div class="pilgrim-doc-field full-width">
+                    <span class="field-label">Route Path</span>
+                    <span class="field-value">{{ $pilgrim->package?->route?->summary() ?: '—' }}</span>
+                </div>
             </div>
         </section>
+
+        @if ($pilgrim->package?->accommodationPlan)
+            <section class="pilgrim-doc-section">
+                <h2 class="pilgrim-doc-section-title">Accommodation Plan</h2>
+                <div class="pilgrim-doc-grid">
+                    <div class="pilgrim-doc-field">
+                        <span class="field-label">Plan Name</span>
+                        <span class="field-value">{{ $pilgrim->package->accommodationPlan->name }}</span>
+                    </div>
+                    <div class="pilgrim-doc-field">
+                        <span class="field-label">Plan Type</span>
+                        <span class="field-value">{{ $pilgrim->package->accommodationPlan->type->label() }}</span>
+                    </div>
+                    @foreach ($pilgrim->package->accommodationPlan->slots as $planSlot)
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">{{ $planSlot->slot->label() }}</span>
+                            <span class="field-value">{{ $planSlot->displayLabel() }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
         <section class="pilgrim-doc-section">
             <h2 class="pilgrim-doc-section-title">Personal Details</h2>

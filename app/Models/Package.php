@@ -8,6 +8,7 @@ use App\Enums\PackageDuration;
 use Database\Factories\PackageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -24,6 +25,8 @@ class Package extends Model
         'days',
         'qurbani_included',
         'duration',
+        'accommodation_plan_id',
+        'route_id',
         'limit',
         'is_active',
     ];
@@ -44,6 +47,16 @@ class Package extends Model
     public function pilgrims(): HasMany
     {
         return $this->hasMany(Pilgrim::class);
+    }
+
+    public function accommodationPlan(): BelongsTo
+    {
+        return $this->belongsTo(AccommodationPlan::class);
+    }
+
+    public function route(): BelongsTo
+    {
+        return $this->belongsTo(Route::class);
     }
 
     /** @return array<string, string> */

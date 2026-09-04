@@ -108,12 +108,15 @@
 
         prepareSearchableSelect(select);
 
+        var dropdownParent = select.dataset.dropdownParent || null;
+
         new TomSelect(select, {
             plugins: ['dropdown_input'],
             allowEmptyOption: true,
             create: false,
             maxOptions: null,
             placeholder: select.dataset.placeholder || 'Select',
+            dropdownParent: dropdownParent,
             onInitialize: function () {
                 this.wrapper.classList.remove('form-control', 'js-searchable-select');
             },

@@ -16,7 +16,10 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
 {
     public const KEY = 'deleted_registrations';
 
-    public function __construct(private HajjSeasonService $hajjSeasonService) {}
+    public function __construct(
+        private HajjSeasonService $hajjSeasonService,
+        private HajjRegistrationReportDefinition $registrationReport,
+    ) {}
 
     public function key(): string
     {
@@ -36,7 +39,7 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
     /** @return list<string> */
     public function nonSpreadsheetExportColumns(): array
     {
-        return [];
+        return $this->registrationReport->nonSpreadsheetExportColumns();
     }
 
     /** @return list<string> */
@@ -47,7 +50,11 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
 
     public function exportCellValue(string $column, string|int|null $value): string|int|null
     {
-        return $value;
+        if (in_array($column, ['deleted_at', 'deleted_by'], true)) {
+            return $value;
+        }
+
+        return $this->registrationReport->exportCellValue($column, $value);
     }
 
     public function description(): string
@@ -65,25 +72,16 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
         return [
             'deleted_at' => ['label' => 'Deleted At', 'group' => 'Deletion'],
             'deleted_by' => ['label' => 'Deleted By', 'group' => 'Deletion'],
-            'hajj_year' => ['label' => 'Hajj Year', 'group' => 'Registration'],
-            'entry_date' => ['label' => 'Entry Date', 'group' => 'Registration'],
-            'full_name' => ['label' => 'Full Name', 'group' => 'Registration'],
-            'passport_no' => ['label' => 'Passport No', 'group' => 'Registration'],
-            'family_code' => ['label' => 'Family Code', 'group' => 'Registration'],
-            'gender' => ['label' => 'Gender', 'group' => 'Registration'],
-            'company' => ['label' => 'Company', 'group' => 'Registration'],
-            'package' => ['label' => 'Package', 'group' => 'Registration'],
-            'pod_city' => ['label' => 'POD', 'group' => 'Registration'],
-            'mobile' => ['label' => 'Mobile', 'group' => 'Registration'],
+            ...$this->registrationReport->columnCatalog(),
         ];
     }
 
     public function columnGroupOrder(): array
     {
-        return [
-            'Deletion',
-            'Registration',
-        ];
+        return array_merge(
+            ['Deletion'],
+            $this->registrationReport->columnGroupOrder(),
+        );
     }
 
     public function defaultColumns(): array
@@ -216,6 +214,21 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
         return match ($column) {
             'deleted_at' => $log->deleted_at?->format('d M Y H:i'),
             'deleted_by' => $log->deleter?->name,
+            default => $this->snapshotValue($log, $column),
+        };
+    }
+
+    private function snapshotValue(PilgrimDeletionLog $log, string $column): string|int|null
+    {
+        $snapshot = $log->registration_snapshot ?? [];
+
+        if (array_key_exists($column, $snapshot)) {
+            $value = $snapshot[$column];
+
+            return is_string($value) || is_int($value) || $value === null ? $value : (string) $value;
+        }
+
+        return match ($column) {
             'hajj_year' => $log->hajj_year !== null ? (string) $log->hajj_year : null,
             'entry_date' => $log->entry_date?->format('d M Y'),
             'full_name' => $log->full_name,
@@ -225,6 +238,7 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
             'company' => $log->company_name,
             'package' => $log->package_label,
             'pod_city' => $log->pod_city_name,
+            'care_off' => $log->care_off_name,
             'mobile' => $log->mobile,
             default => null,
         };
@@ -261,11 +275,13 @@ class DeletedRegistrationsReportDefinition implements ReportDefinition
             $term = trim((string) $filters['search']);
 
             $query->where(function (Builder $query) use ($term): void {
-                $query->where('full_name', 'like', "%{$term}%")
+                $query->where('registration_snapshot', 'like', "%{$term}%")
+                    ->orWhere('full_name', 'like', "%{$term}%")
                     ->orWhere('passport_no', 'like', "%{$term}%")
                     ->orWhere('family_code', 'like', "%{$term}%")
                     ->orWhere('company_name', 'like', "%{$term}%")
-                    ->orWhere('mobile', 'like', "%{$term}%");
+                    ->orWhere('mobile', 'like', "%{$term}%")
+                    ->orWhere('care_off_name', 'like', "%{$term}%");
             });
         }
 

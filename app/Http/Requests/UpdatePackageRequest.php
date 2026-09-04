@@ -24,6 +24,8 @@ class UpdatePackageRequest extends FormRequest
             'days' => ['required', 'integer', 'min:0'],
             'qurbani_included' => ['boolean'],
             'duration' => ['required', Rule::enum(PackageDuration::class)],
+            'accommodation_plan_id' => ['nullable', 'integer', SeasonValidation::existsActive('accommodation_plans')],
+            'route_id' => ['nullable', 'integer', SeasonValidation::existsActive('routes')],
             'limit' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ];
@@ -33,6 +35,14 @@ class UpdatePackageRequest extends FormRequest
     {
         if ($this->has('limit') && $this->input('limit') === '') {
             $this->merge(['limit' => null]);
+        }
+
+        if ($this->has('accommodation_plan_id') && $this->input('accommodation_plan_id') === '') {
+            $this->merge(['accommodation_plan_id' => null]);
+        }
+
+        if ($this->has('route_id') && $this->input('route_id') === '') {
+            $this->merge(['route_id' => null]);
         }
 
         $this->merge([

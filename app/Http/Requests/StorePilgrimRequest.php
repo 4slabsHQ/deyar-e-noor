@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
+use App\Enums\PackageDuration;
 use App\Models\Company;
 use App\Models\FormOwner;
 use App\Models\Package;
@@ -103,10 +104,18 @@ class StorePilgrimRequest extends FormRequest
             ]);
         }
 
+        $package = Package::query()->find($this->input('package_id'));
+
         $this->merge([
             'qurbani_included' => $this->has('qurbani_included')
                 ? $this->boolean('qurbani_included')
-                : (bool) Package::query()->find($this->input('package_id'))?->qurbani_included,
+                : (bool) $package?->qurbani_included,
+            'days' => is_numeric($this->input('days'))
+                ? (int) $this->input('days')
+                : $package?->days,
+            'duration' => $this->filled('duration')
+                ? $this->input('duration')
+                : $package?->duration?->value,
         ]);
     }
 
@@ -331,6 +340,8 @@ class StorePilgrimRequest extends FormRequest
             'maktab_category_id' => ['nullable', SeasonValidation::existsActive('maktab_categories')],
             'package_id' => ['nullable', SeasonValidation::existsActive('packages')],
             'qurbani_included' => ['boolean'],
+            'days' => ['nullable', 'integer', 'min:0'],
+            'duration' => ['nullable', Rule::enum(PackageDuration::class)],
             'care_off_id' => ['nullable', SeasonValidation::existsActive('care_offs')],
             'pod_city_id' => ['nullable', Rule::exists('cities', 'id')],
             'room_type_id' => ['nullable', SeasonValidation::existsActive('room_types')],

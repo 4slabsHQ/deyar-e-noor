@@ -24,9 +24,11 @@ class PilgrimDeletionLog extends Model
         'company_name',
         'package_label',
         'pod_city_name',
+        'care_off_name',
         'gender',
         'mobile',
         'entry_date',
+        'registration_snapshot',
     ];
 
     protected function casts(): array
@@ -35,6 +37,7 @@ class PilgrimDeletionLog extends Model
             'deleted_at' => 'datetime',
             'hajj_year' => 'integer',
             'entry_date' => 'date',
+            'registration_snapshot' => 'array',
         ];
     }
 

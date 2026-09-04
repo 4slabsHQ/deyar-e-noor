@@ -77,12 +77,15 @@
             </li>
             @endcan
 
-            @canany(['companies.view','form-owners.view','maktab-categories.view','packages.view','care-offs.view','room-types.view','mehram-relations.view','waris-relations.view','cities.view','countries.view','airlines.view','airports.view'])
+            @canany(['companies.view','form-owners.view','maktab-categories.view','packages.view','properties.view','routes.view','accommodation-plans.view','care-offs.view','room-types.view','mehram-relations.view','waris-relations.view','cities.view','countries.view','airlines.view','airports.view'])
             @php
                 $hajjMastersActive = request()->routeIs(
                     'admin.companies.*',
                     'admin.form-owners.*',
                     'admin.packages.*',
+                    'admin.properties.*',
+                    'admin.routes.*',
+                    'admin.accommodation-plans.*',
                     'admin.maktab-categories.*',
                     'admin.care-offs.*',
                     'admin.room-types.*',
@@ -110,6 +113,15 @@
                     @endcan
                     @can('packages.view')
                     <li><a href="{{ route('admin.packages.index') }}" class="{{ request()->routeIs('admin.packages.*') ? 'mm-active' : '' }}">Packages</a></li>
+                    @endcan
+                    @can('properties.view')
+                    <li><a href="{{ route('admin.properties.index') }}" class="{{ request()->routeIs('admin.properties.*') ? 'mm-active' : '' }}">Properties</a></li>
+                    @endcan
+                    @can('accommodation-plans.view')
+                    <li><a href="{{ route('admin.accommodation-plans.index') }}" class="{{ request()->routeIs('admin.accommodation-plans.*') ? 'mm-active' : '' }}">Accommodation Plans</a></li>
+                    @endcan
+                    @can('routes.view')
+                    <li><a href="{{ route('admin.routes.index') }}" class="{{ request()->routeIs('admin.routes.*') ? 'mm-active' : '' }}">Routes</a></li>
                     @endcan
                     @can('maktab-categories.view')
                     <li><a href="{{ route('admin.maktab-categories.index') }}" class="{{ request()->routeIs('admin.maktab-categories.*') ? 'mm-active' : '' }}">Maktab Categories</a></li>

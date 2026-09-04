@@ -1,6 +1,7 @@
 @php
     use App\Enums\BloodGroup;
     use App\Enums\Gender;
+    use App\Enums\PackageDuration;
 
     $pilgrim = $pilgrim ?? null;
     $activeHajjYear = $activeHajjYear ?? (int) now()->year;
@@ -8,6 +9,8 @@
     $selectedPackageId = old('package_id', $pilgrim->package_id ?? '');
     $selectedPackage = $packages->firstWhere('id', (int) $selectedPackageId);
     $qurbaniIncluded = (bool) old('qurbani_included', $pilgrim->qurbani_included ?? $selectedPackage?->qurbani_included ?? false);
+    $pilgrimDays = old('days', $pilgrim->days ?? $selectedPackage?->days ?? '');
+    $pilgrimDuration = old('duration', $pilgrim->duration?->value ?? $selectedPackage?->duration?->value ?? '');
 @endphp
 
 @push('styles')
@@ -70,28 +73,6 @@
                 </select>
                 @error('maktab_category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <x-admin.package-select
-                :packages="$packages"
-                :selected="old('package_id', $pilgrim->package_id ?? '')"
-                qurbani-data
-                class="@error('package_id') is-invalid @enderror"
-            >
-                @error('package_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-            </x-admin.package-select>
-            <div class="col-lg-2 col-md-3 col-6">
-                <label class="form-label" for="qurbani_included">Qurbani</label>
-                <div class="pilgrim-form-switch @error('qurbani_included') is-invalid @enderror">
-                    <input type="hidden" name="qurbani_included" value="0">
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" name="qurbani_included" id="qurbani_included" value="1"
-                               @checked($qurbaniIncluded)>
-                        <label class="form-check-label" for="qurbani_included">
-                            <span class="js-qurbani-label">{{ $qurbaniIncluded ? 'Yes' : 'No' }}</span>
-                        </label>
-                    </div>
-                </div>
-                @error('qurbani_included') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-            </div>
             <div class="col-lg-4 col-md-4">
                 <label class="form-label" for="care_off_id">Care Off</label>
                 <select name="care_off_id" id="care_off_id" class="form-control js-searchable-select @error('care_off_id') is-invalid @enderror" data-placeholder="Select care off">
@@ -127,6 +108,47 @@
                     @endforeach
                 </select>
                 @error('room_type_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+        </div>
+    </section>
+
+    <section class="pilgrim-form-section">
+        <h5 class="pilgrim-form-section-title">Package</h5>
+        <div class="row compact g-2">
+            <x-admin.package-select
+                :packages="$packages"
+                :selected="old('package_id', $pilgrim->package_id ?? '')"
+                qurbani-data
+                column-class="col-12"
+                class="@error('package_id') is-invalid @enderror"
+            >
+                @error('package_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </x-admin.package-select>
+            <div class="col-lg-4 col-md-4">
+                <label class="form-label" for="days">Days</label>
+                <input type="number" name="days" id="days" min="0" step="1" value="{{ $pilgrimDays }}"
+                       class="form-control @error('days') is-invalid @enderror">
+                @error('days') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-4 col-md-4">
+                <label class="form-label" for="duration">Duration</label>
+                <select name="duration" id="duration" class="form-control @error('duration') is-invalid @enderror">
+                    <option value="" @selected($pilgrimDuration === '')>Select</option>
+                    @foreach (PackageDuration::cases() as $durationOption)
+                        <option value="{{ $durationOption->value }}" @selected($pilgrimDuration === $durationOption->value)>
+                            {{ $durationOption->label() }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('duration') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-4 col-md-4">
+                <label class="form-label" for="qurbani_included">Qurbani</label>
+                <select name="qurbani_included" id="qurbani_included" class="form-control @error('qurbani_included') is-invalid @enderror">
+                    <option value="1" @selected($qurbaniIncluded)>Yes</option>
+                    <option value="0" @selected(! $qurbaniIncluded)>No</option>
+                </select>
+                @error('qurbani_included') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
         </div>
     </section>
@@ -525,36 +547,47 @@
         updateAgeDisplay();
 
         const packageSelect = document.getElementById('package_id');
-        const qurbaniToggle = document.getElementById('qurbani_included');
-        const qurbaniLabel = document.querySelector('.js-qurbani-label');
+        const qurbaniSelect = document.getElementById('qurbani_included');
+        const daysInput = document.getElementById('days');
+        const durationSelect = document.getElementById('duration');
 
-        function updateQurbaniLabel() {
-            if (qurbaniLabel && qurbaniToggle) {
-                qurbaniLabel.textContent = qurbaniToggle.checked ? 'Yes' : 'No';
-            }
-        }
-
-        function syncQurbaniFromPackage() {
-            if (!qurbaniToggle || !packageSelect) {
+        function syncPackageDefaultsFromPackage() {
+            if (!packageSelect) {
                 return;
             }
 
             const option = packageSelect.selectedOptions[0];
 
             if (!option || !option.value) {
-                qurbaniToggle.checked = false;
-                updateQurbaniLabel();
+                if (qurbaniSelect) {
+                    qurbaniSelect.value = '0';
+                }
+
+                if (daysInput) {
+                    daysInput.value = '';
+                }
+
+                if (durationSelect) {
+                    durationSelect.value = '';
+                }
 
                 return;
             }
 
-            qurbaniToggle.checked = option.dataset.qurbani === '1';
-            updateQurbaniLabel();
+            if (qurbaniSelect) {
+                qurbaniSelect.value = option.dataset.qurbani === '1' ? '1' : '0';
+            }
+
+            if (daysInput && option.dataset.days) {
+                daysInput.value = option.dataset.days;
+            }
+
+            if (durationSelect && option.dataset.duration) {
+                durationSelect.value = option.dataset.duration;
+            }
         }
 
-        packageSelect?.addEventListener('change', syncQurbaniFromPackage);
-        qurbaniToggle?.addEventListener('change', updateQurbaniLabel);
-        updateQurbaniLabel();
+        packageSelect?.addEventListener('change', syncPackageDefaultsFromPackage);
 
         const familyCodeInput = document.getElementById('family_code');
         const companySelect = document.getElementById('company_id');

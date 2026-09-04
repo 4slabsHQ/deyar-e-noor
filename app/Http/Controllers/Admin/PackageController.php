@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePackageRequest;
 use App\Http\Requests\UpdatePackageRequest;
+use App\Models\AccommodationPlan;
 use App\Models\Package;
+use App\Models\Route;
 
 class PackageController extends Controller
 {
@@ -18,7 +20,10 @@ class PackageController extends Controller
 
     public function create()
     {
-        return view('admin.packages.create');
+        $accommodationPlans = AccommodationPlan::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get();
+        $routes = Route::query()->forActiveYear()->where('is_active', true)->with(['steps.airport', 'steps.city'])->orderBy('name')->get();
+
+        return view('admin.packages.create', compact('accommodationPlans', 'routes'));
     }
 
     public function store(StorePackageRequest $request)
@@ -30,7 +35,10 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        return view('admin.packages.edit', compact('package'));
+        $accommodationPlans = AccommodationPlan::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get();
+        $routes = Route::query()->forActiveYear()->where('is_active', true)->with(['steps.airport', 'steps.city'])->orderBy('name')->get();
+
+        return view('admin.packages.edit', compact('package', 'accommodationPlans', 'routes'));
     }
 
     public function update(UpdatePackageRequest $request, Package $package)

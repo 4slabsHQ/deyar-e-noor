@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AccommodationPlanController;
 use App\Http\Controllers\Admin\AirlineController;
 use App\Http\Controllers\Admin\AirportController;
 use App\Http\Controllers\Admin\CareOffController;
@@ -15,9 +16,11 @@ use App\Http\Controllers\Admin\MehramRelationController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PilgrimController;
+use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomTypeController;
+use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WarisRelationController;
 use App\Http\Controllers\ProfileController;
@@ -84,6 +87,24 @@ Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.
         ->middlewareFor(['create', 'store'], 'permission:packages.create')
         ->middlewareFor(['edit', 'update'], 'permission:packages.update')
         ->middlewareFor('destroy', 'permission:packages.delete');
+    Route::resource('properties', PropertyController::class)
+        ->except(['show'])
+        ->middlewareFor('index', 'permission:properties.view')
+        ->middlewareFor(['create', 'store'], 'permission:properties.create')
+        ->middlewareFor(['edit', 'update'], 'permission:properties.update')
+        ->middlewareFor('destroy', 'permission:properties.delete');
+    Route::resource('routes', RouteController::class)
+        ->except(['show'])
+        ->middlewareFor('index', 'permission:routes.view')
+        ->middlewareFor(['create', 'store'], 'permission:routes.create')
+        ->middlewareFor(['edit', 'update'], 'permission:routes.update')
+        ->middlewareFor('destroy', 'permission:routes.delete');
+    Route::resource('accommodation-plans', AccommodationPlanController::class)
+        ->except(['show'])
+        ->middlewareFor('index', 'permission:accommodation-plans.view')
+        ->middlewareFor(['create', 'store'], 'permission:accommodation-plans.create')
+        ->middlewareFor(['edit', 'update'], 'permission:accommodation-plans.update')
+        ->middlewareFor('destroy', 'permission:accommodation-plans.delete');
     Route::resource('room-types', RoomTypeController::class)
         ->except(['show'])
         ->middlewareFor('index', 'permission:room-types.view')
