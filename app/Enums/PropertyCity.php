@@ -6,14 +6,14 @@ enum PropertyCity: string
 {
     case Makkah = 'makkah';
     case Madinah = 'madinah';
-    case Aziziya = 'aziziya';
+    case MakkahShifting = 'makkah_shifting';
 
     public function label(): string
     {
         return match ($this) {
             self::Makkah => 'Makkah',
             self::Madinah => 'Madinah',
-            self::Aziziya => 'Aziziya',
+            self::MakkahShifting => 'Makkah shifting',
         };
     }
 }

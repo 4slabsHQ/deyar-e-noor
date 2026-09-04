@@ -22,7 +22,7 @@ enum AccommodationPlanSlot: string
         return match ($this) {
             self::MakkahHotel => PropertyCity::Makkah,
             self::MadinahHotel => PropertyCity::Madinah,
-            self::ShiftingBuilding => PropertyCity::Aziziya,
+            self::ShiftingBuilding => PropertyCity::MakkahShifting,
         };
     }
 

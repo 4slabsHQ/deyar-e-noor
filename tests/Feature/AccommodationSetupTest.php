@@ -42,6 +42,24 @@ test('admin can create property with akads', function () {
         ->and($property->akads)->toHaveCount(2);
 });
 
+test('property form supports makkah shifting city and building type', function () {
+    $this->actingAs($this->user)->post(route('admin.properties.store'), [
+        'name' => 'Makkah Shifting Block A',
+        'city' => PropertyCity::MakkahShifting->value,
+        'type' => PropertyType::Building->value,
+        'is_active' => '1',
+        'akads' => [
+            ['akad_number' => 'MS-001', 'label' => 'Tower 1'],
+        ],
+    ])->assertRedirect(route('admin.properties.index'));
+
+    $property = Property::query()->where('name', 'Makkah Shifting Block A')->first();
+
+    expect($property)->not->toBeNull()
+        ->and($property->city)->toBe(PropertyCity::MakkahShifting)
+        ->and($property->type)->toBe(PropertyType::Building);
+});
+
 test('admin can create route with variable steps', function () {
     $airport = Airport::factory()->create(['name' => 'King Abdulaziz International', 'code' => 'JED']);
     $makkah = City::factory()->create(['name' => 'Makkah']);
