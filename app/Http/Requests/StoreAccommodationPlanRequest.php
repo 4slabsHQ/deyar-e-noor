@@ -89,7 +89,7 @@ class StoreAccommodationPlanRequest extends FormRequest
                 continue;
             }
 
-            if ($property->city !== $slot->propertyCity() || $property->type !== $slot->propertyType()) {
+            if (! $slot->acceptsProperty($property->city, $property->type)) {
                 $validator->errors()->add(
                     'slots.'.$slot->value.'.property_id',
                     'Selected property does not match the '.$slot->label().' slot.',

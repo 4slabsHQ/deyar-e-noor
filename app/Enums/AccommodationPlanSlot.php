@@ -26,11 +26,23 @@ enum AccommodationPlanSlot: string
         };
     }
 
-    public function propertyType(): PropertyType
+    /** @return list<PropertyType> */
+    public function propertyTypes(): array
     {
         return match ($this) {
-            self::MakkahHotel, self::MadinahHotel => PropertyType::Hotel,
-            self::ShiftingBuilding => PropertyType::ShiftingBuilding,
+            self::MakkahHotel, self::MadinahHotel => [
+                PropertyType::Hotel,
+                PropertyType::Building,
+            ],
+            self::ShiftingBuilding => [
+                PropertyType::ShiftingBuilding,
+                PropertyType::Building,
+            ],
         };
+    }
+
+    public function acceptsProperty(PropertyCity $city, PropertyType $type): bool
+    {
+        return $this->propertyCity() === $city && in_array($type, $this->propertyTypes(), true);
     }
 }

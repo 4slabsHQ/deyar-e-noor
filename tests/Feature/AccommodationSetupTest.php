@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AccommodationPlanSlot;
 use App\Enums\AccommodationPlanType;
 use App\Enums\PackageDuration;
 use App\Enums\PropertyCity;
@@ -82,6 +83,78 @@ test('admin can create route with variable steps', function () {
     expect($route)->not->toBeNull()
         ->and($route->steps)->toHaveCount(5)
         ->and($route->summary())->toBe('King Abdulaziz International (JED) → Makkah → Madinah → Hajj → King Abdulaziz International (JED)');
+});
+
+test('admin can create still accommodation plan with building property', function () {
+    $makkahHotel = Property::factory()->create([
+        'name' => 'Makkah Hotel',
+        'city' => PropertyCity::Makkah,
+        'type' => PropertyType::Hotel,
+    ]);
+    $madinahBuilding = Property::factory()->create([
+        'name' => 'Madinah Still Building',
+        'city' => PropertyCity::Madinah,
+        'type' => PropertyType::Building,
+    ]);
+
+    $this->actingAs($this->user)->post(route('admin.accommodation-plans.store'), [
+        'name' => 'Still With Building',
+        'type' => AccommodationPlanType::Still->value,
+        'is_active' => '1',
+        'slots' => [
+            'makkah_hotel' => ['property_id' => $makkahHotel->id],
+            'madinah_hotel' => ['property_id' => $madinahBuilding->id],
+        ],
+    ])->assertRedirect(route('admin.accommodation-plans.index'));
+
+    $plan = AccommodationPlan::query()->where('name', 'Still With Building')->with('slots.property')->first();
+
+    expect($plan)->not->toBeNull()
+        ->and($plan->slots)->toHaveCount(2)
+        ->and($plan->slots->firstWhere('slot', AccommodationPlanSlot::MadinahHotel)->property->type)
+        ->toBe(PropertyType::Building);
+});
+
+test('admin can create shifting accommodation plan with building and sheesha properties', function () {
+    $makkahHotel = Property::factory()->create([
+        'city' => PropertyCity::Makkah,
+        'type' => PropertyType::Hotel,
+    ]);
+    $shiftingSheesha = Property::factory()->create([
+        'name' => 'Sheesha Hotel',
+        'city' => PropertyCity::MakkahShifting,
+        'type' => PropertyType::ShiftingBuilding,
+    ]);
+    $madinahHotel = Property::factory()->create([
+        'city' => PropertyCity::Madinah,
+        'type' => PropertyType::Hotel,
+    ]);
+
+    $this->actingAs($this->user)->post(route('admin.accommodation-plans.store'), [
+        'name' => 'Shifting Plan',
+        'type' => AccommodationPlanType::Shifting->value,
+        'is_active' => '1',
+        'slots' => [
+            'makkah_hotel' => ['property_id' => $makkahHotel->id],
+            'shifting_building' => ['property_id' => $shiftingSheesha->id],
+            'madinah_hotel' => ['property_id' => $madinahHotel->id],
+        ],
+    ])->assertRedirect(route('admin.accommodation-plans.index'));
+
+    expect(AccommodationPlan::query()->where('name', 'Shifting Plan')->exists())->toBeTrue();
+});
+
+test('accommodation plan create form lists building properties in city slots', function () {
+    Property::factory()->create([
+        'name' => 'Visible Madinah Building',
+        'city' => PropertyCity::Madinah,
+        'type' => PropertyType::Building,
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('admin.accommodation-plans.create'));
+
+    $response->assertOk()
+        ->assertSee('Visible Madinah Building');
 });
 
 test('admin can create still accommodation plan', function () {

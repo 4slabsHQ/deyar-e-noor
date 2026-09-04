@@ -79,7 +79,7 @@ class AccommodationPlanController extends Controller
             $propertiesBySlot[$slot->value] = Property::query()
                 ->forActiveYear()
                 ->where('city', $slot->propertyCity())
-                ->where('type', $slot->propertyType())
+                ->whereIn('type', $slot->propertyTypes())
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->with('akads')
