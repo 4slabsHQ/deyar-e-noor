@@ -14,8 +14,10 @@ use App\Models\MehramRelation;
 use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Models\RoomType;
+use App\Models\Route;
 use App\Models\WarisRelation;
 use App\Services\HajjSeasonService;
+use App\Services\PilgrimPackageRegistrationService;
 use App\Services\PilgrimService;
 use App\Support\SeasonValidation;
 use Carbon\Carbon;
@@ -51,10 +53,13 @@ class PilgrimController extends Controller
             'formOwner',
             'company',
             'maktabCategory',
+            'route.steps.airport',
+            'route.steps.city',
             'package.accommodationPlan.slots.property',
             'package.accommodationPlan.slots.akad',
             'package.route.steps.airport',
             'package.route.steps.city',
+            'accommodationSlots.akad',
             'careOff',
             'podCity',
             'roomType',
@@ -105,6 +110,11 @@ class PilgrimController extends Controller
         );
     }
 
+    public function packageRegistrationDetails(Package $package, PilgrimPackageRegistrationService $packageRegistrationService): JsonResponse
+    {
+        return response()->json($packageRegistrationService->registrationDetailsForPackage($package));
+    }
+
     public function families(Request $request, PilgrimService $pilgrimService): JsonResponse
     {
         $validated = $request->validate([
@@ -120,9 +130,14 @@ class PilgrimController extends Controller
         ]);
     }
 
-    public function store(StorePilgrimRequest $request, PilgrimService $pilgrimService)
-    {
+    public function store(
+        StorePilgrimRequest $request,
+        PilgrimService $pilgrimService,
+        PilgrimPackageRegistrationService $packageRegistrationService,
+    ) {
         $data = $request->validated();
+        $accommodationSlots = $data['accommodation_slots'] ?? [];
+        $package = isset($data['package_id']) ? Package::query()->find($data['package_id']) : null;
         $company = isset($data['company_id'])
             ? Company::query()->find($data['company_id'])
             : null;
@@ -140,14 +155,17 @@ class PilgrimController extends Controller
             $data['existing_family_number'],
             $data['promote_single'],
             $data['existing_pilgrim_id'],
+            $data['accommodation_slots'],
         );
+
+        $pilgrim = null;
 
         if ($company && $company->code && $hajjYear) {
             $pilgrimService->withFamilyLock(
                 $company->id,
                 $hajjYear,
                 $existingFamilyNumber,
-                function () use ($pilgrimService, $company, $hajjYear, $existingFamilyNumber, &$data): void {
+                function () use ($pilgrimService, $company, $hajjYear, $existingFamilyNumber, &$data, &$pilgrim): void {
                     if ($existingFamilyNumber) {
                         $familyData = $pilgrimService->prepareAddToFamily($company, $hajjYear, $existingFamilyNumber);
 
@@ -162,7 +180,7 @@ class PilgrimController extends Controller
                     $data = array_merge($data, $familyData);
                     $data['created_by'] = auth()->id();
 
-                    Pilgrim::query()->create($data);
+                    $pilgrim = Pilgrim::query()->create($data);
                 }
             );
         } else {
@@ -171,7 +189,11 @@ class PilgrimController extends Controller
             $data['family_member_suffix'] = null;
             $data['created_by'] = auth()->id();
 
-            Pilgrim::query()->create($data);
+            $pilgrim = Pilgrim::query()->create($data);
+        }
+
+        if ($pilgrim !== null) {
+            $packageRegistrationService->syncAccommodationSlots($pilgrim, $accommodationSlots, $package);
         }
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration saved successfully.');
@@ -179,15 +201,23 @@ class PilgrimController extends Controller
 
     public function edit(Pilgrim $pilgrim)
     {
+        $pilgrim->load(['accommodationSlots.akad']);
+
         return view('admin.pilgrims.edit', array_merge(
             ['pilgrim' => $pilgrim],
             $this->formOptions()
         ));
     }
 
-    public function update(UpdatePilgrimRequest $request, Pilgrim $pilgrim, PilgrimService $pilgrimService)
-    {
+    public function update(
+        UpdatePilgrimRequest $request,
+        Pilgrim $pilgrim,
+        PilgrimService $pilgrimService,
+        PilgrimPackageRegistrationService $packageRegistrationService,
+    ) {
         $data = $request->validated();
+        $accommodationSlots = $data['accommodation_slots'] ?? [];
+        $package = isset($data['package_id']) ? Package::query()->find($data['package_id']) : null;
         $hajjYear = isset($data['hajj_year']) ? (int) $data['hajj_year'] : (int) $pilgrim->hajj_year;
         $newCompanyId = isset($data['company_id']) ? (int) $data['company_id'] : null;
         $oldCompanyId = $pilgrim->company_id !== null ? (int) $pilgrim->company_id : null;
@@ -208,6 +238,7 @@ class PilgrimController extends Controller
             $data['family_move_to'],
             $data['promote_single'],
             $data['existing_pilgrim_id'],
+            $data['accommodation_slots'],
         );
 
         if ($companyChanged && $newCompanyId !== null) {
@@ -238,6 +269,7 @@ class PilgrimController extends Controller
         }
 
         $pilgrim->update($data);
+        $packageRegistrationService->syncAccommodationSlots($pilgrim, $accommodationSlots, $package);
 
         return redirect()->route('admin.pilgrims.index')->with('success', 'Hajj registration updated successfully.');
     }
@@ -334,6 +366,7 @@ class PilgrimController extends Controller
             'companies' => Company::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
             'maktabCategories' => MaktabCategory::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
             'packages' => Package::query()->forActiveYear()->where('is_active', true)->orderBy('number')->get(),
+            'routes' => Route::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
             'careOffs' => CareOff::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),
             'cities' => City::query()->where('is_active', true)->orderBy('name')->get(),
             'roomTypes' => RoomType::query()->forActiveYear()->where('is_active', true)->orderBy('name')->get(),

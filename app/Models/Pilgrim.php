@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AccommodationPlanSlot;
 use App\Enums\BloodGroup;
 use App\Enums\Gender;
 use App\Enums\PackageDuration;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,6 +28,7 @@ class Pilgrim extends Model
         'company_id',
         'maktab_category_id',
         'package_id',
+        'route_id',
         'qurbani_included',
         'days',
         'duration',
@@ -99,6 +102,26 @@ class Pilgrim extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function route(): BelongsTo
+    {
+        return $this->belongsTo(Route::class);
+    }
+
+    public function accommodationSlots(): HasMany
+    {
+        return $this->hasMany(PilgrimAccommodationSlot::class);
+    }
+
+    public function resolvedRoute(): ?Route
+    {
+        return $this->route ?? $this->package?->route;
+    }
+
+    public function accommodationSlotAssignment(AccommodationPlanSlot $slot): ?PilgrimAccommodationSlot
+    {
+        return $this->accommodationSlots->firstWhere('slot', $slot);
     }
 
     public function careOff(): BelongsTo

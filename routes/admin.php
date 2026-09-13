@@ -128,6 +128,10 @@ Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.
         ->name('pilgrims.preview-family-code')
         ->middleware('permission:pilgrims.create|pilgrims.update');
 
+    Route::get('pilgrims/packages/{package}/registration-details', [PilgrimController::class, 'packageRegistrationDetails'])
+        ->name('pilgrims.package-registration-details')
+        ->middleware('permission:pilgrims.create|pilgrims.update');
+
     Route::get('pilgrims/families', [PilgrimController::class, 'families'])
         ->name('pilgrims.families')
         ->middleware('permission:pilgrims.create|pilgrims.update');

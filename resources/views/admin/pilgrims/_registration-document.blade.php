@@ -128,11 +128,11 @@
                 </div>
                 <div class="pilgrim-doc-field">
                     <span class="field-label">Route</span>
-                    <span class="field-value">{{ $pilgrim->package?->route?->name ?? '—' }}</span>
+                    <span class="field-value">{{ $pilgrim->resolvedRoute()?->name ?? '—' }}</span>
                 </div>
                 <div class="pilgrim-doc-field full-width">
                     <span class="field-label">Route Path</span>
-                    <span class="field-value">{{ $pilgrim->package?->route?->summary() ?: '—' }}</span>
+                    <span class="field-value">{{ $pilgrim->resolvedRoute()?->summary() ?: '—' }}</span>
                 </div>
             </div>
         </section>
@@ -150,9 +150,20 @@
                         <span class="field-value">{{ $pilgrim->package->accommodationPlan->type->label() }}</span>
                     </div>
                     @foreach ($pilgrim->package->accommodationPlan->slots as $planSlot)
+                        @php
+                            $assignment = $pilgrim->accommodationSlotAssignment($planSlot->slot);
+                        @endphp
                         <div class="pilgrim-doc-field">
                             <span class="field-label">{{ $planSlot->slot->label() }}</span>
-                            <span class="field-value">{{ $planSlot->displayLabel() }}</span>
+                            <span class="field-value">{{ $planSlot->property?->registrationOptionLabel() ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">{{ $planSlot->slot->label() }} Akad</span>
+                            <span class="field-value">{{ $assignment?->akad?->optionLabel() ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">{{ $planSlot->slot->label() }} Room</span>
+                            <span class="field-value">{{ $assignment?->room_number ?: '—' }}</span>
                         </div>
                     @endforeach
                 </div>

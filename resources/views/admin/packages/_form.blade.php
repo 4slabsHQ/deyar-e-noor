@@ -42,9 +42,9 @@
         @error('duration') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </x-admin.form-field>
 
-    <x-admin.form-field label="Accommodation plan" for="accommodation_plan_id" class="col-lg-4 col-md-6">
-        <select name="accommodation_plan_id" id="accommodation_plan_id" class="form-control js-searchable-select @error('accommodation_plan_id') is-invalid @enderror">
-            <option value="">None</option>
+    <x-admin.form-field label="Accommodation plan" for="accommodation_plan_id" class="col-lg-4 col-md-6" :required="true">
+        <select name="accommodation_plan_id" id="accommodation_plan_id" class="form-control js-searchable-select @error('accommodation_plan_id') is-invalid @enderror" required>
+            <option value="" disabled @selected(! old('accommodation_plan_id', $package->accommodation_plan_id ?? ''))>Select</option>
             @foreach ($accommodationPlans ?? [] as $plan)
                 <option value="{{ $plan->id }}" @selected((string) old('accommodation_plan_id', $package->accommodation_plan_id ?? '') === (string) $plan->id)>
                     {{ $plan->registrationOptionLabel() }}
@@ -54,9 +54,9 @@
         @error('accommodation_plan_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </x-admin.form-field>
 
-    <x-admin.form-field label="Route" for="route_id" class="col-lg-4 col-md-6">
-        <select name="route_id" id="route_id" class="form-control js-searchable-select @error('route_id') is-invalid @enderror">
-            <option value="">None</option>
+    <x-admin.form-field label="Route" for="route_id" class="col-lg-4 col-md-6" :required="true">
+        <select name="route_id" id="route_id" class="form-control js-searchable-select @error('route_id') is-invalid @enderror" required>
+            <option value="" disabled @selected(! old('route_id', $package->route_id ?? ''))>Select</option>
             @foreach ($routes ?? [] as $routeModel)
                 <option value="{{ $routeModel->id }}" @selected((string) old('route_id', $package->route_id ?? '') === (string) $routeModel->id)>
                     {{ $routeModel->registrationOptionLabel() }}

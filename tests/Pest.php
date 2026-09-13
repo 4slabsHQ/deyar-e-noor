@@ -1,7 +1,11 @@
 <?php
 
+use App\Models\AccommodationPlan;
+use App\Models\PropertyAkad;
+use App\Models\Route;
 use App\Services\HajjSeasonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\PackageRegistrationSetup;
 use Tests\TestCase;
 
 /*
@@ -50,7 +54,8 @@ function activeHajjYear(): int
     return app(HajjSeasonService::class)->activeYear();
 }
 
-function something()
+/** @return array{accommodation_plan_id: int, route_id: int, plan: AccommodationPlan, route: Route, makkah_akad: PropertyAkad} */
+function packageRegistrationSetup(?int $hajjYear = null): array
 {
-    // ..
+    return PackageRegistrationSetup::still($hajjYear ?? activeHajjYear());
 }

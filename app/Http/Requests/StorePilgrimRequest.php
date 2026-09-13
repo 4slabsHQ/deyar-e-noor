@@ -11,9 +11,11 @@ use App\Models\Package;
 use App\Models\Pilgrim;
 use App\Rules\FourDigitYearDate;
 use App\Services\HajjSeasonService;
+use App\Services\PilgrimPackageRegistrationService;
 use App\Support\SeasonValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 class StorePilgrimRequest extends FormRequest
@@ -116,6 +118,9 @@ class StorePilgrimRequest extends FormRequest
             'duration' => $this->filled('duration')
                 ? $this->input('duration')
                 : $package?->duration?->value,
+            'route_id' => $this->filled('route_id')
+                ? $this->input('route_id')
+                : $package?->route_id,
         ]);
     }
 
@@ -140,6 +145,7 @@ class StorePilgrimRequest extends FormRequest
             $this->validateCompanyCodeForAssignment($validator);
             $this->validatePackageLimit($validator);
             $this->validateFormOwnerLimit($validator);
+            $this->validateAccommodationSlots($validator);
         });
     }
 
@@ -273,6 +279,32 @@ class StorePilgrimRequest extends FormRequest
         );
     }
 
+    protected function validateAccommodationSlots(Validator $validator): void
+    {
+        if ($validator->errors()->isNotEmpty()) {
+            return;
+        }
+
+        $package = Package::query()->find($this->input('package_id'));
+
+        if ($package === null) {
+            return;
+        }
+
+        try {
+            app(PilgrimPackageRegistrationService::class)->validateAccommodationSlots(
+                $this->input('accommodation_slots', []),
+                $package,
+            );
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $key => $messages) {
+                foreach ($messages as $message) {
+                    $validator->errors()->add($key, $message);
+                }
+            }
+        }
+    }
+
     protected function validateUniqueFamilyMember(Validator $validator): void
     {
         if ($validator->errors()->isNotEmpty()) {
@@ -339,6 +371,10 @@ class StorePilgrimRequest extends FormRequest
             'company_id' => ['nullable', SeasonValidation::existsActive('companies')],
             'maktab_category_id' => ['nullable', SeasonValidation::existsActive('maktab_categories')],
             'package_id' => ['nullable', SeasonValidation::existsActive('packages')],
+            'route_id' => ['nullable', SeasonValidation::existsActive('routes')],
+            'accommodation_slots' => ['nullable', 'array'],
+            'accommodation_slots.*.property_akad_id' => ['nullable', 'integer', 'exists:property_akads,id'],
+            'accommodation_slots.*.room_number' => ['nullable', 'string', 'max:50'],
             'qurbani_included' => ['boolean'],
             'days' => ['nullable', 'integer', 'min:0'],
             'duration' => ['nullable', Rule::enum(PackageDuration::class)],
@@ -354,7 +390,9 @@ class StorePilgrimRequest extends FormRequest
                 'string',
                 'regex:/^[A-Z]{2}\d{7}$/',
                 Rule::unique('pilgrims', 'passport_no')
-                    ->where(fn ($query) => $query->where('hajj_year', $this->input('hajj_year')))
+                    ->where(fn ($query) => $query
+                        ->where('hajj_year', $this->input('hajj_year'))
+                        ->whereNull('deleted_at'))
                     ->ignore($pilgrimId),
             ],
             'date_of_birth' => ['nullable', new FourDigitYearDate, 'before:today'],
@@ -367,7 +405,9 @@ class StorePilgrimRequest extends FormRequest
                 'string',
                 'regex:/^\d{5}-\d{7}-\d$/',
                 Rule::unique('pilgrims', 'cnic')
-                    ->where(fn ($query) => $query->where('hajj_year', $this->input('hajj_year')))
+                    ->where(fn ($query) => $query
+                        ->where('hajj_year', $this->input('hajj_year'))
+                        ->whereNull('deleted_at'))
                     ->ignore($pilgrimId),
             ],
             'blood_group' => ['nullable', Rule::enum(BloodGroup::class)],

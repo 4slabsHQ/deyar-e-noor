@@ -48,6 +48,8 @@ test('admin can create care off', function () {
 });
 
 test('admin can create package', function () {
+    $setup = packageRegistrationSetup();
+
     $this->actingAs($this->user)->post(route('admin.packages.store'), [
         'number' => 'PKG-001',
         'name' => 'Economy Package',
@@ -55,6 +57,8 @@ test('admin can create package', function () {
         'days' => '21',
         'qurbani_included' => '1',
         'duration' => PackageDuration::Long->value,
+        'accommodation_plan_id' => $setup['accommodation_plan_id'],
+        'route_id' => $setup['route_id'],
         'is_active' => '1',
     ])->assertRedirect(route('admin.packages.index'));
 

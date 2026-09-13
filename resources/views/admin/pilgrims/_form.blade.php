@@ -11,6 +11,13 @@
     $qurbaniIncluded = (bool) old('qurbani_included', $pilgrim->qurbani_included ?? $selectedPackage?->qurbani_included ?? false);
     $pilgrimDays = old('days', $pilgrim->days ?? $selectedPackage?->days ?? '');
     $pilgrimDuration = old('duration', $pilgrim->duration?->value ?? $selectedPackage?->duration?->value ?? '');
+    $selectedRouteId = old('route_id', $pilgrim->route_id ?? $selectedPackage?->route_id ?? '');
+    $savedAccommodationSlots = old('accommodation_slots', $pilgrim?->accommodationSlots?->mapWithKeys(fn ($slot) => [
+        $slot->slot->value => [
+            'property_akad_id' => $slot->property_akad_id,
+            'room_number' => $slot->room_number,
+        ],
+    ])->all() ?? []);
 @endphp
 
 @push('styles')
@@ -149,6 +156,22 @@
                     <option value="0" @selected(! $qurbaniIncluded)>No</option>
                 </select>
                 @error('qurbani_included') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-lg-8 col-md-8">
+                <label class="form-label" for="route_id">Route</label>
+                <select name="route_id" id="route_id" class="form-control js-searchable-select @error('route_id') is-invalid @enderror" data-placeholder="Select route">
+                    <option value="" @selected($selectedRouteId === '' || $selectedRouteId === null)>Select</option>
+                    @foreach ($routes as $routeOption)
+                        <option value="{{ $routeOption->id }}" @selected((string) $selectedRouteId === (string) $routeOption->id)>
+                            {{ $routeOption->registrationOptionLabel() }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('route_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-12">
+                @error('accommodation_slots') <div class="text-danger small mb-2">{{ $message }}</div> @enderror
+                <div id="package-accommodation-slots" class="package-accommodation-slots"></div>
             </div>
         </div>
     </section>
@@ -550,15 +573,69 @@
         const qurbaniSelect = document.getElementById('qurbani_included');
         const daysInput = document.getElementById('days');
         const durationSelect = document.getElementById('duration');
+        const routeSelect = document.getElementById('route_id');
+        const accommodationSlotsContainer = document.getElementById('package-accommodation-slots');
+        const packageDetailsUrlTemplate = @json(route('admin.pilgrims.package-registration-details', ['package' => '__PACKAGE__']));
+        const savedAccommodationSlots = @json($savedAccommodationSlots);
+        let resetAccommodationAssignments = true;
 
-        function syncPackageDefaultsFromPackage() {
+        function renderAccommodationSlots(details, assignments) {
+            if (!accommodationSlotsContainer) {
+                return;
+            }
+
+            accommodationSlotsContainer.innerHTML = '';
+
+            if (!details || !Array.isArray(details.slots) || details.slots.length === 0) {
+                return;
+            }
+
+            details.slots.forEach(function (slot) {
+                const saved = assignments[slot.key] || {};
+                const selectedAkadId = resetAccommodationAssignments
+                    ? (slot.default_akad_id ? String(slot.default_akad_id) : '')
+                    : (saved.property_akad_id ? String(saved.property_akad_id) : (slot.default_akad_id ? String(slot.default_akad_id) : ''));
+                const roomNumber = resetAccommodationAssignments ? '' : (saved.room_number || '');
+
+                const card = document.createElement('div');
+                card.className = 'package-accommodation-slot card admin-index-card mb-2';
+                card.innerHTML = `
+                    <div class="card-body py-2 px-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <div class="small text-muted">${slot.label}</div>
+                                <div class="fw-semibold">${slot.property_label || slot.property_name || '—'}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label mb-1">Akad</label>
+                                <select name="accommodation_slots[${slot.key}][property_akad_id]" class="form-control form-control-sm">
+                                    <option value="">Select</option>
+                                    ${slot.akads.map(function (akad) {
+                                        return `<option value="${akad.id}" ${String(akad.id) === selectedAkadId ? 'selected' : ''}>${akad.label}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label mb-1">Room number</label>
+                                <input type="text" name="accommodation_slots[${slot.key}][room_number]" value="${roomNumber.replace(/"/g, '&quot;')}" class="form-control form-control-sm" maxlength="50">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                accommodationSlotsContainer.appendChild(card);
+            });
+        }
+
+        async function syncPackageRegistrationDetails(resetAssignments) {
+            resetAccommodationAssignments = resetAssignments === true;
+
             if (!packageSelect) {
                 return;
             }
 
-            const option = packageSelect.selectedOptions[0];
+            const packageId = packageSelect.value;
 
-            if (!option || !option.value) {
+            if (!packageId) {
                 if (qurbaniSelect) {
                     qurbaniSelect.value = '0';
                 }
@@ -571,23 +648,55 @@
                     durationSelect.value = '';
                 }
 
+                setSelectValue(routeSelect, '');
+                renderAccommodationSlots(null, {});
+
                 return;
             }
 
-            if (qurbaniSelect) {
-                qurbaniSelect.value = option.dataset.qurbani === '1' ? '1' : '0';
-            }
+            try {
+                const response = await fetch(packageDetailsUrlTemplate.replace('__PACKAGE__', packageId), {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
 
-            if (daysInput && option.dataset.days) {
-                daysInput.value = option.dataset.days;
-            }
+                if (!response.ok) {
+                    renderAccommodationSlots(null, {});
+                    return;
+                }
 
-            if (durationSelect && option.dataset.duration) {
-                durationSelect.value = option.dataset.duration;
+                const details = await response.json();
+
+                if (qurbaniSelect) {
+                    qurbaniSelect.value = details.qurbani_included ? '1' : '0';
+                }
+
+                if (daysInput) {
+                    daysInput.value = details.days ?? '';
+                }
+
+                if (durationSelect) {
+                    durationSelect.value = details.duration ?? '';
+                }
+
+                setSelectValue(routeSelect, details.route_id ? String(details.route_id) : '');
+
+                if (window.AdminForm?.syncTomSelect) {
+                    window.AdminForm.syncTomSelect(routeSelect);
+                }
+
+                renderAccommodationSlots(details, resetAccommodationAssignments ? {} : savedAccommodationSlots);
+            } catch (error) {
+                renderAccommodationSlots(null, {});
             }
         }
 
-        packageSelect?.addEventListener('change', syncPackageDefaultsFromPackage);
+        packageSelect?.addEventListener('change', function () {
+            syncPackageRegistrationDetails(true);
+        });
+
+        if (packageSelect?.value) {
+            syncPackageRegistrationDetails(false);
+        }
 
         const familyCodeInput = document.getElementById('family_code');
         const companySelect = document.getElementById('company_id');

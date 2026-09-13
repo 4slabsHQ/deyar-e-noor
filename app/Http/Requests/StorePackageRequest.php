@@ -24,8 +24,8 @@ class StorePackageRequest extends FormRequest
             'days' => ['required', 'integer', 'min:0'],
             'qurbani_included' => ['boolean'],
             'duration' => ['required', Rule::enum(PackageDuration::class)],
-            'accommodation_plan_id' => ['nullable', 'integer', SeasonValidation::existsActive('accommodation_plans')],
-            'route_id' => ['nullable', 'integer', SeasonValidation::existsActive('routes')],
+            'accommodation_plan_id' => ['required', 'integer', SeasonValidation::existsActive('accommodation_plans')],
+            'route_id' => ['required', 'integer', SeasonValidation::existsActive('routes')],
             'limit' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ];

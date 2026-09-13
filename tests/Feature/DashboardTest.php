@@ -183,6 +183,8 @@ test('admin can save package and form owner limits', function () {
     $user = User::factory()->create();
     $user->assignRole('Super Admin');
 
+    $setup = packageRegistrationSetup();
+
     $this->actingAs($user)->post(route('admin.packages.store'), [
         'number' => 'PKG-200',
         'name' => 'Premium Package',
@@ -190,6 +192,8 @@ test('admin can save package and form owner limits', function () {
         'days' => '18',
         'qurbani_included' => '1',
         'duration' => PackageDuration::Short->value,
+        'accommodation_plan_id' => $setup['accommodation_plan_id'],
+        'route_id' => $setup['route_id'],
         'limit' => '40',
         'is_active' => '1',
     ])->assertRedirect(route('admin.packages.index'));

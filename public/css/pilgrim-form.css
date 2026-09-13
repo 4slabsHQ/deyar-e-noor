@@ -35,6 +35,14 @@
     color: #111827;
 }
 
+.package-accommodation-slots {
+    margin-top: 0.35rem;
+}
+
+.package-accommodation-slot .fw-semibold {
+    font-size: 0.875rem;
+}
+
 .hajj-form .form-label,
 .pilgrim-form .form-label {
     display: block;

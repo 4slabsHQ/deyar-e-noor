@@ -51,6 +51,8 @@ beforeEach(function () {
     $this->company = Company::factory()->create(['code' => 'DYN', 'name' => 'Deyar-e-Noor', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
     $this->formOwner = FormOwner::factory()->create(['name' => 'Self', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
     $this->maktabCategory = MaktabCategory::factory()->create(['name' => 'Category A', 'zone' => 'Zone 1', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
+    $packageSetup = packageRegistrationSetup($this->hajjYear);
+
     $this->package = Package::factory()->create([
         'number' => 'PKG-001',
         'name' => 'Economy',
@@ -60,7 +62,10 @@ beforeEach(function () {
         'duration' => PackageDuration::Long,
         'is_active' => true,
         'hajj_year' => $this->hajjYear,
+        'accommodation_plan_id' => $packageSetup['accommodation_plan_id'],
+        'route_id' => $packageSetup['route_id'],
     ]);
+    $this->packageRegistrationSetup = $packageSetup;
     $this->careOff = CareOff::factory()->create(['name' => 'Head Office', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
     $this->roomType = RoomType::factory()->create(['name' => 'Sharing', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
     $this->mehramRelation = MehramRelation::factory()->create(['name' => 'Husband', 'is_active' => true, 'hajj_year' => $this->hajjYear]);
@@ -269,7 +274,7 @@ test('registration uses active hajj season year regardless of submitted value', 
         ['status' => HajjSeasonStatus::Active, 'activated_at' => now()],
     );
 
-    foreach ([Company::class, FormOwner::class, MaktabCategory::class, Package::class, CareOff::class, RoomType::class, MehramRelation::class, WarisRelation::class] as $model) {
+    foreach ([Company::class, FormOwner::class, MaktabCategory::class, Package::class, CareOff::class, RoomType::class, MehramRelation::class, WarisRelation::class, Route::class, AccommodationPlan::class, Property::class] as $model) {
         $model::query()->update(['hajj_year' => $activeYear]);
     }
 
@@ -372,6 +377,9 @@ test('qurbani defaults from package and can be overridden per pilgrim', function
         'qurbani_included' => false,
         'duration' => PackageDuration::Long,
         'is_active' => true,
+        'hajj_year' => $this->hajjYear,
+        'accommodation_plan_id' => $this->packageRegistrationSetup['accommodation_plan_id'],
+        'route_id' => $this->packageRegistrationSetup['route_id'],
     ]);
 
     $pilgrimOnNoQurbaniPackage = registerPilgrim([
@@ -624,6 +632,65 @@ test('duplicate passport is blocked within the same hajj year', function () {
         'cnic' => '35201-8888888-8',
     ]))
         ->assertSessionHasErrors('passport_no');
+});
+
+test('package registration details endpoint returns route and accommodation slots', function () {
+    $this->actingAs($this->user)
+        ->getJson(route('admin.pilgrims.package-registration-details', $this->package))
+        ->assertOk()
+        ->assertJsonPath('route_id', $this->package->route_id)
+        ->assertJsonPath('plan_type', 'still')
+        ->assertJsonPath('slots.0.key', 'makkah_hotel')
+        ->assertJsonPath('slots.0.default_akad_id', $this->packageRegistrationSetup['makkah_akad']->id);
+});
+
+test('pilgrim registration stores route override and accommodation assignments', function () {
+    $alternateRoute = Route::factory()->create([
+        'name' => 'Alternate Route',
+        'hajj_year' => $this->hajjYear,
+    ]);
+
+    registerPilgrim([
+        'route_id' => $alternateRoute->id,
+        'accommodation_slots' => [
+            'makkah_hotel' => [
+                'property_akad_id' => $this->packageRegistrationSetup['makkah_akad']->id,
+                'room_number' => '1205',
+            ],
+        ],
+    ]);
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->with('accommodationSlots.akad')->firstOrFail();
+
+    expect($pilgrim->route_id)->toBe($alternateRoute->id)
+        ->and($pilgrim->accommodationSlots)->toHaveCount(1)
+        ->and($pilgrim->accommodationSlots->first()->room_number)->toBe('1205')
+        ->and($pilgrim->accommodationSlots->first()->akad?->akad_number)->toBe('MK-DEFAULT-001');
+});
+
+test('passport and cnic can be reused after pilgrim is deleted in the same hajj year', function () {
+    $pilgrim = registerPilgrim([
+        'passport_no' => 'AB7777777',
+        'cnic' => '35201-7777777-7',
+        'given_name' => 'Deleted',
+    ]);
+
+    $this->actingAs($this->user)
+        ->delete(route('admin.pilgrims.destroy', $pilgrim))
+        ->assertRedirect(route('admin.pilgrims.index'));
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), validPilgrimPayload([
+        'passport_no' => 'AB7777777',
+        'cnic' => '35201-7777777-7',
+        'given_name' => 'ReRegistered',
+    ]))
+        ->assertRedirect(route('admin.pilgrims.index'))
+        ->assertSessionHasNoErrors();
+
+    expect(Pilgrim::query()->where('passport_no', 'AB7777777')->count())->toBe(1)
+        ->and(Pilgrim::withTrashed()->where('passport_no', 'AB7777777')->count())->toBe(2)
+        ->and(Pilgrim::query()->where('passport_no', 'AB7777777')->value('given_name'))->toBe('ReRegistered')
+        ->and(PilgrimDeletionLog::query()->where('passport_no', 'AB7777777')->exists())->toBeTrue();
 });
 
 test('duplicate cnic is blocked within the same hajj year', function () {

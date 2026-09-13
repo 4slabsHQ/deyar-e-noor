@@ -19,8 +19,14 @@ trait ResolvesPilgrimPackageReportColumns
             'accommodation_plan' => ['label' => 'Accommodation Plan', 'group' => $group],
             'accommodation_plan_type' => ['label' => 'Plan Type', 'group' => $group],
             'makkah_hotel' => ['label' => 'Makkah Hotel', 'group' => $group],
+            'makkah_hotel_akad' => ['label' => 'Makkah Hotel Akad', 'group' => $group],
+            'makkah_hotel_room' => ['label' => 'Makkah Hotel Room', 'group' => $group],
             'madinah_hotel' => ['label' => 'Madinah Hotel', 'group' => $group],
+            'madinah_hotel_akad' => ['label' => 'Madinah Hotel Akad', 'group' => $group],
+            'madinah_hotel_room' => ['label' => 'Madinah Hotel Room', 'group' => $group],
             'shifting_building' => ['label' => 'Shifting Building', 'group' => $group],
+            'shifting_building_akad' => ['label' => 'Shifting Building Akad', 'group' => $group],
+            'shifting_building_room' => ['label' => 'Shifting Building Room', 'group' => $group],
         ];
     }
 
@@ -38,6 +44,9 @@ trait ResolvesPilgrimPackageReportColumns
 
         $relations = [
             'package:id,name,number,price,days,duration,qurbani_included,accommodation_plan_id,route_id',
+            'route.steps.airport',
+            'route.steps.city',
+            'accommodationSlots.akad',
         ];
 
         if (array_intersect($columns, ['route', 'route_path']) !== []) {
@@ -51,13 +60,19 @@ trait ResolvesPilgrimPackageReportColumns
             'makkah_hotel',
             'madinah_hotel',
             'shifting_building',
+            'makkah_hotel_akad',
+            'madinah_hotel_akad',
+            'shifting_building_akad',
+            'makkah_hotel_room',
+            'madinah_hotel_room',
+            'shifting_building_room',
         ]) !== []) {
             $relations[] = 'package.accommodationPlan';
             $relations[] = 'package.accommodationPlan.slots.property';
             $relations[] = 'package.accommodationPlan.slots.akad';
         }
 
-        return $relations;
+        return array_values(array_unique($relations));
     }
 
     protected function resolvePilgrimPackageColumn(Pilgrim $pilgrim, string $column): string|int|null
@@ -68,13 +83,19 @@ trait ResolvesPilgrimPackageReportColumns
                 : ($pilgrim->package?->days !== null ? (string) $pilgrim->package->days : null),
             'duration' => ($pilgrim->duration ?? $pilgrim->package?->duration)?->label(),
             'qurbani_included' => $pilgrim->qurbani_included ? 'Yes' : 'No',
-            'route' => $pilgrim->package?->route?->name,
-            'route_path' => $pilgrim->package?->route?->summary() ?: null,
+            'route' => $pilgrim->resolvedRoute()?->name,
+            'route_path' => $pilgrim->resolvedRoute()?->summary() ?: null,
             'accommodation_plan' => $pilgrim->package?->accommodationPlan?->name,
             'accommodation_plan_type' => $pilgrim->package?->accommodationPlan?->type->label(),
             'makkah_hotel' => $this->accommodationSlotLabel($pilgrim, AccommodationPlanSlot::MakkahHotel),
             'madinah_hotel' => $this->accommodationSlotLabel($pilgrim, AccommodationPlanSlot::MadinahHotel),
             'shifting_building' => $this->accommodationSlotLabel($pilgrim, AccommodationPlanSlot::ShiftingBuilding),
+            'makkah_hotel_akad' => $this->pilgrimSlotAkadLabel($pilgrim, AccommodationPlanSlot::MakkahHotel),
+            'madinah_hotel_akad' => $this->pilgrimSlotAkadLabel($pilgrim, AccommodationPlanSlot::MadinahHotel),
+            'shifting_building_akad' => $this->pilgrimSlotAkadLabel($pilgrim, AccommodationPlanSlot::ShiftingBuilding),
+            'makkah_hotel_room' => $this->pilgrimSlotRoomNumber($pilgrim, AccommodationPlanSlot::MakkahHotel),
+            'madinah_hotel_room' => $this->pilgrimSlotRoomNumber($pilgrim, AccommodationPlanSlot::MadinahHotel),
+            'shifting_building_room' => $this->pilgrimSlotRoomNumber($pilgrim, AccommodationPlanSlot::ShiftingBuilding),
             default => null,
         };
     }
@@ -89,6 +110,18 @@ trait ResolvesPilgrimPackageReportColumns
 
         $slot = $plan->slots->firstWhere('slot', $slotType);
 
-        return $slot?->displayLabel();
+        return $slot?->property?->registrationOptionLabel();
+    }
+
+    private function pilgrimSlotAkadLabel(Pilgrim $pilgrim, AccommodationPlanSlot $slotType): ?string
+    {
+        return $pilgrim->accommodationSlotAssignment($slotType)?->akad?->optionLabel();
+    }
+
+    private function pilgrimSlotRoomNumber(Pilgrim $pilgrim, AccommodationPlanSlot $slotType): ?string
+    {
+        $roomNumber = $pilgrim->accommodationSlotAssignment($slotType)?->room_number;
+
+        return filled($roomNumber) ? $roomNumber : null;
     }
 }
