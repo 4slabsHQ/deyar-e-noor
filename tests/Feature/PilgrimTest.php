@@ -769,7 +769,7 @@ test('pilgrim registration document shows munazzam and package details section',
         ->assertOk()
         ->assertSee('Munazzam')
         ->assertSee('MZ-DYN-100')
-        ->assertSeeInOrder(['Package Details', 'Package No', 'Package Name', 'Price', 'Days', 'Duration', 'Maktab Category', 'Zone', 'Qurbani'], false)
+        ->assertSeeInOrder(['Registration Details', 'Maktab Category', 'Zone', 'Package Details', 'Package No', 'Package Name', 'Price', 'Days', 'Duration', 'Qurbani'], false)
         ->assertSee('PKG-001')
         ->assertSee('Economy')
         ->assertSee('850,000.00')
@@ -837,6 +837,44 @@ test('pilgrim registration document shows route and accommodation plan from pack
         ->assertSee('View Makkah Hotel (Makkah · Hotel)')
         ->assertSee('Madinah hotel')
         ->assertSee('View Madinah Hotel (Madinah · Hotel)');
+});
+
+test('pilgrim registration document orders personal details before registration and package sections', function () {
+    registerPilgrim();
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $response = $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim));
+
+    $response->assertOk()
+        ->assertSeeInOrder([
+            'Personal Details',
+            'Passport & Contact',
+            'Mehram & Waris',
+            'Registration Details',
+            'Package Details',
+        ], false);
+});
+
+test('pilgrim registration document shows photograph and passport copy when uploaded', function () {
+    Storage::fake('public');
+
+    Storage::disk('public')->put('pilgrims/photos/doc-photo.jpg', 'photo-bytes');
+    Storage::disk('public')->put('pilgrims/passports/doc-passport.jpg', 'passport-bytes');
+
+    $this->actingAs($this->user)->post(route('admin.pilgrims.store'), array_merge(validPilgrimPayload(), [
+        'photo' => UploadedFile::fake()->image('doc-photo.jpg'),
+        'passport' => UploadedFile::fake()->image('doc-passport.jpg'),
+    ]))->assertRedirect(route('admin.pilgrims.index'));
+
+    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
+
+    $this->actingAs($this->user)->get(route('admin.pilgrims.show', $pilgrim))
+        ->assertOk()
+        ->assertSee('Photograph', false)
+        ->assertSee('Passport Copy', false)
+        ->assertSee($pilgrim->photo_url, false)
+        ->assertSee($pilgrim->passport_url, false);
 });
 
 test('pilgrim edit form uses compact document upload controls', function () {

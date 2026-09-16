@@ -45,237 +45,247 @@
     </header>
 
     <div class="pilgrim-doc-body">
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Registration Details</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Entry Date</span>
-                    <span class="field-value">{{ $pilgrim->entry_date?->format('d/m/Y') ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Company</span>
-                    <span class="field-value">
-                        @if ($companyName)
-                            {{ $companyName }}@if($companyCode) ({{ $companyCode }})@endif
-                        @else
-                            —
-                        @endif
-                    </span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Munazzam</span>
-                    <span class="field-value">{{ $pilgrim->company?->munazzam_code ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Care Off</span>
-                    <span class="field-value">{{ $pilgrim->careOff?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">POD (City)</span>
-                    <span class="field-value">{{ $pilgrim->podCity?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Room Type</span>
-                    <span class="field-value">{{ $pilgrim->roomType?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Family Code</span>
-                    <span class="field-value">{{ $pilgrim->family_code ?? '—' }}</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Package Details</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Package No</span>
-                    <span class="field-value">{{ $pilgrim->package?->number ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Package Name</span>
-                    <span class="field-value">{{ $pilgrim->package?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Price</span>
-                    <span class="field-value">
-                        @if ($pilgrim->package)
-                            {{ number_format((float) $pilgrim->package->price, 2) }}
-                        @else
-                            —
-                        @endif
-                    </span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Days</span>
-                    <span class="field-value">{{ $pilgrim->days ?? $pilgrim->package?->days ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Duration</span>
-                    <span class="field-value">{{ ($pilgrim->duration ?? $pilgrim->package?->duration)?->label() ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Maktab Category</span>
-                    <span class="field-value">{{ $pilgrim->maktabCategory?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Zone</span>
-                    <span class="field-value">{{ $pilgrim->maktabCategory?->zone ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Qurbani</span>
-                    <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Route</span>
-                    <span class="field-value">{{ $pilgrim->resolvedRoute()?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field full-width">
-                    <span class="field-label">Route Path</span>
-                    <span class="field-value">{{ $pilgrim->resolvedRoute()?->summary() ?: '—' }}</span>
-                </div>
-            </div>
-        </section>
-
-        @if ($pilgrim->package?->accommodationPlan)
-            <section class="pilgrim-doc-section">
-                <h2 class="pilgrim-doc-section-title">Accommodation Plan</h2>
-                <div class="pilgrim-doc-grid">
-                    <div class="pilgrim-doc-field">
-                        <span class="field-label">Plan Name</span>
-                        <span class="field-value">{{ $pilgrim->package->accommodationPlan->name }}</span>
+        <div class="pilgrim-doc-layout">
+            <div class="pilgrim-doc-layout-column">
+                <section class="pilgrim-doc-section">
+                    <h2 class="pilgrim-doc-section-title">Personal Details</h2>
+                    <div class="pilgrim-doc-grid">
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Full Name</span>
+                            <span class="field-value">{{ $pilgrim->full_name }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Gender</span>
+                            <span class="field-value">{{ $pilgrim->gender?->label() ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Surname</span>
+                            <span class="field-value">{{ $pilgrim->surname }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Given Name</span>
+                            <span class="field-value">{{ $pilgrim->given_name }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Father / Husband Name</span>
+                            <span class="field-value">{{ $pilgrim->father_husband_name }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Age</span>
+                            <span class="field-value">{{ $pilgrim->age }} years</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Date of Birth</span>
+                            <span class="field-value">{{ $pilgrim->date_of_birth?->format('d M Y') ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Birth Place</span>
+                            <span class="field-value">{{ $pilgrim->birth_place }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Blood Group</span>
+                            <span class="field-value">{{ $pilgrim->blood_group?->label() ?? '—' }}</span>
+                        </div>
                     </div>
-                    <div class="pilgrim-doc-field">
-                        <span class="field-label">Plan Type</span>
-                        <span class="field-value">{{ $pilgrim->package->accommodationPlan->type->label() }}</span>
+                </section>
+
+                <section class="pilgrim-doc-section">
+                    <h2 class="pilgrim-doc-section-title">Passport & Contact</h2>
+                    <div class="pilgrim-doc-grid">
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Passport No</span>
+                            <span class="field-value">{{ $pilgrim->passport_no }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Passport Expiry</span>
+                            <span class="field-value">{{ $pilgrim->passport_expiry?->format('d M Y') ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">CNIC</span>
+                            <span class="field-value">{{ $pilgrim->cnic }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Mobile</span>
+                            <span class="field-value">{{ $pilgrim->mobile }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field full-width">
+                            <span class="field-label">Address</span>
+                            <span class="field-value">{{ $pilgrim->address }}</span>
+                        </div>
                     </div>
-                    @foreach ($pilgrim->package->accommodationPlan->slots as $planSlot)
-                        @php
-                            $assignment = $pilgrim->accommodationSlotAssignment($planSlot->slot);
-                        @endphp
+                    <div class="pilgrim-doc-passport-copy">
+                        <span class="field-label">Passport Copy</span>
+                        @if ($pilgrim->passport_url && $pilgrim->passportIsPreviewableImage())
+                            <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-passport-preview">
+                        @elseif ($pilgrim->passport_path)
+                            <div class="pilgrim-doc-passport-preview placeholder">Document on file</div>
+                        @else
+                            <div class="pilgrim-doc-passport-preview placeholder">Not uploaded</div>
+                        @endif
+                    </div>
+                </section>
+
+                <section class="pilgrim-doc-section">
+                    <h2 class="pilgrim-doc-section-title">Mehram & Waris</h2>
+                    <div class="pilgrim-doc-grid">
                         <div class="pilgrim-doc-field">
-                            <span class="field-label">{{ $planSlot->slot->label() }}</span>
-                            <span class="field-value">{{ $planSlot->property?->registrationOptionLabel() ?? '—' }}</span>
+                            <span class="field-label">Mehram Name</span>
+                            <span class="field-value">{{ $pilgrim->mehram_name ?: '—' }}</span>
                         </div>
                         <div class="pilgrim-doc-field">
-                            <span class="field-label">{{ $planSlot->slot->label() }} Aqad</span>
-                            <span class="field-value">{{ $assignment?->akad?->optionLabel() ?? '—' }}</span>
+                            <span class="field-label">Mehram Relation</span>
+                            <span class="field-value">{{ $pilgrim->mehramRelation?->name ?? '—' }}</span>
                         </div>
                         <div class="pilgrim-doc-field">
-                            <span class="field-label">{{ $planSlot->slot->label() }} Room</span>
-                            <span class="field-value">{{ $assignment?->room_number ?: '—' }}</span>
+                            <span class="field-label">Waris Name</span>
+                            <span class="field-value">{{ $pilgrim->waris_name ?: '—' }}</span>
                         </div>
-                    @endforeach
-                </div>
-            </section>
-        @endif
-
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Personal Details</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Full Name</span>
-                    <span class="field-value">{{ $pilgrim->full_name }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Gender</span>
-                    <span class="field-value">{{ $pilgrim->gender?->label() ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Surname</span>
-                    <span class="field-value">{{ $pilgrim->surname }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Given Name</span>
-                    <span class="field-value">{{ $pilgrim->given_name }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Father / Husband Name</span>
-                    <span class="field-value">{{ $pilgrim->father_husband_name }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Age</span>
-                    <span class="field-value">{{ $pilgrim->age }} years</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Date of Birth</span>
-                    <span class="field-value">{{ $pilgrim->date_of_birth?->format('d M Y') ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Birth Place</span>
-                    <span class="field-value">{{ $pilgrim->birth_place }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Blood Group</span>
-                    <span class="field-value">{{ $pilgrim->blood_group?->label() ?? '—' }}</span>
-                </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Waris Relation</span>
+                            <span class="field-value">{{ $pilgrim->warisRelation?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Waris CNIC</span>
+                            <span class="field-value">{{ $pilgrim->waris_cnic ?: '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Waris Mobile</span>
+                            <span class="field-value">{{ $pilgrim->waris_mobile ?: '—' }}</span>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>
 
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Passport & Contact</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Passport No</span>
-                    <span class="field-value">{{ $pilgrim->passport_no }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Passport Expiry</span>
-                    <span class="field-value">{{ $pilgrim->passport_expiry?->format('d M Y') ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">CNIC</span>
-                    <span class="field-value">{{ $pilgrim->cnic }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Mobile</span>
-                    <span class="field-value">{{ $pilgrim->mobile }}</span>
-                </div>
-                <div class="pilgrim-doc-field full-width">
-                    <span class="field-label">Address</span>
-                    <span class="field-value">{{ $pilgrim->address }}</span>
-                </div>
-            </div>
-        </section>
+            <div class="pilgrim-doc-layout-column">
+                <section class="pilgrim-doc-section">
+                    <h2 class="pilgrim-doc-section-title">Registration Details</h2>
+                    <div class="pilgrim-doc-grid">
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Entry Date</span>
+                            <span class="field-value">{{ $pilgrim->entry_date?->format('d/m/Y') ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Form Owner</span>
+                            <span class="field-value">{{ $pilgrim->formOwner?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Company</span>
+                            <span class="field-value">
+                                @if ($companyName)
+                                    {{ $companyName }}@if($companyCode) ({{ $companyCode }})@endif
+                                @else
+                                    —
+                                @endif
+                            </span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Munazzam</span>
+                            <span class="field-value">{{ $pilgrim->company?->munazzam_code ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Care Off</span>
+                            <span class="field-value">{{ $pilgrim->careOff?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">POD (City)</span>
+                            <span class="field-value">{{ $pilgrim->podCity?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Room Type</span>
+                            <span class="field-value">{{ $pilgrim->roomType?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Maktab Category</span>
+                            <span class="field-value">{{ $pilgrim->maktabCategory?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Zone</span>
+                            <span class="field-value">{{ $pilgrim->maktabCategory?->zone ?? '—' }}</span>
+                        </div>
+                    </div>
+                </section>
 
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Mehram</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Mehram Name</span>
-                    <span class="field-value">{{ $pilgrim->mehram_name }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Relation</span>
-                    <span class="field-value">{{ $pilgrim->mehramRelation?->name ?? '—' }}</span>
-                </div>
-            </div>
-        </section>
+                <section class="pilgrim-doc-section">
+                    <h2 class="pilgrim-doc-section-title">Package Details</h2>
+                    <div class="pilgrim-doc-grid">
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Package No</span>
+                            <span class="field-value">{{ $pilgrim->package?->number ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Package Name</span>
+                            <span class="field-value">{{ $pilgrim->package?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Price</span>
+                            <span class="field-value">
+                                @if ($pilgrim->package)
+                                    {{ number_format((float) $pilgrim->package->price, 2) }}
+                                @else
+                                    —
+                                @endif
+                            </span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Days</span>
+                            <span class="field-value">{{ $pilgrim->days ?? $pilgrim->package?->days ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Duration</span>
+                            <span class="field-value">{{ ($pilgrim->duration ?? $pilgrim->package?->duration)?->label() ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Qurbani</span>
+                            <span class="field-value">{{ $pilgrim->qurbani_included ? 'Yes' : 'No' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field">
+                            <span class="field-label">Route</span>
+                            <span class="field-value">{{ $pilgrim->resolvedRoute()?->name ?? '—' }}</span>
+                        </div>
+                        <div class="pilgrim-doc-field full-width">
+                            <span class="field-label">Route Path</span>
+                            <span class="field-value">{{ $pilgrim->resolvedRoute()?->summary() ?: '—' }}</span>
+                        </div>
+                    </div>
+                </section>
 
-        <section class="pilgrim-doc-section">
-            <h2 class="pilgrim-doc-section-title">Waris</h2>
-            <div class="pilgrim-doc-grid">
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Waris Name</span>
-                    <span class="field-value">{{ $pilgrim->waris_name }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Relation</span>
-                    <span class="field-value">{{ $pilgrim->warisRelation?->name ?? '—' }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Waris CNIC</span>
-                    <span class="field-value">{{ $pilgrim->waris_cnic }}</span>
-                </div>
-                <div class="pilgrim-doc-field">
-                    <span class="field-label">Waris Mobile</span>
-                    <span class="field-value">{{ $pilgrim->waris_mobile }}</span>
-                </div>
+                @if ($pilgrim->package?->accommodationPlan)
+                    <section class="pilgrim-doc-section">
+                        <h2 class="pilgrim-doc-section-title">Accommodation Plan</h2>
+                        <div class="pilgrim-doc-grid">
+                            <div class="pilgrim-doc-field">
+                                <span class="field-label">Plan Name</span>
+                                <span class="field-value">{{ $pilgrim->package->accommodationPlan->name }}</span>
+                            </div>
+                            <div class="pilgrim-doc-field">
+                                <span class="field-label">Plan Type</span>
+                                <span class="field-value">{{ $pilgrim->package->accommodationPlan->type->label() }}</span>
+                            </div>
+                            @foreach ($pilgrim->package->accommodationPlan->slots as $planSlot)
+                                @php
+                                    $assignment = $pilgrim->accommodationSlotAssignment($planSlot->slot);
+                                @endphp
+                                <div class="pilgrim-doc-field">
+                                    <span class="field-label">{{ $planSlot->slot->label() }}</span>
+                                    <span class="field-value">{{ $planSlot->property?->registrationOptionLabel() ?? '—' }}</span>
+                                </div>
+                                <div class="pilgrim-doc-field">
+                                    <span class="field-label">{{ $planSlot->slot->label() }} Aqad</span>
+                                    <span class="field-value">{{ $assignment?->akad?->optionLabel() ?? '—' }}</span>
+                                </div>
+                                <div class="pilgrim-doc-field">
+                                    <span class="field-label">{{ $planSlot->slot->label() }} Room</span>
+                                    <span class="field-value">{{ $assignment?->room_number ?: '—' }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
             </div>
-        </section>
+        </div>
 
         @if (filled($pilgrim->comments))
-            <section class="pilgrim-doc-section">
+            <section class="pilgrim-doc-section pilgrim-doc-section-full">
                 <h2 class="pilgrim-doc-section-title">Comments</h2>
                 <div class="pilgrim-doc-field full-width">
                     <span class="field-value">{{ $pilgrim->comments }}</span>
