@@ -190,19 +190,6 @@ class Pilgrim extends Model
         return Attribute::get(fn (): ?string => $this->publicStorageUrl($this->ticket_path));
     }
 
-    public function passportIsPreviewableImage(): bool
-    {
-        if ($this->passport_path === null) {
-            return false;
-        }
-
-        return in_array(
-            strtolower(pathinfo($this->passport_path, PATHINFO_EXTENSION)),
-            ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-            true,
-        );
-    }
-
     protected function publicStorageUrl(?string $path): ?string
     {
         if (! $path || ! Storage::disk('public')->exists($path)) {

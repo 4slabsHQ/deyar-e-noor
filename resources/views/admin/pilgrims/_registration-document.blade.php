@@ -113,17 +113,13 @@
                             <span class="field-value">{{ $pilgrim->address }}</span>
                         </div>
                     </div>
-                    <div class="pilgrim-doc-passport-wrap">
-                        <span class="pilgrim-doc-passport-label">Passport Copy</span>
-                        <div class="pilgrim-doc-passport-frame">
-                            @if ($pilgrim->passport_url && $pilgrim->passportIsPreviewableImage())
-                                <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-passport-preview">
-                            @elseif ($pilgrim->passport_path)
-                                <div class="pilgrim-doc-passport-preview placeholder">Document on file</div>
-                            @else
-                                <div class="pilgrim-doc-passport-preview placeholder">Not uploaded</div>
-                            @endif
-                        </div>
+                    <div class="pilgrim-doc-photo-wrap">
+                        <span class="pilgrim-doc-photo-label">Passport Copy</span>
+                        @if ($pilgrim->passport_url)
+                            <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-photo pilgrim-doc-passport">
+                        @else
+                            <div class="pilgrim-doc-photo pilgrim-doc-passport placeholder">No Passport</div>
+                        @endif
                     </div>
                 </section>
 

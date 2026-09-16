@@ -4,7 +4,7 @@
 @section('page-title', 'Hajj Registration')
 
 @push('styles')
-    <link href="{{ asset('css/pilgrim-registration.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/pilgrim-registration.css') }}?v=4" rel="stylesheet">
 @endpush
 
 @section('content')
