@@ -18,13 +18,23 @@
                 <h1 class="pilgrim-doc-title">Hajj Registration Form</h1>
             </div>
 
-            <div class="pilgrim-doc-photo-wrap">
-                <span class="pilgrim-doc-photo-label">Photograph</span>
-                @if ($pilgrim->photo_url)
-                    <img src="{{ $pilgrim->photo_url }}" alt="Pilgrim photo" class="pilgrim-doc-photo">
-                @else
-                    <div class="pilgrim-doc-photo placeholder">No Photo</div>
-                @endif
+            <div class="pilgrim-doc-photos">
+                <div class="pilgrim-doc-photo-wrap">
+                    <span class="pilgrim-doc-photo-label">Photograph</span>
+                    @if ($pilgrim->photo_url)
+                        <img src="{{ $pilgrim->photo_url }}" alt="Pilgrim photo" class="pilgrim-doc-photo">
+                    @else
+                        <div class="pilgrim-doc-photo placeholder">No Photo</div>
+                    @endif
+                </div>
+                <div class="pilgrim-doc-photo-wrap">
+                    <span class="pilgrim-doc-photo-label">Passport Copy</span>
+                    @if ($pilgrim->passport_url)
+                        <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-photo pilgrim-doc-passport">
+                    @else
+                        <div class="pilgrim-doc-photo pilgrim-doc-passport placeholder">No Passport</div>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -112,14 +122,6 @@
                             <span class="field-label">Address</span>
                             <span class="field-value">{{ $pilgrim->address }}</span>
                         </div>
-                    </div>
-                    <div class="pilgrim-doc-photo-wrap">
-                        <span class="pilgrim-doc-photo-label">Passport Copy</span>
-                        @if ($pilgrim->passport_url)
-                            <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-photo pilgrim-doc-passport">
-                        @else
-                            <div class="pilgrim-doc-photo pilgrim-doc-passport placeholder">No Passport</div>
-                        @endif
                     </div>
                 </section>
 
