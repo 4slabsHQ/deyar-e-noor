@@ -19,13 +19,13 @@ trait ResolvesPilgrimPackageReportColumns
             'accommodation_plan' => ['label' => 'Accommodation Plan', 'group' => $group],
             'accommodation_plan_type' => ['label' => 'Plan Type', 'group' => $group],
             'makkah_hotel' => ['label' => 'Makkah Hotel', 'group' => $group],
-            'makkah_hotel_akad' => ['label' => 'Makkah Hotel Akad', 'group' => $group],
+            'makkah_hotel_akad' => ['label' => 'Makkah Hotel Aqad', 'group' => $group],
             'makkah_hotel_room' => ['label' => 'Makkah Hotel Room', 'group' => $group],
             'madinah_hotel' => ['label' => 'Madinah Hotel', 'group' => $group],
-            'madinah_hotel_akad' => ['label' => 'Madinah Hotel Akad', 'group' => $group],
+            'madinah_hotel_akad' => ['label' => 'Madinah Hotel Aqad', 'group' => $group],
             'madinah_hotel_room' => ['label' => 'Madinah Hotel Room', 'group' => $group],
             'shifting_building' => ['label' => 'Shifting Building', 'group' => $group],
-            'shifting_building_akad' => ['label' => 'Shifting Building Akad', 'group' => $group],
+            'shifting_building_akad' => ['label' => 'Shifting Building Aqad', 'group' => $group],
             'shifting_building_room' => ['label' => 'Shifting Building Room', 'group' => $group],
         ];
     }

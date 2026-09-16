@@ -829,7 +829,7 @@ test('pilgrim registration document shows route and accommodation plan from pack
         ->assertOk()
         ->assertSee('Route')
         ->assertSee('View Route 1')
-        ->assertSee('Jeddah Airport (JED) → Makkah City → Hajj')
+        ->assertSee('JED → Makkah City → Hajj')
         ->assertSee('Accommodation Plan')
         ->assertSee('View Still Plan')
         ->assertSee('Still')

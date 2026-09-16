@@ -67,7 +67,7 @@
                         @error('slots.'.$slot->value.'.property_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Akad <span class="text-muted">(optional)</span></label>
+                        <label class="form-label">Aqad <span class="text-muted">(optional)</span></label>
                         <select name="slots[{{ $slot->value }}][property_akad_id]" class="form-control js-searchable-select slot-akad-select @error('slots.'.$slot->value.'.property_akad_id') is-invalid @enderror" data-slot="{{ $slot->value }}">
                             <option value="">Any / not set</option>
                             @foreach ($properties as $property)

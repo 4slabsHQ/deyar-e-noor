@@ -607,7 +607,7 @@
                                 <div class="fw-semibold">${slot.property_label || slot.property_name || '—'}</div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label mb-1">Akad</label>
+                                <label class="form-label mb-1">Aqad</label>
                                 <select name="accommodation_slots[${slot.key}][property_akad_id]" class="form-control form-control-sm">
                                     <option value="">Select</option>
                                     ${slot.akads.map(function (akad) {

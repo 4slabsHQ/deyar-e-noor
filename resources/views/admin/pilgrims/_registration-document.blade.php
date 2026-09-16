@@ -158,7 +158,7 @@
                             <span class="field-value">{{ $planSlot->property?->registrationOptionLabel() ?? '—' }}</span>
                         </div>
                         <div class="pilgrim-doc-field">
-                            <span class="field-label">{{ $planSlot->slot->label() }} Akad</span>
+                            <span class="field-label">{{ $planSlot->slot->label() }} Aqad</span>
                             <span class="field-value">{{ $assignment?->akad?->optionLabel() ?? '—' }}</span>
                         </div>
                         <div class="pilgrim-doc-field">

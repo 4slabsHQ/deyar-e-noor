@@ -137,13 +137,13 @@ class PilgrimPackageRegistrationService
 
             if ($akad === null) {
                 throw ValidationException::withMessages([
-                    'accommodation_slots.'.$slotKey.'.property_akad_id' => 'Selected akad was not found.',
+                    'accommodation_slots.'.$slotKey.'.property_akad_id' => 'Selected aqad was not found.',
                 ]);
             }
 
             if ((int) $akad->property_id !== (int) $planSlot?->property_id) {
                 throw ValidationException::withMessages([
-                    'accommodation_slots.'.$slotKey.'.property_akad_id' => 'Selected akad does not belong to the package property for this slot.',
+                    'accommodation_slots.'.$slotKey.'.property_akad_id' => 'Selected aqad does not belong to the package property for this slot.',
                 ]);
             }
         }

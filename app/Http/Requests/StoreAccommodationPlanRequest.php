@@ -116,7 +116,7 @@ class StoreAccommodationPlanRequest extends FormRequest
             if ((int) $akad->property_id !== (int) ($row['property_id'] ?? 0)) {
                 $validator->errors()->add(
                     'slots.'.$slotKey.'.property_akad_id',
-                    'Selected akad does not belong to the chosen property.',
+                    'Selected aqad does not belong to the chosen property.',
                 );
             }
         }

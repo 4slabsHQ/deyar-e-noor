@@ -17,7 +17,7 @@
                     <th>Name</th>
                     <th>City</th>
                     <th>Type</th>
-                    <th>Akads</th>
+                    <th>Aqads</th>
                     <th>Status</th>
                     <th class="no-sort">Action</th>
                 </tr>

@@ -42,9 +42,7 @@ class RouteStep extends Model
     public function label(): string
     {
         return match ($this->point_type) {
-            RoutePointType::Airport => $this->airport
-                ? sprintf('%s (%s)', $this->airport->name, $this->airport->code)
-                : '—',
+            RoutePointType::Airport => $this->airport?->code ?? '—',
             RoutePointType::City => $this->city?->name ?? '—',
             RoutePointType::Hajj => 'Hajj',
         };

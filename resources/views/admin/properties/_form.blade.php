@@ -45,15 +45,15 @@
 
 <div class="mt-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">Akad numbers</h5>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="add-akad-row">Add akad</button>
+        <h5 class="mb-0">Aqad numbers</h5>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="add-akad-row">Add Aqad</button>
     </div>
     @error('akads') <div class="text-danger small mb-2">{{ $message }}</div> @enderror
     <div class="table-responsive">
         <table class="table table-sm" id="akad-rows">
             <thead>
                 <tr>
-                    <th>Akad number</th>
+                    <th>Aqad number</th>
                     <th>Label</th>
                     <th>Notes</th>
                     <th style="width: 4rem;"></th>

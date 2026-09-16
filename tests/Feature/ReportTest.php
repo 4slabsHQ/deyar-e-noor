@@ -469,7 +469,7 @@ it('includes route and accommodation plan columns in hajj report results', funct
         ->toContain('Short')
         ->toContain('No')
         ->toContain('Report Route 1')
-        ->toContain('Report Airport (JED) → Report Makkah → Hajj')
+        ->toContain('JED → Report Makkah → Hajj')
         ->toContain('Report Still Plan')
         ->toContain('Still')
         ->toContain('Report Makkah Hotel (Makkah · Hotel)')

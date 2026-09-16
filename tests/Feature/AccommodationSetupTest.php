@@ -129,7 +129,7 @@ test('admin can create route with variable steps', function () {
 
     expect($route)->not->toBeNull()
         ->and($route->steps)->toHaveCount(5)
-        ->and($route->summary())->toBe('King Abdulaziz International (JED) → Makkah → Madinah → Hajj → King Abdulaziz International (JED)');
+        ->and($route->summary())->toBe('JED → Makkah → Madinah → Hajj → JED');
 });
 
 test('admin can create still accommodation plan with building property', function () {

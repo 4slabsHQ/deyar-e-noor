@@ -60,7 +60,7 @@
                                     <option value="">Select airport</option>
                                     @foreach ($airports as $airport)
                                         <option value="{{ $airport->id }}" @selected((string) ($step['airport_id'] ?? '') === (string) $airport->id)>
-                                            {{ $airport->name }} ({{ $airport->code }}) — {{ $airport->city->name ?? '—' }}
+                                            {{ $airport->code }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -97,7 +97,7 @@
             var addButton = document.getElementById('add-route-step');
             var nextIndex = {{ count($steps) }};
 
-            var airportOptions = `@foreach ($airports as $airport)<option value="{{ $airport->id }}">{{ $airport->name }} ({{ $airport->code }}) — {{ $airport->city->name ?? '—' }}</option>@endforeach`;
+            var airportOptions = `@foreach ($airports as $airport)<option value="{{ $airport->id }}">{{ $airport->code }}</option>@endforeach`;
             var cityOptions = `@foreach ($cities as $city)<option value="{{ $city->id }}">{{ $city->name }}</option>@endforeach`;
             var pointTypeOptions = `@foreach (RoutePointType::cases() as $pointType)<option value="{{ $pointType->value }}">{{ $pointType->label() }}</option>@endforeach`;
 
