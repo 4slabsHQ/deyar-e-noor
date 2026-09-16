@@ -27,6 +27,7 @@
     width: 100%;
     max-width: 960px;
     margin: 0 auto;
+    overflow-x: hidden;
     background: #fff;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -94,10 +95,22 @@
     display: block;
     width: 90px;
     height: 110px;
+    max-width: 100%;
     margin: 0 auto;
     object-fit: cover;
     border: 1px solid #9ca3af;
     background: #f9fafb;
+    overflow: hidden;
+}
+
+.pilgrim-doc-passport-wrap {
+    justify-self: start;
+    margin-top: 0.5rem;
+}
+
+.pilgrim-doc-passport {
+    object-fit: contain;
+    background: #fff;
 }
 
 .pilgrim-doc-photo.placeholder {
@@ -196,49 +209,6 @@
     grid-column: 1 / -1;
 }
 
-.pilgrim-doc-passport-copy {
-    margin-top: 0.5rem;
-    text-align: center;
-}
-
-.pilgrim-doc-passport-copy .field-label {
-    display: block;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
-    margin-bottom: 0.35rem;
-    text-align: center;
-}
-
-.pilgrim-doc-passport-preview {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    min-height: 200px;
-    max-height: 260px;
-    margin: 0 auto;
-    object-fit: contain;
-    border: 1px solid #9ca3af;
-    background: #fff;
-}
-
-.pilgrim-doc-passport-preview.placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 120px;
-    max-height: 160px;
-    font-size: 0.75rem;
-    color: #9ca3af;
-    text-align: center;
-    padding: 0.5rem;
-    line-height: 1.2;
-    background: #f9fafb;
-}
-
 .pilgrim-doc-field .field-label {
     display: block;
     font-size: 0.65rem;
@@ -281,7 +251,8 @@
     }
 
     .pilgrim-doc-logo-wrap,
-    .pilgrim-doc-photo-wrap {
+    .pilgrim-doc-photo-wrap,
+    .pilgrim-doc-passport-wrap {
         justify-self: center;
     }
 
@@ -390,30 +361,16 @@
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo.placeholder {
         width: 62px !important;
         height: 74px !important;
+        max-width: 62px !important;
     }
 
-    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport-copy {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport-wrap {
         margin-top: 3px !important;
     }
 
-    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport-preview {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: 145px !important;
-        max-height: 185px !important;
-        height: auto !important;
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport {
         object-fit: contain !important;
-    }
-
-    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport-preview.placeholder {
-        min-height: 70px !important;
-        max-height: 90px !important;
-        font-size: 6.5pt !important;
-    }
-
-    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport-copy .field-label {
-        font-size: 5.5pt !important;
-        margin-bottom: 2px !important;
+        background: #fff !important;
     }
 
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo-label {
