@@ -27,7 +27,7 @@
     width: 100%;
     max-width: 960px;
     margin: 0 auto;
-    overflow: visible;
+    overflow-x: hidden;
     background: #fff;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -105,39 +105,14 @@
     object-fit: cover;
     border: 1px solid #9ca3af;
     background: #f9fafb;
-}
-
-.pilgrim-doc-passport-frame {
-    width: 130px;
-    height: 110px;
-    max-width: 130px;
-    margin: 0 auto;
     overflow: hidden;
-    border: 1px solid #9ca3af;
-    background: #fff;
 }
 
 .pilgrim-doc-passport {
-    display: block;
-    box-sizing: border-box;
-    width: 100%;
-    height: 100%;
+    width: 120px;
+    height: 80px;
     object-fit: contain;
-    object-position: center;
-    border: none;
     background: #fff;
-}
-
-.pilgrim-doc-passport.placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    color: #9ca3af;
-    text-align: center;
-    padding: 0.25rem;
-    line-height: 1.2;
-    background: #f9fafb;
 }
 
 .pilgrim-doc-photo.placeholder {
@@ -266,6 +241,10 @@
     text-align: start;
 }
 
+#pilgrim-print-root {
+    display: none;
+}
+
 @media (max-width: 767px) {
     .pilgrim-doc-header-top {
         grid-template-columns: 1fr;
@@ -305,7 +284,7 @@
 @media print {
     @page {
         size: A4 portrait;
-        margin: 6mm;
+        margin: 5mm;
     }
 
     html,
@@ -314,149 +293,172 @@
         height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: visible !important;
         background: #fff !important;
+        overflow: visible !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
-    .no-print {
+    body.is-printing-pilgrim > *:not(#pilgrim-print-root) {
         display: none !important;
     }
 
-    .pilgrim-registration-doc {
+    body.is-printing-pilgrim #pilgrim-print-root {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-registration-doc {
         max-width: none !important;
         width: 100% !important;
         margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
-        overflow: visible !important;
         color: #111827 !important;
         background: #fff !important;
         font-size: 7.5pt;
         line-height: 1.15;
     }
 
-    .pilgrim-doc-header {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-header {
         padding: 0 0 4px !important;
         margin-bottom: 4px !important;
         border-bottom: 2px solid #b8956a !important;
     }
 
-    .pilgrim-doc-header-top {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-header-top {
+        display: grid !important;
         grid-template-columns: 62px 1fr auto !important;
+        align-items: center !important;
         gap: 8px !important;
     }
 
-    .pilgrim-doc-photos {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photos {
+        display: flex !important;
         gap: 4px !important;
+        justify-self: end !important;
     }
 
-    .pilgrim-doc-logo {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-logo {
         width: 62px !important;
         height: 74px !important;
+        object-fit: contain !important;
     }
 
-    .pilgrim-doc-title-wrap {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-title-wrap {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         min-height: 74px !important;
     }
 
-    .pilgrim-doc-title {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-title {
         font-size: 11pt !important;
+        color: #1c1c1c !important;
+        text-align: center !important;
     }
 
-    .pilgrim-doc-photo,
-    .pilgrim-doc-photo.placeholder {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo,
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo.placeholder {
         width: 62px !important;
         height: 74px !important;
         max-width: 62px !important;
     }
 
-    .pilgrim-doc-passport-frame {
-        width: 96px !important;
-        height: 74px !important;
-        max-width: 96px !important;
-        overflow: hidden !important;
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport {
+        width: 82px !important;
+        height: 55px !important;
+        max-width: 82px !important;
+        object-fit: contain !important;
+        background: #fff !important;
     }
 
-    .pilgrim-doc-passport.placeholder {
-        width: 96px !important;
-        height: 74px !important;
-        max-width: 96px !important;
-    }
-
-    .pilgrim-doc-photo-label {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-photo-label {
         font-size: 5.5pt !important;
         margin-bottom: 1px !important;
     }
 
-    .pilgrim-doc-key-info {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-info {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 6px !important;
         margin-top: 4px !important;
         padding-top: 3px !important;
+        border-top: 1px solid #e5e7eb !important;
     }
 
-    .pilgrim-doc-key-item .key-label {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-item .key-label {
         font-size: 5.5pt !important;
+        color: #6b7280 !important;
     }
 
-    .pilgrim-doc-key-item .key-value {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-key-item .key-value {
         font-size: 7pt !important;
+        color: #111827 !important;
     }
 
-    .pilgrim-doc-body {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-body {
         padding: 0 !important;
     }
 
-    .pilgrim-doc-layout {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 4px 10px !important;
+        align-items: start !important;
     }
 
-    .pilgrim-doc-layout-column {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-layout-column {
         gap: 3px !important;
     }
 
-    .pilgrim-doc-section {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-section {
         margin-bottom: 0 !important;
         break-inside: auto;
         page-break-inside: auto;
     }
 
-    .pilgrim-doc-section-full {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-section-full {
         margin-top: 3px !important;
     }
 
-    .pilgrim-doc-section-title {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-section-title {
         font-size: 6.5pt !important;
+        color: #967848 !important;
         margin-bottom: 2px !important;
         padding-bottom: 1px !important;
     }
 
-    .pilgrim-doc-grid {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 1px 8px !important;
     }
 
-    .pilgrim-doc-field .field-label {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field.full-width {
+        grid-column: 1 / -1 !important;
+    }
+
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field .field-label {
         font-size: 5.5pt !important;
+        color: #6b7280 !important;
         margin-bottom: 0 !important;
     }
 
-    .pilgrim-doc-field .field-value {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-field .field-value {
         font-size: 6.5pt !important;
+        color: #111827 !important;
         font-weight: 600 !important;
         line-height: 1.15 !important;
     }
 
-    .pilgrim-doc-footer {
+    body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-footer {
         padding: 3px 0 0 !important;
         margin-top: 3px !important;
         font-size: 5.5pt !important;
+        color: #6b7280 !important;
         border-top: 1px solid #d1d5db !important;
-    }
-
-    ::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
     }
 }

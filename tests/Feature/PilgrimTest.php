@@ -738,22 +738,7 @@ test('admin can view pilgrim registration document', function () {
         ->assertSee('DYN-01-S')
         ->assertDontSee('Family Member')
         ->assertSee('Print')
-        ->assertSee('Save as PDF')
-        ->assertSee(route('admin.pilgrims.print', $pilgrim), false);
-});
-
-test('admin can open pilgrim registration print page without admin layout', function () {
-    registerPilgrim();
-
-    $pilgrim = Pilgrim::query()->where('passport_no', 'AB1234567')->firstOrFail();
-
-    $this->actingAs($this->user)->get(route('admin.pilgrims.print', $pilgrim))
-        ->assertOk()
-        ->assertSee('Hajj Registration Form')
-        ->assertSee('Ahmed Khan')
-        ->assertSee('AB1234567')
-        ->assertDontSee('dlabnav', false)
-        ->assertDontSee('Dashboard');
+        ->assertSee('Save as PDF');
 });
 
 test('pilgrim registration document shows company logo when available', function () {

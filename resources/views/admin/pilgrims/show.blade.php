@@ -4,7 +4,7 @@
 @section('page-title', 'Hajj Registration')
 
 @push('styles')
-    <link href="{{ asset('css/pilgrim-registration.css') }}?v=16" rel="stylesheet">
+    <link href="{{ asset('css/pilgrim-registration.css') }}?v=7" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -15,12 +15,12 @@
             </a>
 
             <div class="btn-group">
-                <a href="{{ route('admin.pilgrims.print', $pilgrim) }}" target="_blank" rel="noopener" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" onclick="printRegistration()">
                     <i class="fas fa-print me-1"></i> Print
-                </a>
-                <a href="{{ route('admin.pilgrims.print', $pilgrim) }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="printRegistration()">
                     <i class="fas fa-file-pdf me-1"></i> Save as PDF
-                </a>
+                </button>
                 @can('pilgrims.update')
                     <a href="{{ route('admin.pilgrims.edit', $pilgrim) }}" class="btn btn-outline-secondary">
                         <i class="fas fa-pencil-alt me-1"></i> Edit
@@ -36,5 +36,37 @@
 @push('scripts')
 <script>
     document.title = @json($pilgrim->family_code.' — '.$pilgrim->full_name);
+
+    function printRegistration() {
+        const source = document.querySelector('.pilgrim-view-page .pilgrim-registration-doc');
+
+        if (!source) {
+            window.print();
+            return;
+        }
+
+        const existing = document.getElementById('pilgrim-print-root');
+        if (existing) {
+            existing.remove();
+        }
+
+        const printRoot = document.createElement('div');
+        printRoot.id = 'pilgrim-print-root';
+        printRoot.appendChild(source.cloneNode(true));
+
+        document.body.appendChild(printRoot);
+        document.body.classList.add('is-printing-pilgrim');
+
+        window.print();
+    }
+
+    window.addEventListener('afterprint', function () {
+        document.body.classList.remove('is-printing-pilgrim');
+
+        const printRoot = document.getElementById('pilgrim-print-root');
+        if (printRoot) {
+            printRoot.remove();
+        }
+    });
 </script>
 @endpush
