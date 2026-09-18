@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Print')</title>
-    <link href="{{ asset('css/pilgrim-registration.css') }}?v=15" rel="stylesheet">
+    <link href="{{ asset('css/pilgrim-registration.css') }}?v=16" rel="stylesheet">
     <style>
         html.pilgrim-print-html,
         html.pilgrim-print-html body {
