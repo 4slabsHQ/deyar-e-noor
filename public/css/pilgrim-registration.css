@@ -109,8 +109,8 @@
 }
 
 .pilgrim-doc-passport {
-    width: 120px;
-    height: 80px;
+    width: 130px;
+    height: 110px;
     object-fit: contain;
     background: #fff;
 }
@@ -290,13 +290,16 @@
     html,
     body {
         width: 100% !important;
-        height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
         background: #fff !important;
-        overflow: visible !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+
+    body.is-printing-pilgrim {
+        overflow: hidden !important;
+        height: auto !important;
     }
 
     body.is-printing-pilgrim > *:not(#pilgrim-print-root) {
@@ -308,6 +311,7 @@
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
+        overflow: hidden !important;
     }
 
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-registration-doc {
@@ -316,10 +320,17 @@
         margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
+        overflow: hidden !important;
         color: #111827 !important;
         background: #fff !important;
         font-size: 7.5pt;
         line-height: 1.15;
+    }
+
+    body.is-printing-pilgrim ::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-header {
@@ -368,9 +379,9 @@
     }
 
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport {
-        width: 82px !important;
-        height: 55px !important;
-        max-width: 82px !important;
+        width: 90px !important;
+        height: 74px !important;
+        max-width: 90px !important;
         object-fit: contain !important;
         background: #fff !important;
     }
