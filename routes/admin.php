@@ -140,6 +140,10 @@ Route::middleware(['auth', 'verified', 'active'])->prefix('admin')->name('admin.
         ->name('pilgrims.deletion-preview')
         ->middleware('permission:pilgrims.delete');
 
+    Route::get('pilgrims/{pilgrim}/print', [PilgrimController::class, 'print'])
+        ->name('pilgrims.print')
+        ->middleware('permission:pilgrims.view');
+
     Route::resource('pilgrims', PilgrimController::class)
         ->middlewareFor(['index', 'show'], 'permission:pilgrims.view')
         ->middlewareFor(['create', 'store'], 'permission:pilgrims.create')

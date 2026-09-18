@@ -30,9 +30,11 @@
                 <div class="pilgrim-doc-photo-wrap">
                     <span class="pilgrim-doc-photo-label">Passport Copy</span>
                     @if ($pilgrim->passport_url)
-                        <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-photo pilgrim-doc-passport">
+                        <div class="pilgrim-doc-passport-frame">
+                            <img src="{{ $pilgrim->passport_url }}" alt="Passport copy" class="pilgrim-doc-passport">
+                        </div>
                     @else
-                        <div class="pilgrim-doc-photo pilgrim-doc-passport placeholder">No Passport</div>
+                        <div class="pilgrim-doc-passport placeholder">No Passport</div>
                     @endif
                 </div>
             </div>

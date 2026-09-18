@@ -49,26 +49,16 @@ class PilgrimController extends Controller
 
     public function show(Pilgrim $pilgrim)
     {
-        $pilgrim->load([
-            'formOwner',
-            'company',
-            'maktabCategory',
-            'route.steps.airport',
-            'route.steps.city',
-            'package.accommodationPlan.slots.property',
-            'package.accommodationPlan.slots.akad',
-            'package.route.steps.airport',
-            'package.route.steps.city',
-            'accommodationSlots.akad',
-            'careOff',
-            'podCity',
-            'roomType',
-            'mehramRelation',
-            'warisRelation',
-            'creator',
-        ]);
+        $this->loadPilgrimForRegistrationDocument($pilgrim);
 
         return view('admin.pilgrims.show', compact('pilgrim'));
+    }
+
+    public function print(Pilgrim $pilgrim)
+    {
+        $this->loadPilgrimForRegistrationDocument($pilgrim);
+
+        return view('admin.pilgrims.print', compact('pilgrim'));
     }
 
     public function create()
@@ -355,6 +345,28 @@ class PilgrimController extends Controller
 
             unset($data[$input], $data[$removeKey]);
         }
+    }
+
+    private function loadPilgrimForRegistrationDocument(Pilgrim $pilgrim): void
+    {
+        $pilgrim->load([
+            'formOwner',
+            'company',
+            'maktabCategory',
+            'route.steps.airport',
+            'route.steps.city',
+            'package.accommodationPlan.slots.property',
+            'package.accommodationPlan.slots.akad',
+            'package.route.steps.airport',
+            'package.route.steps.city',
+            'accommodationSlots.akad',
+            'careOff',
+            'podCity',
+            'roomType',
+            'mehramRelation',
+            'warisRelation',
+            'creator',
+        ]);
     }
 
     /** @return array<string, mixed> */
