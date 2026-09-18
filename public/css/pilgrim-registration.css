@@ -109,6 +109,8 @@
 }
 
 .pilgrim-doc-passport {
+    width: 120px;
+    height: 80px;
     object-fit: contain;
     background: #fff;
 }
@@ -366,6 +368,9 @@
     }
 
     body.is-printing-pilgrim #pilgrim-print-root .pilgrim-doc-passport {
+        width: 82px !important;
+        height: 55px !important;
+        max-width: 82px !important;
         object-fit: contain !important;
         background: #fff !important;
     }
